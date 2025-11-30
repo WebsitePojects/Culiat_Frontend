@@ -32,6 +32,8 @@ import AdminCalendar from "./admin/pages/Calendar/AdminCalendar";
 import AdminNotifications from "./admin/pages/Notifications/AdminNotifications";
 import AdminTermsAcceptances from "./admin/pages/TermsAcceptances/AdminTermsAcceptances";
 import AdminAchievements from "./admin/pages/Achievements/AdminAchievements";
+import CMSServices from "./admin/pages/CMS/CMSServices";
+import CMSAboutUs from "./admin/pages/CMS/CMSAboutUs";
 
 // Resident Auth
 import ResidentAuth from "./users/pages/Auth/ResidentAuth";
@@ -41,209 +43,205 @@ import ForgotPassword from "./users/pages/Auth/ForgotPassword";
 import ResetPassword from "./users/pages/Auth/ResetPassword";
 
 function App() {
-   return (
-      <>
-         <AuthProvider>
-            {/* Toast Notifications */}
-            <Toaster
-               position="top-right"
-               reverseOrder={false}
-               gutter={8}
-               toastOptions={{
-                  duration: 5000,
-                  style: {
-                     background: "#1F2937",
-                     color: "#F3F4F6",
-                     borderRadius: "0.5rem",
-                     padding: "1rem",
-                     fontSize: "0.875rem",
-                     maxWidth: "500px",
-                     boxShadow:
-                        "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                  },
-                  success: {
-                     duration: 4000,
-                     iconTheme: {
-                        primary: "#10B981",
-                        secondary: "#F3F4F6",
-                     },
-                  },
-                  error: {
-                     duration: 5000,
-                     iconTheme: {
-                        primary: "#EF4444",
-                        secondary: "#F3F4F6",
-                     },
-                  },
-                  loading: {
-                     iconTheme: {
-                        primary: "#3B82F6",
-                        secondary: "#F3F4F6",
-                     },
-                  },
-               }}
+  return (
+    <>
+      <AuthProvider>
+        {/* Toast Notifications */}
+        <Toaster
+          position="top-right"
+          reverseOrder={false}
+          gutter={8}
+          toastOptions={{
+            duration: 5000,
+            style: {
+              background: "#1F2937",
+              color: "#F3F4F6",
+              borderRadius: "0.5rem",
+              padding: "1rem",
+              fontSize: "0.875rem",
+              maxWidth: "500px",
+              boxShadow:
+                "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+            },
+            success: {
+              duration: 4000,
+              iconTheme: {
+                primary: "#10B981",
+                secondary: "#F3F4F6",
+              },
+            },
+            error: {
+              duration: 5000,
+              iconTheme: {
+                primary: "#EF4444",
+                secondary: "#F3F4F6",
+              },
+            },
+            loading: {
+              iconTheme: {
+                primary: "#3B82F6",
+                secondary: "#F3F4F6",
+              },
+            },
+          }}
+        />
+
+        {/* 👇 Render only on client side */}
+        {typeof window !== "undefined" && <PolicyPopup />}
+
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/signin" element={<AdminLogin />} />
+          <Route path="/login" element={<ResidentAuth />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route
+            path="/reset-password/:resetToken"
+            element={<ResetPassword />}
+          />
+          <Route
+            path="/registration-pending"
+            element={<RegistrationPending />}
+          />
+
+          {/* User Dashboard Route */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <Dashboard />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* User Profile Route */}
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <Profile />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Admin Routes with AdminLayout */}
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute adminOnly={true}>
+                <AdminLayout />
+              </PrivateRoute>
+            }
+          >
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="calendar" element={<AdminCalendar />} />
+            <Route path="notifications" element={<AdminNotifications />} />
+            <Route
+              path="terms-acceptances"
+              element={<AdminTermsAcceptances />}
             />
+            <Route path="reports" element={<AdminReports />} />
+            <Route path="announcements" element={<AdminAnnouncements />} />
+            <Route path="achievements" element={<AdminAchievements />} />
+            <Route path="documents" element={<AdminDocuments />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route
+              path="pending-registrations"
+              element={<PendingRegistrations />}
+            />
+            <Route
+              path="registration-history"
+              element={<RegistrationHistory />}
+            />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="cms/services" element={<CMSServices />} />
+            <Route path="cms/about-us" element={<CMSAboutUs />} />
+          </Route>
 
-            {/* 👇 Render only on client side */}
-            {typeof window !== "undefined" && <PolicyPopup />}
+          {/* User Routes with MainLayout */}
+          <Route
+            path="/"
+            element={
+              <MainLayout>
+                <Home />
+              </MainLayout>
+            }
+          />
 
-            <Routes>
-               {/* Public Routes */}
-               <Route path="/signin" element={<AdminLogin />} />
-               <Route path="/login" element={<ResidentAuth />} />
-               <Route path="/register" element={<Register />} />
-               <Route path="/forgot-password" element={<ForgotPassword />} />
-               <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
-               <Route
-                  path="/registration-pending"
-                  element={<RegistrationPending />}
-               />
+          <Route
+            path="/reports"
+            element={
+              <MainLayout>
+                <Reports />
+              </MainLayout>
+            }
+          />
 
-               {/* User Dashboard Route */}
-               <Route
-                  path="/dashboard"
-                  element={
-                     <PrivateRoute>
-                        <MainLayout>
-                           <Dashboard />
-                        </MainLayout>
-                     </PrivateRoute>
-                  }
-               />
+          <Route
+            path="/reports/newreport"
+            element={
+              <MainLayout>
+                <NewReport />
+              </MainLayout>
+            }
+          />
 
-               {/* User Profile Route */}
-               <Route
-                  path="/profile"
-                  element={
-                     <PrivateRoute>
-                        <MainLayout>
-                           <Profile />
-                        </MainLayout>
-                     </PrivateRoute>
-                  }
-               />
+          <Route
+            path="/announcements"
+            element={
+              <MainLayout>
+                <Announcements />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/announcements/:slug"
+            element={
+              <MainLayout>
+                <AnnouncementDetail />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/achievements"
+            element={
+              <MainLayout>
+                <Achievements />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/services/"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <Services />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
 
-               {/* Admin Routes with AdminLayout */}
-               <Route
-                  path="/admin"
-                  element={
-                     <PrivateRoute adminOnly={true}>
-                        <AdminLayout />
-                     </PrivateRoute>
-                  }
-               >
-                  <Route
-                     index
-                     element={<Navigate to="/admin/dashboard" replace />}
-                  />
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                  <Route path="analytics" element={<AdminAnalytics />} />
-                  <Route path="calendar" element={<AdminCalendar />} />
-                  <Route
-                     path="notifications"
-                     element={<AdminNotifications />}
-                  />
-                  <Route
-                     path="terms-acceptances"
-                     element={<AdminTermsAcceptances />}
-                  />
-                  <Route path="reports" element={<AdminReports />} />
-                  <Route
-                     path="announcements"
-                     element={<AdminAnnouncements />}
-                  />
-                  <Route path="achievements" element={<AdminAchievements />} />
-                  <Route path="documents" element={<AdminDocuments />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route
-                     path="pending-registrations"
-                     element={<PendingRegistrations />}
-                  />
-                  <Route
-                     path="registration-history"
-                     element={<RegistrationHistory />}
-                  />
-                  <Route path="settings" element={<SettingsPage />} />
-               </Route>
+          <Route
+            path="/about"
+            element={
+              <MainLayout>
+                <About />
+              </MainLayout>
+            }
+          />
 
-               {/* User Routes with MainLayout */}
-               <Route
-                  path="/"
-                  element={
-                     <MainLayout>
-                        <Home />
-                     </MainLayout>
-                  }
-               />
-
-               <Route
-                  path="/reports"
-                  element={
-                     <MainLayout>
-                        <Reports />
-                     </MainLayout>
-                  }
-               />
-
-               <Route
-                  path="/reports/newreport"
-                  element={
-                     <MainLayout>
-                        <NewReport />
-                     </MainLayout>
-                  }
-               />
-
-               <Route
-                  path="/announcements"
-                  element={
-                     <MainLayout>
-                        <Announcements />
-                     </MainLayout>
-                  }
-               />
-               <Route
-                  path="/announcements/:slug"
-                  element={
-                     <MainLayout>
-                        <AnnouncementDetail />
-                     </MainLayout>
-                  }
-               />
-               <Route
-                  path="/achievements"
-                  element={
-                     <MainLayout>
-                        <Achievements />
-                     </MainLayout>
-                  }
-               />
-               <Route
-                  path="/services/"
-                  element={
-                     <PrivateRoute>
-                        <MainLayout>
-                           <Services />
-                        </MainLayout>
-                     </PrivateRoute>
-                  }
-               />
-
-               <Route
-                  path="/about"
-                  element={
-                     <MainLayout>
-                        <About />
-                     </MainLayout>
-                  }
-               />
-
-               {/* Catch-all route for 404 Not Found */}
-               <Route path="*" element={<NotFound />} />
-            </Routes>
-         </AuthProvider>
-      </>
-   );
+          {/* Catch-all route for 404 Not Found */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AuthProvider>
+    </>
+  );
 }
 
 export default App;

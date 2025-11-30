@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home,
@@ -15,18 +15,32 @@ import {
   FileCheck,
   History,
   Trophy,
+  Layout,
+  ChevronDown,
+  ChevronRight,
+  Info,
+  Briefcase,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
   const location = useLocation();
   const { user } = useAuth();
+  const [cmsOpen, setCmsOpen] = useState(false);
 
   const menuItems = [
     { name: "Dashboard", path: "/admin/dashboard", icon: Home },
     { name: "Users", path: "/admin/users", icon: Users },
-    { name: "Pending Registrations", path: "/admin/pending-registrations", icon: UserCheck },
-    { name: "Registration History", path: "/admin/registration-history", icon: History },
+    {
+      name: "Pending Registrations",
+      path: "/admin/pending-registrations",
+      icon: UserCheck,
+    },
+    {
+      name: "Registration History",
+      path: "/admin/registration-history",
+      icon: History,
+    },
     { name: "Reports", path: "/admin/reports", icon: FileText },
     { name: "Announcements", path: "/admin/announcements", icon: Megaphone },
     { name: "Achievements", path: "/admin/achievements", icon: Trophy },
@@ -34,11 +48,27 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
     { name: "Documents", path: "/admin/documents", icon: FolderOpen },
     { name: "Calendar", path: "/admin/calendar", icon: Calendar },
     { name: "Notifications", path: "/admin/notifications", icon: Bell },
-    { name: "Terms Acceptances", path: "/admin/terms-acceptances", icon: FileCheck },
+    {
+      name: "Terms Acceptances",
+      path: "/admin/terms-acceptances",
+      icon: FileCheck,
+    },
     { name: "Settings", path: "/admin/settings", icon: Settings },
   ];
 
+  const cmsItems = [
+    { name: "Services", path: "/admin/cms/services", icon: Briefcase },
+    { name: "About Us", path: "/admin/cms/about-us", icon: Info },
+  ];
+
   const isActive = (path) => location.pathname === path;
+  const isCMSActive = cmsItems.some((item) => location.pathname === item.path);
+
+  React.useEffect(() => {
+    if (isCMSActive) {
+      setCmsOpen(true);
+    }
+  }, [isCMSActive]);
 
   return (
     <>
@@ -88,6 +118,65 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
               </Link>
             );
           })}
+
+          {/* CMS Section */}
+          {isOpen ? (
+            <div className="pt-2">
+              <button
+                onClick={() => setCmsOpen(!cmsOpen)}
+                className={`w-full flex items-center justify-between px-3 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  isCMSActive
+                    ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                }`}
+              >
+                <div className="flex items-center">
+                  <Layout className="flex-shrink-0 w-5 h-5" />
+                  <span className="ml-3">CMS</span>
+                </div>
+                {cmsOpen ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
+              </button>
+              {cmsOpen && (
+                <div className="mt-1 ml-4 space-y-1">
+                  {cmsItems.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.path);
+
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                          active
+                            ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                            : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                        }`}
+                      >
+                        <Icon className="flex-shrink-0 w-4 h-4" />
+                        <span className="ml-3">{item.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/admin/cms/services"
+              className={`flex items-center justify-center px-3 py-3 text-sm font-medium rounded-lg transition-colors ${
+                isCMSActive
+                  ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              }`}
+              title="CMS"
+            >
+              <Layout className="flex-shrink-0 w-5 h-5" />
+            </Link>
+          )}
         </nav>
 
         {/* User Profile Section */}
@@ -163,6 +252,52 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
               </Link>
             );
           })}
+
+          {/* CMS Section */}
+          <div className="pt-2">
+            <button
+              onClick={() => setCmsOpen(!cmsOpen)}
+              className={`w-full flex items-center justify-between px-3 py-3 text-sm font-medium rounded-lg transition-colors ${
+                isCMSActive
+                  ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              }`}
+            >
+              <div className="flex items-center">
+                <Layout className="flex-shrink-0 w-5 h-5" />
+                <span className="ml-3">CMS</span>
+              </div>
+              {cmsOpen ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+            {cmsOpen && (
+              <div className="mt-1 ml-4 space-y-1">
+                {cmsItems.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.path);
+
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={closeMobileMenu}
+                      className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        active
+                          ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+                          : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      <Icon className="flex-shrink-0 w-4 h-4" />
+                      <span className="ml-3">{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* User Profile Section */}

@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   FileText,
   Home,
@@ -8,15 +9,32 @@ import {
   Hammer,
   AlertCircle,
   HeartHandshake,
+  Shield,
+  Heart,
 } from "lucide-react";
-// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+// Icon mapping
+const iconMap = {
+  FileText,
+  Home,
+  BadgeCheck,
+  Building2,
+  HandCoins,
+  Hammer,
+  AlertCircle,
+  HeartHandshake,
+  Shield,
+  Heart,
+};
 
 const container = {
   hidden: {},
   show: {
     transition: {
-      staggerChildren: 0.15, // controls the stagger
+      staggerChildren: 0.15,
     },
   },
 };
@@ -26,50 +44,37 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
-const services = [
-  {
-    name: "Certificate of Indigency",
-    icon: FileText,
-    desc: "Request proof of indigency for social or legal purposes.",
-  },
-  {
-    name: "Certificate of Residency",
-    icon: Home,
-    desc: "Get official confirmation of your barangay residence.",
-  },
-  {
-    name: "Barangay Clearance",
-    icon: BadgeCheck,
-    desc: "Obtain a clearance for employment or personal use.",
-  },
-  {
-    name: "Community Tax Certificate",
-    icon: HandCoins,
-    desc: "Secure your CTC (Cedula) for identification and tax purposes.",
-  },
-  {
-    name: "Business Permit",
-    icon: Building2,
-    desc: "Apply for or renew your local business permit online.",
-  },
-  {
-    name: "Building Permit",
-    icon: Hammer,
-    desc: "Submit requirements for residential or commercial construction.",
-  },
-  {
-    name: "Complaint Certificate",
-    icon: AlertCircle,
-    desc: "File and receive documentation for barangay-related complaints.",
-  },
-  {
-    name: "Certificate of Good Moral",
-    icon: HeartHandshake,
-    desc: "Get a certificate confirming your good standing in the community.",
-  },
-];
-
 const Services = () => {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/services/active`);
+      if (response.data.success) {
+        setServices(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch services:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <section className="py-16 px-6 bg-neutral" id="home-services">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       className="py-16 px-6 bg-neutral dark:from-gray-900 dark:to-gray-950"
@@ -113,11 +118,11 @@ const Services = () => {
           viewport={{ once: true, amount: 0.2 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
         >
-          {services.map((service, index) => {
-            const Icon = service.icon;
+          {services.map((service) => {
+            const Icon = iconMap[service.icon] || FileText;
             return (
               <motion.div
-                key={index}
+                key={service._id}
                 variants={item}
                 whileHover={{
                   y: -6,
@@ -137,10 +142,10 @@ const Services = () => {
                 </motion.div>
 
                 <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-2">
-                  {service.name}
+                  {service.title}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 leading-snug">
-                  {service.desc}
+                  {service.description}
                 </p>
               </motion.div>
             );
