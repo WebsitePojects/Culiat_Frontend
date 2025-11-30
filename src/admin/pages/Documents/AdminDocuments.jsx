@@ -16,11 +16,15 @@ import {
   MapPin,
   X,
   AlertCircle,
+  Home,
+  IdCard,
+  Briefcase,
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 
 const AdminDocuments = () => {
-  const { notifyDocumentCompleted, notifyDocumentRejected, showPromise } = useNotifications();
+  const { notifyDocumentCompleted, notifyDocumentRejected, showPromise } =
+    useNotifications();
   const [requests, setRequests] = useState([]);
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,9 +73,15 @@ const AdminDocuments = () => {
       filtered = filtered.filter(
         (r) =>
           r.documentType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.user?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.user?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+          r.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          r.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          r.applicant?.firstName
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          r.applicant?.lastName
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          r.applicant?.email?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -84,30 +94,30 @@ const AdminDocuments = () => {
       setUpdating(true);
       setError("");
       const token = localStorage.getItem("token");
-      
-      // Find the request to get document type for notification
-      const request = requests.find(r => r._id === requestId);
+
+      const request = requests.find((r) => r._id === requestId);
       const documentType = request?.documentType || "Document";
-      
+
       const promise = axios.patch(
         `${API_URL}/api/document-requests/${requestId}/status`,
-        { 
+        {
           status: action,
-          reason: reason || undefined
+          reason: reason || undefined,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       await showPromise(promise, {
-        loading: `${action === 'completed' ? 'Completing' : 'Rejecting'} document request...`,
+        loading: `${
+          action === "completed" ? "Completing" : "Rejecting"
+        } document request...`,
         success: `${documentType} request ${action} successfully!`,
-        error: `Failed to ${action} request`
+        error: `Failed to ${action} request`,
       });
-      
-      // Show additional notification based on action
-      if (action === 'completed') {
+
+      if (action === "completed") {
         notifyDocumentCompleted(documentType);
-      } else if (action === 'rejected') {
+      } else if (action === "rejected") {
         notifyDocumentRejected(documentType, reason);
       }
 
@@ -130,8 +140,10 @@ const AdminDocuments = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-      completed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      pending:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+      completed:
+        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
       rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
     };
     return colors[status] || colors.pending;
@@ -144,6 +156,17 @@ const AdminDocuments = () => {
       rejected: XCircle,
     };
     return icons[status] || Clock;
+  };
+
+  const formatAddress = (address) => {
+    if (!address) return "N/A";
+    const parts = [];
+    if (address.houseNumber) parts.push(address.houseNumber);
+    if (address.street) parts.push(address.street);
+    if (address.subdivision) parts.push(address.subdivision);
+    if (address.barangay) parts.push(`Brgy. ${address.barangay}`);
+    if (address.city) parts.push(address.city);
+    return parts.join(", ") || "N/A";
   };
 
   const statusCounts = {
@@ -161,7 +184,7 @@ const AdminDocuments = () => {
           Document Requests
         </h1>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Review and process document requests
+          Review and process document requests with full resident information
         </p>
       </div>
 
@@ -187,11 +210,16 @@ const AdminDocuments = () => {
           { label: "Completed", count: statusCounts.completed, color: "green" },
           { label: "Rejected", count: statusCounts.rejected, color: "red" },
         ].map((stat, idx) => (
-          <div key={idx} className="p-6 bg-white rounded-lg shadow dark:bg-gray-800">
+          <div
+            key={idx}
+            className="p-6 bg-white rounded-lg shadow dark:bg-gray-800"
+          >
             <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
               {stat.label}
             </p>
-            <p className={`mt-2 text-3xl font-bold text-${stat.color}-600 dark:text-${stat.color}-400`}>
+            <p
+              className={`mt-2 text-3xl font-bold text-${stat.color}-600 dark:text-${stat.color}-400`}
+            >
               {stat.count}
             </p>
           </div>
@@ -227,8 +255,12 @@ const AdminDocuments = () => {
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             >
               <option value="pending">Pending ({statusCounts.pending})</option>
-              <option value="completed">Completed ({statusCounts.completed})</option>
-              <option value="rejected">Rejected ({statusCounts.rejected})</option>
+              <option value="completed">
+                Completed ({statusCounts.completed})
+              </option>
+              <option value="rejected">
+                Rejected ({statusCounts.rejected})
+              </option>
               <option value="all">All Requests ({statusCounts.all})</option>
             </select>
           </div>
@@ -243,7 +275,9 @@ const AdminDocuments = () => {
       {loading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Loading requests...</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Loading requests...
+          </p>
         </div>
       )}
 
@@ -252,7 +286,9 @@ const AdminDocuments = () => {
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
           <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <p className="text-gray-600 dark:text-gray-400">
-            {requests.length === 0 ? "No requests found" : "No requests match your filters"}
+            {requests.length === 0
+              ? "No requests found"
+              : "No requests match your filters"}
           </p>
         </div>
       )}
@@ -283,31 +319,57 @@ const AdminDocuments = () => {
                           )}`}
                         >
                           <StatusIcon className="w-3 h-3 mr-1" />
-                          {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                          {request.status.charAt(0).toUpperCase() +
+                            request.status.slice(1)}
                         </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <User className="w-4 h-4" />
                         <span>
-                          {request.user?.firstName} {request.user?.lastName}
+                          {request.firstName} {request.lastName}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <Mail className="w-4 h-4" />
-                        <span>{request.user?.email}</span>
+                        <span>
+                          {request.applicant?.email ||
+                            request.emailAddress ||
+                            "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                        <Phone className="w-4 h-4" />
+                        <span>{request.contactNumber || "N/A"}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                        <MapPin className="w-4 h-4" />
+                        <span className="truncate">
+                          {formatAddress(request.address)}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <Calendar className="w-4 h-4" />
-                        <span>{new Date(request.createdAt).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(request.createdAt).toLocaleDateString()}
+                        </span>
                       </div>
+                      {request.dateOfBirth && (
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                          <IdCard className="w-4 h-4" />
+                          <span>
+                            Born:{" "}
+                            {new Date(request.dateOfBirth).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
-                    {request.purpose && (
+                    {request.purposeOfRequest && (
                       <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-                        <strong>Purpose:</strong> {request.purpose}
+                        <strong>Purpose:</strong> {request.purposeOfRequest}
                       </div>
                     )}
                   </div>
@@ -355,10 +417,10 @@ const AdminDocuments = () => {
       {/* Details Modal */}
       {showModal && selectedRequest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Request Details
+                Request Details - Full Resident Information
               </h2>
               <button
                 onClick={() => {
@@ -373,72 +435,246 @@ const AdminDocuments = () => {
             </div>
 
             <div className="p-6 space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Document Type
-                  </label>
-                  <p className="mt-1 text-gray-900 dark:text-white">
-                    {selectedRequest.documentType}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Status
-                  </label>
-                  <p className="mt-1">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedRequest.status)}`}>
-                      {selectedRequest.status}
-                    </span>
-                  </p>
+              {/* Document Information */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Document Information
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Document Type
+                    </label>
+                    <p className="mt-1 text-gray-900 dark:text-white">
+                      {selectedRequest.documentType}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Status
+                    </label>
+                    <p className="mt-1">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                          selectedRequest.status
+                        )}`}
+                      >
+                        {selectedRequest.status}
+                      </span>
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Request Date
+                    </label>
+                    <p className="mt-1 text-gray-900 dark:text-white">
+                      {new Date(selectedRequest.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  {selectedRequest.purposeOfRequest && (
+                    <div className="col-span-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Purpose
+                      </label>
+                      <p className="mt-1 text-gray-900 dark:text-white">
+                        {selectedRequest.purposeOfRequest}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Requestor
-                </label>
-                <div className="mt-2 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-900 dark:text-white">
-                        {selectedRequest.user?.firstName} {selectedRequest.user?.lastName}
-                      </span>
+              {/* Personal Information */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  Personal Information
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Full Name
+                    </label>
+                    <p className="mt-1 text-gray-900 dark:text-white">
+                      {selectedRequest.firstName} {selectedRequest.middleName}{" "}
+                      {selectedRequest.lastName}
+                    </p>
+                  </div>
+                  {selectedRequest.dateOfBirth && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Date of Birth
+                      </label>
+                      <p className="mt-1 text-gray-900 dark:text-white">
+                        {new Date(
+                          selectedRequest.dateOfBirth
+                        ).toLocaleDateString()}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600 dark:text-gray-400">
-                        {selectedRequest.user?.email}
-                      </span>
+                  )}
+                  {selectedRequest.placeOfBirth && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Place of Birth
+                      </label>
+                      <p className="mt-1 text-gray-900 dark:text-white">
+                        {selectedRequest.placeOfBirth}
+                      </p>
                     </div>
-                    {selectedRequest.user?.phoneNumber && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {selectedRequest.user?.phoneNumber}
-                        </span>
-                      </div>
-                    )}
+                  )}
+                  {selectedRequest.gender && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Gender
+                      </label>
+                      <p className="mt-1 text-gray-900 dark:text-white capitalize">
+                        {selectedRequest.gender}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.civilStatus && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Civil Status
+                      </label>
+                      <p className="mt-1 text-gray-900 dark:text-white capitalize">
+                        {selectedRequest.civilStatus.replace(/_/g, " ")}
+                      </p>
+                    </div>
+                  )}
+                  {selectedRequest.nationality && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Nationality
+                      </label>
+                      <p className="mt-1 text-gray-900 dark:text-white">
+                        {selectedRequest.nationality}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Phone className="w-5 h-5" />
+                  Contact Information
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Email
+                    </label>
+                    <p className="mt-1 text-gray-900 dark:text-white">
+                      {selectedRequest.applicant?.email ||
+                        selectedRequest.emailAddress ||
+                        "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Contact Number
+                    </label>
+                    <p className="mt-1 text-gray-900 dark:text-white">
+                      {selectedRequest.contactNumber || "N/A"}
+                    </p>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Address
+                    </label>
+                    <p className="mt-1 text-gray-900 dark:text-white">
+                      {formatAddress(selectedRequest.address)}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {selectedRequest.purpose && (
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Purpose
-                  </label>
-                  <p className="mt-1 text-gray-900 dark:text-white">
-                    {selectedRequest.purpose}
-                  </p>
-                </div>
-              )}
+              {/* Emergency Contact */}
+              {selectedRequest.emergencyContact &&
+                selectedRequest.emergencyContact.fullName && (
+                  <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                      Emergency Contact
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Name
+                        </label>
+                        <p className="mt-1 text-gray-900 dark:text-white">
+                          {selectedRequest.emergencyContact.fullName}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Relationship
+                        </label>
+                        <p className="mt-1 text-gray-900 dark:text-white">
+                          {selectedRequest.emergencyContact.relationship ||
+                            "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Contact Number
+                        </label>
+                        <p className="mt-1 text-gray-900 dark:text-white">
+                          {selectedRequest.emergencyContact.contactNumber ||
+                            "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {/* Business Information (if applicable) */}
+              {selectedRequest.businessInfo &&
+                selectedRequest.businessInfo.businessName && (
+                  <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                      <Briefcase className="w-5 h-5" />
+                      Business Information
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Business Name
+                        </label>
+                        <p className="mt-1 text-gray-900 dark:text-white">
+                          {selectedRequest.businessInfo.businessName}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Nature of Business
+                        </label>
+                        <p className="mt-1 text-gray-900 dark:text-white">
+                          {selectedRequest.businessInfo.natureOfBusiness ||
+                            "N/A"}
+                        </p>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Business Address
+                        </label>
+                        <p className="mt-1 text-gray-900 dark:text-white">
+                          {formatAddress(
+                            selectedRequest.businessInfo.businessAddress
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
               {selectedRequest.status === "pending" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Notes/Reason (Optional for completion, Required for rejection)
+                    Notes/Reason (Optional for completion, Required for
+                    rejection)
                   </label>
                   <textarea
                     value={actionReason}
@@ -470,7 +706,11 @@ const AdminDocuments = () => {
                         setError("Please provide a reason for rejection");
                         return;
                       }
-                      handleAction(selectedRequest._id, "rejected", actionReason);
+                      handleAction(
+                        selectedRequest._id,
+                        "rejected",
+                        actionReason
+                      );
                     }}
                     disabled={updating}
                     className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
@@ -479,7 +719,13 @@ const AdminDocuments = () => {
                     Reject Request
                   </button>
                   <button
-                    onClick={() => handleAction(selectedRequest._id, "completed", actionReason)}
+                    onClick={() =>
+                      handleAction(
+                        selectedRequest._id,
+                        "completed",
+                        actionReason
+                      )
+                    }
                     disabled={updating}
                     className="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
                   >

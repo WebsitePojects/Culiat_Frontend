@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReactApexChart from "react-apexcharts";
+import axios from "axios";
 import {
   Users,
   FileText,
@@ -16,295 +17,293 @@ import {
 
 const AdminAnalytics = () => {
   const [timeRange, setTimeRange] = useState("month");
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([]);
+  const [documentTypeData, setDocumentTypeData] = useState({
+    series: [],
+    options: {},
+  });
+  const [statusData, setStatusData] = useState({ series: [], options: {} });
+  const [monthlyTrendsData, setMonthlyTrendsData] = useState({
+    series: [],
+    options: {},
+  });
+  const [peakHoursData, setPeakHoursData] = useState({
+    series: [],
+    options: {},
+  });
+  const [popularServices, setPopularServices] = useState([]);
+  const [summary, setSummary] = useState({});
 
-  // Mock data for statistics
-  const stats = [
-    {
-      name: "Total Residents",
-      value: "2,847",
-      change: "+12.5%",
-      trend: "up",
-      icon: Users,
-      color: "blue",
-      bgColor: "bg-blue-100",
-      iconColor: "text-blue-600",
-      darkBg: "dark:bg-blue-900/20",
-      darkIcon: "dark:text-blue-400",
-    },
-    {
-      name: "Document Requests",
-      value: "1,234",
-      change: "+18.2%",
-      trend: "up",
-      icon: FileText,
-      color: "green",
-      bgColor: "bg-green-100",
-      iconColor: "text-green-600",
-      darkBg: "dark:bg-green-900/20",
-      darkIcon: "dark:text-green-400",
-    },
-    {
-      name: "Pending Requests",
-      value: "47",
-      change: "-5.3%",
-      trend: "down",
-      icon: Clock,
-      color: "yellow",
-      bgColor: "bg-yellow-100",
-      iconColor: "text-yellow-600",
-      darkBg: "dark:bg-yellow-900/20",
-      darkIcon: "dark:text-yellow-400",
-    },
-    {
-      name: "Completion Rate",
-      value: "94.2%",
-      change: "+2.1%",
-      trend: "up",
-      icon: CheckCircle,
-      color: "purple",
-      bgColor: "bg-purple-100",
-      iconColor: "text-purple-600",
-      darkBg: "dark:bg-purple-900/20",
-      darkIcon: "dark:text-purple-400",
-    },
-  ];
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  // Document requests by type
-  const documentTypeData = {
-    series: [324, 289, 245, 198, 178],
-    options: {
-      chart: {
-        type: "donut",
-        fontFamily: "Inter, sans-serif",
-      },
-      labels: [
-        "Barangay Clearance",
-        "Certificate of Residency",
-        "Business Permit",
-        "Indigency Certificate",
-        "Others",
-      ],
-      colors: ["#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#6B7280"],
-      legend: {
-        position: "bottom",
-        labels: {
-          colors: "#6B7280",
-        },
-      },
-      plotOptions: {
-        pie: {
-          donut: {
-            size: "70%",
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [timeRange]);
+
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const config = {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { timeRange },
+      };
+
+      // Fetch all analytics data
+      const [
+        overviewRes,
+        docTypesRes,
+        statusRes,
+        trendsRes,
+        peakHoursRes,
+        servicesRes,
+        summaryRes,
+      ] = await Promise.all([
+        axios.get(`${API_URL}/api/analytics/overview`, config),
+        axios.get(`${API_URL}/api/analytics/document-types`, config),
+        axios.get(`${API_URL}/api/analytics/status-breakdown`, config),
+        axios.get(`${API_URL}/api/analytics/monthly-trends`, config),
+        axios.get(`${API_URL}/api/analytics/peak-hours`, config),
+        axios.get(`${API_URL}/api/analytics/popular-services`, config),
+        axios.get(`${API_URL}/api/analytics/summary`, config),
+      ]);
+
+      // Set overview stats
+      const statsData = overviewRes.data.data.stats.map((stat) => ({
+        ...stat,
+        icon: getIconComponent(stat.icon),
+        bgColor: `bg-${stat.color}-100`,
+        iconColor: `text-${stat.color}-600`,
+        darkBg: `dark:bg-${stat.color}-900/20`,
+        darkIcon: `dark:text-${stat.color}-400`,
+      }));
+      setStats(statsData);
+
+      // Set document type distribution
+      setDocumentTypeData({
+        series: docTypesRes.data.data.series,
+        options: {
+          chart: {
+            type: "donut",
+            fontFamily: "Inter, sans-serif",
           },
-        },
-      },
-      dataLabels: {
-        enabled: true,
-        formatter: function (val) {
-          return Math.round(val) + "%";
-        },
-      },
-      responsive: [
-        {
-          breakpoint: 480,
-          options: {
-            chart: {
-              width: 300,
-            },
-            legend: {
-              position: "bottom",
+          labels: docTypesRes.data.data.labels,
+          colors: ["#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#6B7280"],
+          legend: {
+            position: "bottom",
+            labels: {
+              colors: "#6B7280",
             },
           },
+          plotOptions: {
+            pie: {
+              donut: {
+                size: "70%",
+              },
+            },
+          },
+          dataLabels: {
+            enabled: true,
+            formatter: function (val) {
+              return Math.round(val) + "%";
+            },
+          },
+          responsive: [
+            {
+              breakpoint: 480,
+              options: {
+                chart: {
+                  width: 300,
+                },
+                legend: {
+                  position: "bottom",
+                },
+              },
+            },
+          ],
         },
-      ],
-    },
+      });
+
+      // Set status breakdown
+      setStatusData({
+        series: statusRes.data.data.series,
+        options: {
+          chart: {
+            type: "bar",
+            height: 350,
+            toolbar: {
+              show: false,
+            },
+          },
+          plotOptions: {
+            bar: {
+              borderRadius: 8,
+              horizontal: false,
+              columnWidth: "60%",
+            },
+          },
+          dataLabels: {
+            enabled: false,
+          },
+          colors: ["#3B82F6"],
+          xaxis: {
+            categories: statusRes.data.data.categories,
+            labels: {
+              style: {
+                colors: "#6B7280",
+              },
+            },
+          },
+          yaxis: {
+            labels: {
+              style: {
+                colors: "#6B7280",
+              },
+            },
+          },
+          grid: {
+            borderColor: "#E5E7EB",
+          },
+        },
+      });
+
+      // Set monthly trends
+      setMonthlyTrendsData({
+        series: trendsRes.data.data.series,
+        options: {
+          chart: {
+            type: "area",
+            height: 350,
+            toolbar: {
+              show: false,
+            },
+            zoom: {
+              enabled: false,
+            },
+          },
+          dataLabels: {
+            enabled: false,
+          },
+          stroke: {
+            curve: "smooth",
+            width: 2,
+          },
+          colors: ["#3B82F6", "#10B981"],
+          fill: {
+            type: "gradient",
+            gradient: {
+              shadeIntensity: 1,
+              opacityFrom: 0.4,
+              opacityTo: 0.1,
+            },
+          },
+          xaxis: {
+            categories: trendsRes.data.data.categories,
+            labels: {
+              style: {
+                colors: "#6B7280",
+              },
+            },
+          },
+          yaxis: {
+            labels: {
+              style: {
+                colors: "#6B7280",
+              },
+            },
+          },
+          grid: {
+            borderColor: "#E5E7EB",
+          },
+          legend: {
+            position: "top",
+            horizontalAlign: "right",
+            labels: {
+              colors: "#6B7280",
+            },
+          },
+        },
+      });
+
+      // Set peak hours
+      setPeakHoursData({
+        series: peakHoursRes.data.data.series,
+        options: {
+          chart: {
+            type: "line",
+            height: 300,
+            toolbar: {
+              show: false,
+            },
+          },
+          stroke: {
+            curve: "smooth",
+            width: 3,
+          },
+          colors: ["#8B5CF6"],
+          xaxis: {
+            categories: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+            labels: {
+              rotate: -45,
+              style: {
+                colors: "#6B7280",
+                fontSize: "10px",
+              },
+            },
+          },
+          yaxis: {
+            labels: {
+              style: {
+                colors: "#6B7280",
+              },
+            },
+          },
+          grid: {
+            borderColor: "#E5E7EB",
+          },
+          tooltip: {
+            x: {
+              format: "HH:mm",
+            },
+          },
+        },
+      });
+
+      // Set popular services
+      setPopularServices(servicesRes.data.data);
+
+      // Set summary
+      setSummary(summaryRes.data.data);
+    } catch (error) {
+      console.error("Error fetching analytics data:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Request status breakdown
-  const statusData = {
-    series: [
-      {
-        name: "Requests",
-        data: [234, 456, 178, 89, 67],
-      },
-    ],
-    options: {
-      chart: {
-        type: "bar",
-        height: 350,
-        toolbar: {
-          show: false,
-        },
-      },
-      plotOptions: {
-        bar: {
-          borderRadius: 8,
-          horizontal: false,
-          columnWidth: "60%",
-        },
-      },
-      dataLabels: {
-        enabled: false,
-      },
-      colors: ["#3B82F6"],
-      xaxis: {
-        categories: ["Pending", "Approved", "Completed", "Rejected", "Cancelled"],
-        labels: {
-          style: {
-            colors: "#6B7280",
-          },
-        },
-      },
-      yaxis: {
-        labels: {
-          style: {
-            colors: "#6B7280",
-          },
-        },
-      },
-      grid: {
-        borderColor: "#E5E7EB",
-      },
-    },
+  const getIconComponent = (iconName) => {
+    const icons = {
+      Users,
+      FileText,
+      Clock,
+      CheckCircle,
+    };
+    return icons[iconName] || FileText;
   };
 
-  // Monthly trends
-  const monthlyTrendsData = {
-    series: [
-      {
-        name: "Document Requests",
-        data: [45, 52, 38, 65, 78, 93, 110, 125, 142, 158, 175, 189],
-      },
-      {
-        name: "Completed",
-        data: [35, 48, 34, 58, 70, 85, 98, 115, 130, 145, 160, 175],
-      },
-    ],
-    options: {
-      chart: {
-        type: "area",
-        height: 350,
-        toolbar: {
-          show: false,
-        },
-        zoom: {
-          enabled: false,
-        },
-      },
-      dataLabels: {
-        enabled: false,
-      },
-      stroke: {
-        curve: "smooth",
-        width: 2,
-      },
-      colors: ["#3B82F6", "#10B981"],
-      fill: {
-        type: "gradient",
-        gradient: {
-          shadeIntensity: 1,
-          opacityFrom: 0.4,
-          opacityTo: 0.1,
-        },
-      },
-      xaxis: {
-        categories: [
-          "Jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Oct",
-          "Nov",
-          "Dec",
-        ],
-        labels: {
-          style: {
-            colors: "#6B7280",
-          },
-        },
-      },
-      yaxis: {
-        labels: {
-          style: {
-            colors: "#6B7280",
-          },
-        },
-      },
-      grid: {
-        borderColor: "#E5E7EB",
-      },
-      legend: {
-        position: "top",
-        horizontalAlign: "right",
-        labels: {
-          colors: "#6B7280",
-        },
-      },
-    },
-  };
-
-  // Peak hours data
-  const peakHoursData = {
-    series: [
-      {
-        name: "Requests",
-        data: [12, 15, 18, 25, 35, 48, 62, 75, 82, 78, 65, 58, 52, 48, 42, 38, 35, 28, 22, 18, 15, 13, 10, 8],
-      },
-    ],
-    options: {
-      chart: {
-        type: "line",
-        height: 300,
-        toolbar: {
-          show: false,
-        },
-      },
-      stroke: {
-        curve: "smooth",
-        width: 3,
-      },
-      colors: ["#8B5CF6"],
-      xaxis: {
-        categories: Array.from({ length: 24 }, (_, i) => `${i}:00`),
-        labels: {
-          rotate: -45,
-          style: {
-            colors: "#6B7280",
-            fontSize: "10px",
-          },
-        },
-      },
-      yaxis: {
-        labels: {
-          style: {
-            colors: "#6B7280",
-          },
-        },
-      },
-      grid: {
-        borderColor: "#E5E7EB",
-      },
-      tooltip: {
-        x: {
-          format: "HH:mm",
-        },
-      },
-    },
-  };
-
-  // Popular services
-  const popularServices = [
-    { name: "Barangay Clearance", requests: 324, percentage: 26 },
-    { name: "Certificate of Residency", requests: 289, percentage: 23 },
-    { name: "Business Permit", requests: 245, percentage: 20 },
-    { name: "Indigency Certificate", requests: 198, percentage: 16 },
-    { name: "Certificate of Employment", requests: 156, percentage: 13 },
-  ];
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">
+            Loading analytics...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -343,8 +342,12 @@ const AdminAnalytics = () => {
               className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
             >
               <div className="flex items-center justify-between">
-                <div className={`p-3 rounded-lg ${stat.bgColor} ${stat.darkBg}`}>
-                  <Icon className={`w-6 h-6 ${stat.iconColor} ${stat.darkIcon}`} />
+                <div
+                  className={`p-3 rounded-lg ${stat.bgColor} ${stat.darkBg}`}
+                >
+                  <Icon
+                    className={`w-6 h-6 ${stat.iconColor} ${stat.darkIcon}`}
+                  />
                 </div>
                 <div
                   className={`flex items-center gap-1 text-sm font-medium ${
@@ -493,10 +496,12 @@ const AdminAnalytics = () => {
             </div>
             <div>
               <p className="text-sm opacity-90">Avg. Processing Time</p>
-              <p className="text-2xl font-bold">2.3 days</p>
+              <p className="text-2xl font-bold">
+                {summary.avgProcessingTime} days
+              </p>
             </div>
           </div>
-          <p className="text-sm opacity-75">12% faster than last month</p>
+          <p className="text-sm opacity-75">Faster processing than before</p>
         </div>
 
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow p-6 text-white">
@@ -506,10 +511,10 @@ const AdminAnalytics = () => {
             </div>
             <div>
               <p className="text-sm opacity-90">Active Users Today</p>
-              <p className="text-2xl font-bold">342</p>
+              <p className="text-2xl font-bold">{summary.activeUsersToday}</p>
             </div>
           </div>
-          <p className="text-sm opacity-75">Peak hour: 2:00 PM - 3:00 PM</p>
+          <p className="text-sm opacity-75">Peak hour: {summary.peakHour}</p>
         </div>
 
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow p-6 text-white">
@@ -519,10 +524,12 @@ const AdminAnalytics = () => {
             </div>
             <div>
               <p className="text-sm opacity-90">Satisfaction Rate</p>
-              <p className="text-2xl font-bold">4.8/5.0</p>
+              <p className="text-2xl font-bold">
+                {summary.satisfactionRate}/5.0
+              </p>
             </div>
           </div>
-          <p className="text-sm opacity-75">Based on 1,234 responses</p>
+          <p className="text-sm opacity-75">Based on user feedback</p>
         </div>
       </div>
     </div>

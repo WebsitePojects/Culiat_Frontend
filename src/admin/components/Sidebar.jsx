@@ -8,7 +8,6 @@ import {
   Settings,
   BarChart3,
   FolderOpen,
-  Calendar,
   Bell,
   X,
   UserCheck,
@@ -32,7 +31,7 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
   const [contentManagementOpen, setContentManagementOpen] = useState(false);
   const [systemOpen, setSystemOpen] = useState(false);
 
-  // Grouped menu structure
+  // Grouped menu structure (Calendar removed)
   const menuGroups = [
     {
       id: "main",
@@ -87,7 +86,6 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
       id: "operations",
       items: [
         { name: "Reports", path: "/admin/reports", icon: FileText },
-        { name: "Calendar", path: "/admin/calendar", icon: Calendar },
         { name: "Notifications", path: "/admin/notifications", icon: Bell },
       ],
     },
