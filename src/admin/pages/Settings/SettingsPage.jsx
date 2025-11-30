@@ -12,6 +12,11 @@ import {
   Shield,
   RefreshCw,
   AlertCircle,
+  Plus,
+  Trash2,
+  GripVertical,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 
@@ -25,8 +30,8 @@ const SettingsPage = () => {
     siteInfo: {},
     contactInfo: {},
     socialMedia: {},
+    footer: { quickLinks: [] },
     theme: {},
-    emailTemplates: { welcomeEmail: {}, documentReady: {} },
     system: {},
   });
   const [hasChanges, setHasChanges] = useState(false);
@@ -46,13 +51,12 @@ const SettingsPage = () => {
       });
       const data = response.data.data;
       setSettings(data);
-      // Merge with existing formData structure to ensure all fields exist
       setFormData({
         siteInfo: data.siteInfo || {},
         contactInfo: data.contactInfo || {},
         socialMedia: data.socialMedia || {},
+        footer: data.footer || { quickLinks: [] },
         theme: data.theme || {},
-        emailTemplates: data.emailTemplates || { welcomeEmail: {}, documentReady: {} },
         system: data.system || {},
       });
     } catch (error) {
@@ -78,10 +82,12 @@ const SettingsPage = () => {
     try {
       setSaving(true);
       const token = localStorage.getItem("token");
-      
+
       const dataToSave = section ? { [section]: formData[section] } : formData;
-      const endpoint = section ? `${API_URL}/api/settings/${section}` : `${API_URL}/api/settings`;
-      
+      const endpoint = section
+        ? `${API_URL}/api/settings/${section}`
+        : `${API_URL}/api/settings`;
+
       const promise = axios.put(endpoint, dataToSave, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -102,17 +108,65 @@ const SettingsPage = () => {
   };
 
   const handleReset = () => {
-    setFormData(settings);
+    setFormData({
+      siteInfo: settings.siteInfo || {},
+      contactInfo: settings.contactInfo || {},
+      socialMedia: settings.socialMedia || {},
+      footer: settings.footer || { quickLinks: [] },
+      theme: settings.theme || {},
+      system: settings.system || {},
+    });
     setHasChanges(false);
     showSuccess("Changes discarded");
+  };
+
+  // Footer Quick Links Management
+  const addQuickLink = () => {
+    const newLink = {
+      title: "",
+      url: "",
+      order: formData.footer.quickLinks?.length || 0,
+    };
+    setFormData((prev) => ({
+      ...prev,
+      footer: {
+        ...prev.footer,
+        quickLinks: [...(prev.footer.quickLinks || []), newLink],
+      },
+    }));
+    setHasChanges(true);
+  };
+
+  const removeQuickLink = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      footer: {
+        ...prev.footer,
+        quickLinks: prev.footer.quickLinks.filter((_, i) => i !== index),
+      },
+    }));
+    setHasChanges(true);
+  };
+
+  const updateQuickLink = (index, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      footer: {
+        ...prev.footer,
+        quickLinks: prev.footer.quickLinks.map((link, i) =>
+          i === index ? { ...link, [field]: value } : link
+        ),
+      },
+    }));
+    setHasChanges(true);
   };
 
   const tabs = [
     { id: "site-info", label: "Site Information", icon: Building },
     { id: "contactInfo", label: "Contact Info", icon: Phone },
     { id: "socialMedia", label: "Social Media", icon: Globe },
+    { id: "footer", label: "Footer Settings", icon: Mail },
     { id: "theme", label: "Theme", icon: Palette },
-    { id: "emailTemplates", label: "Email Templates", icon: Mail },
     { id: "system", label: "System Settings", icon: Shield },
   ];
 
@@ -121,7 +175,9 @@ const SettingsPage = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading settings...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
+            Loading settings...
+          </p>
         </div>
       </div>
     );
@@ -140,7 +196,7 @@ const SettingsPage = () => {
             Configure your barangay management system
           </p>
         </div>
-        
+
         {hasChanges && (
           <div className="flex items-center gap-3">
             <button
@@ -205,7 +261,13 @@ const SettingsPage = () => {
                 <input
                   type="text"
                   value={formData.siteInfo.barangayName || ""}
-                  onChange={(e) => handleInputChange("siteInfo", "barangayName", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "siteInfo",
+                      "barangayName",
+                      e.target.value
+                    )
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
@@ -217,7 +279,9 @@ const SettingsPage = () => {
                 <input
                   type="text"
                   value={formData.siteInfo.city || ""}
-                  onChange={(e) => handleInputChange("siteInfo", "city", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("siteInfo", "city", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
@@ -229,7 +293,9 @@ const SettingsPage = () => {
                 <input
                   type="text"
                   value={formData.siteInfo.province || ""}
-                  onChange={(e) => handleInputChange("siteInfo", "province", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("siteInfo", "province", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
@@ -241,7 +307,9 @@ const SettingsPage = () => {
                 <input
                   type="text"
                   value={formData.siteInfo.tagline || ""}
-                  onChange={(e) => handleInputChange("siteInfo", "tagline", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("siteInfo", "tagline", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="Your barangay's tagline"
                 />
@@ -254,7 +322,9 @@ const SettingsPage = () => {
                 <textarea
                   rows={3}
                   value={formData.siteInfo.description || ""}
-                  onChange={(e) => handleInputChange("siteInfo", "description", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("siteInfo", "description", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="Brief description of your barangay"
                 ></textarea>
@@ -293,7 +363,13 @@ const SettingsPage = () => {
                 <textarea
                   rows={2}
                   value={formData.contactInfo.officeAddress || ""}
-                  onChange={(e) => handleInputChange("contactInfo", "officeAddress", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "contactInfo",
+                      "officeAddress",
+                      e.target.value
+                    )
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="Complete office address"
                 ></textarea>
@@ -307,7 +383,13 @@ const SettingsPage = () => {
                 <input
                   type="tel"
                   value={formData.contactInfo.phoneNumber || ""}
-                  onChange={(e) => handleInputChange("contactInfo", "phoneNumber", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "contactInfo",
+                      "phoneNumber",
+                      e.target.value
+                    )
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="+63 123 456 7890"
                 />
@@ -320,7 +402,13 @@ const SettingsPage = () => {
                 <input
                   type="tel"
                   value={formData.contactInfo.mobileNumber || ""}
-                  onChange={(e) => handleInputChange("contactInfo", "mobileNumber", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "contactInfo",
+                      "mobileNumber",
+                      e.target.value
+                    )
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="+63 987 654 3210"
                 />
@@ -334,7 +422,13 @@ const SettingsPage = () => {
                 <input
                   type="email"
                   value={formData.contactInfo.emailAddress || ""}
-                  onChange={(e) => handleInputChange("contactInfo", "emailAddress", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "contactInfo",
+                      "emailAddress",
+                      e.target.value
+                    )
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="contact@barangay.gov.ph"
                 />
@@ -347,9 +441,53 @@ const SettingsPage = () => {
                 <input
                   type="text"
                   value={formData.contactInfo.officeHours || ""}
-                  onChange={(e) => handleInputChange("contactInfo", "officeHours", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "contactInfo",
+                      "officeHours",
+                      e.target.value
+                    )
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="Monday - Friday, 8:00 AM - 5:00 PM"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Google Maps Embed URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.contactInfo.mapEmbedUrl || ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "contactInfo",
+                      "mapEmbedUrl",
+                      e.target.value
+                    )
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  placeholder="https://www.google.com/maps/embed?pb=..."
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Google Maps Directions URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.contactInfo.mapDirectionsUrl || ""}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "contactInfo",
+                      "mapDirectionsUrl",
+                      e.target.value
+                    )
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  placeholder="https://www.google.com/maps/place/..."
                 />
               </div>
             </div>
@@ -385,7 +523,9 @@ const SettingsPage = () => {
                 <input
                   type="url"
                   value={formData.socialMedia.facebook || ""}
-                  onChange={(e) => handleInputChange("socialMedia", "facebook", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("socialMedia", "facebook", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="https://facebook.com/your-page"
                 />
@@ -398,7 +538,9 @@ const SettingsPage = () => {
                 <input
                   type="url"
                   value={formData.socialMedia.twitter || ""}
-                  onChange={(e) => handleInputChange("socialMedia", "twitter", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("socialMedia", "twitter", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="https://twitter.com/your-handle"
                 />
@@ -411,7 +553,13 @@ const SettingsPage = () => {
                 <input
                   type="url"
                   value={formData.socialMedia.instagram || ""}
-                  onChange={(e) => handleInputChange("socialMedia", "instagram", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "socialMedia",
+                      "instagram",
+                      e.target.value
+                    )
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="https://instagram.com/your-account"
                 />
@@ -424,7 +572,9 @@ const SettingsPage = () => {
                 <input
                   type="url"
                   value={formData.socialMedia.youtube || ""}
-                  onChange={(e) => handleInputChange("socialMedia", "youtube", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("socialMedia", "youtube", e.target.value)
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="https://youtube.com/your-channel"
                 />
@@ -439,6 +589,183 @@ const SettingsPage = () => {
               >
                 <Save className="w-4 h-4 inline mr-2" />
                 Save Social Media
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Footer Settings */}
+        {activeTab === "footer" && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Mail className="w-6 h-6 text-blue-600" />
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Footer Settings
+              </h2>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  About Text
+                </label>
+                <textarea
+                  rows={3}
+                  value={formData.footer.aboutText || ""}
+                  onChange={(e) =>
+                    handleInputChange("footer", "aboutText", e.target.value)
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  placeholder="Brief description about your barangay"
+                ></textarea>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Copyright Text
+                </label>
+                <input
+                  type="text"
+                  value={formData.footer.copyrightText || ""}
+                  onChange={(e) =>
+                    handleInputChange("footer", "copyrightText", e.target.value)
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  placeholder="© 2025 Barangay Name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Powered By Text
+                </label>
+                <input
+                  type="text"
+                  value={formData.footer.poweredByText || ""}
+                  onChange={(e) =>
+                    handleInputChange("footer", "poweredByText", e.target.value)
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  placeholder="Your Company Name"
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div>
+                  <h3 className="font-medium text-gray-900 dark:text-white">
+                    Show Quick Links
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Display quick links section in footer
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.footer.showQuickLinks || false}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "footer",
+                        "showQuickLinks",
+                        e.target.checked
+                      )
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div>
+                  <h3 className="font-medium text-gray-900 dark:text-white">
+                    Show Location Map
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Display map in footer
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.footer.showMap || false}
+                    onChange={(e) =>
+                      handleInputChange("footer", "showMap", e.target.checked)
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              {/* Quick Links Management */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Quick Links
+                  </h3>
+                  <button
+                    onClick={addQuickLink}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Link
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {formData.footer.quickLinks?.map((link, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                    >
+                      <GripVertical className="w-5 h-5 text-gray-400 cursor-move" />
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <input
+                          type="text"
+                          value={link.title || ""}
+                          onChange={(e) =>
+                            updateQuickLink(index, "title", e.target.value)
+                          }
+                          placeholder="Link Title"
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                        <input
+                          type="url"
+                          value={link.url || ""}
+                          onChange={(e) =>
+                            updateQuickLink(index, "url", e.target.value)
+                          }
+                          placeholder="URL (e.g., /services or https://...)"
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                      </div>
+                      <button
+                        onClick={() => removeQuickLink(index)}
+                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))}
+                  {(!formData.footer.quickLinks ||
+                    formData.footer.quickLinks.length === 0) && (
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+                      No quick links added yet. Click "Add Link" to get started.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t dark:border-gray-700">
+              <button
+                onClick={() => handleSave("footer")}
+                disabled={saving}
+                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                <Save className="w-4 h-4 inline mr-2" />
+                Save Footer Settings
               </button>
             </div>
           </div>
@@ -463,13 +790,17 @@ const SettingsPage = () => {
                   <input
                     type="color"
                     value={formData.theme.primaryColor || "#3B82F6"}
-                    onChange={(e) => handleInputChange("theme", "primaryColor", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("theme", "primaryColor", e.target.value)
+                    }
                     className="h-10 w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={formData.theme.primaryColor || "#3B82F6"}
-                    onChange={(e) => handleInputChange("theme", "primaryColor", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("theme", "primaryColor", e.target.value)
+                    }
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
                 </div>
@@ -483,13 +814,25 @@ const SettingsPage = () => {
                   <input
                     type="color"
                     value={formData.theme.secondaryColor || "#8B5CF6"}
-                    onChange={(e) => handleInputChange("theme", "secondaryColor", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "theme",
+                        "secondaryColor",
+                        e.target.value
+                      )
+                    }
                     className="h-10 w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={formData.theme.secondaryColor || "#8B5CF6"}
-                    onChange={(e) => handleInputChange("theme", "secondaryColor", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "theme",
+                        "secondaryColor",
+                        e.target.value
+                      )
+                    }
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
                 </div>
@@ -503,13 +846,17 @@ const SettingsPage = () => {
                   <input
                     type="color"
                     value={formData.theme.accentColor || "#10B981"}
-                    onChange={(e) => handleInputChange("theme", "accentColor", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("theme", "accentColor", e.target.value)
+                    }
                     className="h-10 w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={formData.theme.accentColor || "#10B981"}
-                    onChange={(e) => handleInputChange("theme", "accentColor", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("theme", "accentColor", e.target.value)
+                    }
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
                 </div>
@@ -520,7 +867,8 @@ const SettingsPage = () => {
               <p className="text-sm text-blue-800 dark:text-blue-300 flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                 <span>
-                  Theme colors will be applied system-wide. Changes may require a page refresh to take full effect.
+                  Theme colors will be applied system-wide. Changes may require
+                  a page refresh to take full effect.
                 </span>
               </p>
             </div>
@@ -538,19 +886,6 @@ const SettingsPage = () => {
           </div>
         )}
 
-        {/* Email Templates - Placeholder for now */}
-        {activeTab === "emailTemplates" && (
-          <div className="text-center py-12">
-            <Mail className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Email Templates
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              Configure email templates for various system notifications
-            </p>
-          </div>
-        )}
-
         {/* System Settings */}
         {activeTab === "system" && (
           <div className="space-y-6">
@@ -564,14 +899,24 @@ const SettingsPage = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">User Registration</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Allow new user registrations</p>
+                  <h3 className="font-medium text-gray-900 dark:text-white">
+                    User Registration
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Allow new user registrations
+                  </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.system.registrationEnabled || false}
-                    onChange={(e) => handleInputChange("system", "registrationEnabled", e.target.checked)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "system",
+                        "registrationEnabled",
+                        e.target.checked
+                      )
+                    }
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -580,14 +925,24 @@ const SettingsPage = () => {
 
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">Document Requests</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Enable document request submissions</p>
+                  <h3 className="font-medium text-gray-900 dark:text-white">
+                    Document Requests
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Enable document request submissions
+                  </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.system.documentRequestEnabled || false}
-                    onChange={(e) => handleInputChange("system", "documentRequestEnabled", e.target.checked)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "system",
+                        "documentRequestEnabled",
+                        e.target.checked
+                      )
+                    }
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -596,14 +951,24 @@ const SettingsPage = () => {
 
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">Report Submissions</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Allow residents to submit reports</p>
+                  <h3 className="font-medium text-gray-900 dark:text-white">
+                    Report Submissions
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Allow residents to submit reports
+                  </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.system.reportingEnabled || false}
-                    onChange={(e) => handleInputChange("system", "reportingEnabled", e.target.checked)}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "system",
+                        "reportingEnabled",
+                        e.target.checked
+                      )
+                    }
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
