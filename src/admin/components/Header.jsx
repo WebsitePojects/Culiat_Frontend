@@ -229,7 +229,7 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
               <div className="p-2">
                 <button
                   onClick={() => {
-                    navigate("/admin/settings");
+                    navigate("/admin/profile");
                     setShowProfile(false);
                   }}
                   className="flex items-center w-full px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"

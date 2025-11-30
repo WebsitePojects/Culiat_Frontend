@@ -34,6 +34,7 @@ import AdminTermsAcceptances from "./admin/pages/TermsAcceptances/AdminTermsAcce
 import AdminAchievements from "./admin/pages/Achievements/AdminAchievements";
 import CMSServices from "./admin/pages/CMS/CMSServices";
 import CMSAboutUs from "./admin/pages/CMS/CMSAboutUs";
+import AdminProfile from "./admin/pages/Profile/AdminProfile";
 
 // Resident Auth
 import ResidentAuth from "./users/pages/Auth/ResidentAuth";
@@ -142,6 +143,7 @@ function App() {
             <Route path="analytics" element={<AdminAnalytics />} />
             <Route path="calendar" element={<AdminCalendar />} />
             <Route path="notifications" element={<AdminNotifications />} />
+            <Route path="profile" element={<AdminProfile />} />
             <Route
               path="terms-acceptances"
               element={<AdminTermsAcceptances />}
