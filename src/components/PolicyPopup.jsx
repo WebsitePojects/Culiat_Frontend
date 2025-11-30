@@ -27,7 +27,9 @@ const PolicyPopup = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/terms/status`,
+          `${
+            import.meta.env.VITE_API_URL || "http://localhost:5000"
+          }/api/terms/status`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -36,7 +38,7 @@ const PolicyPopup = () => {
         );
 
         const hasAccepted = response.data.data.hasAccepted;
-        
+
         // If user hasn't accepted, show popup immediately
         if (!hasAccepted) {
           setShowPopup(true);
@@ -81,7 +83,9 @@ const PolicyPopup = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/terms/accept`,
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:5000"
+        }/api/terms/accept`,
         {
           signature,
           ipAddress: null, // Backend will capture this
@@ -101,7 +105,7 @@ const PolicyPopup = () => {
           JSON.stringify({ seen: true, timestamp: Date.now(), accepted: true })
         );
         localStorage.setItem("termsAccepted", "true");
-        
+
         // Close popup after short delay
         setTimeout(() => {
           setShowPopup(false);
@@ -110,7 +114,8 @@ const PolicyPopup = () => {
     } catch (error) {
       console.error("Error accepting terms:", error);
       setSubmitError(
-        error.response?.data?.message || "Failed to submit acceptance. Please try again."
+        error.response?.data?.message ||
+          "Failed to submit acceptance. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -122,7 +127,7 @@ const PolicyPopup = () => {
   return (
     <Modal
       isOpen={showPopup}
-      onClose={handleClose}
+      onClose={() => {}}
       showCloseButton={false}
       className="max-w-4xl w-[92%] max-h-[95%] mx-auto rounded-2xl shadow-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 py-6 transition-all duration-300 "
     >
@@ -222,7 +227,8 @@ const PolicyPopup = () => {
               E-Signature Required
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-              Please sign below to indicate your acceptance of the terms and conditions.
+              Please sign below to indicate your acceptance of the terms and
+              conditions.
             </p>
             <SignatureCanvas
               onSignatureChange={setSignature}
@@ -249,10 +255,22 @@ const PolicyPopup = () => {
           {submitSuccess && (
             <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center justify-center gap-2 text-green-700">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
-                <span className="font-medium">Terms accepted successfully!</span>
+                <span className="font-medium">
+                  Terms accepted successfully!
+                </span>
               </div>
             </div>
           )}
