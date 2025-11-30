@@ -38,12 +38,14 @@ const RegistrationHistory = () => {
       const response = await axios.get(`${API_URL}/api/auth/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       // Filter for approved and rejected registrations only
       const processedRegs = response.data.data.filter(
-        (user) => user.registrationStatus === "approved" || user.registrationStatus === "rejected"
+        (user) =>
+          user.registrationStatus === "approved" ||
+          user.registrationStatus === "rejected"
       );
-      
+
       setRegistrations(processedRegs);
     } catch (error) {
       console.error("Error fetching registrations:", error);
@@ -60,14 +62,16 @@ const RegistrationHistory = () => {
       filtered = filtered.filter((reg) => reg.registrationStatus === filter);
     }
 
-    // Filter by search term
-    if (searchTerm) {
+    // Filter by search term (handle spaces properly)
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
       filtered = filtered.filter(
         (reg) =>
-          reg.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          reg.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          reg.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          reg.username?.toLowerCase().includes(searchTerm.toLowerCase())
+          reg.firstName?.toLowerCase().includes(searchLower) ||
+          reg.lastName?.toLowerCase().includes(searchLower) ||
+          reg.email?.toLowerCase().includes(searchLower) ||
+          reg.username?.toLowerCase().includes(searchLower) ||
+          `${reg.firstName} ${reg.lastName}`.toLowerCase().includes(searchLower)
       );
     }
 
@@ -79,7 +83,8 @@ const RegistrationHistory = () => {
     }
     if (dateRange.end) {
       filtered = filtered.filter(
-        (reg) => new Date(reg.createdAt) <= new Date(dateRange.end + "T23:59:59")
+        (reg) =>
+          new Date(reg.createdAt) <= new Date(dateRange.end + "T23:59:59")
       );
     }
 
@@ -119,7 +124,10 @@ const RegistrationHistory = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `registration_history_${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute(
+      "download",
+      `registration_history_${new Date().toISOString().split("T")[0]}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -135,8 +143,12 @@ const RegistrationHistory = () => {
     return status === "approved" ? CheckCircle : XCircle;
   };
 
-  const approvedCount = registrations.filter((r) => r.registrationStatus === "approved").length;
-  const rejectedCount = registrations.filter((r) => r.registrationStatus === "rejected").length;
+  const approvedCount = registrations.filter(
+    (r) => r.registrationStatus === "approved"
+  ).length;
+  const rejectedCount = registrations.filter(
+    (r) => r.registrationStatus === "rejected"
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -265,7 +277,7 @@ const RegistrationHistory = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by name, email..."
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -275,28 +287,38 @@ const RegistrationHistory = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Date Range
             </label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <input
                 type="date"
                 value={dateRange.start}
-                onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                onChange={(e) =>
+                  setDateRange({ ...dateRange, start: e.target.value })
+                }
+                placeholder="Start date"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
               <input
                 type="date"
                 value={dateRange.end}
-                onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                onChange={(e) =>
+                  setDateRange({ ...dateRange, end: e.target.value })
+                }
+                placeholder="End date"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
           </div>
         </div>
 
         {/* Clear Filters */}
-        {(filter !== "all" || searchTerm || dateRange.start || dateRange.end) && (
+        {(filter !== "all" ||
+          searchTerm ||
+          dateRange.start ||
+          dateRange.end) && (
           <div className="mt-4 flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Showing {filteredRegistrations.length} of {registrations.length} registrations
+              Showing {filteredRegistrations.length} of {registrations.length}{" "}
+              registrations
             </p>
             <button
               onClick={() => {
@@ -316,7 +338,9 @@ const RegistrationHistory = () => {
       {loading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Loading history...</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Loading history...
+          </p>
         </div>
       )}
 
@@ -363,12 +387,16 @@ const RegistrationHistory = () => {
                 {filteredRegistrations.map((reg) => {
                   const StatusIcon = getStatusIcon(reg.registrationStatus);
                   return (
-                    <tr key={reg._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <tr
+                      key={reg._id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                             <span className="text-white font-bold">
-                              {reg.firstName?.[0]}{reg.lastName?.[0]}
+                              {reg.firstName?.[0]}
+                              {reg.lastName?.[0]}
                             </span>
                           </div>
                           <div className="ml-4">
@@ -419,7 +447,9 @@ const RegistrationHistory = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
-                          {reg.rejectionReason || reg.approvalReason || "No reason provided"}
+                          {reg.rejectionReason ||
+                            reg.approvalReason ||
+                            "No reason provided"}
                         </div>
                       </td>
                     </tr>

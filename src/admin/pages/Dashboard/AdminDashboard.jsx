@@ -135,14 +135,45 @@ const AdminDashboard = () => {
     }
   };
 
-  const getColorClass = (color) => {
-    const colors = {
-      blue: "bg-blue-500",
-      green: "bg-green-500",
-      yellow: "bg-yellow-500",
-      red: "bg-red-500",
+  const getColorClasses = (color) => {
+    const colorMap = {
+      blue: {
+        bg: "bg-blue-100 dark:bg-blue-900/20",
+        text: "text-blue-600 dark:text-blue-400",
+        iconBg: "bg-blue-500",
+      },
+      green: {
+        bg: "bg-green-100 dark:bg-green-900/20",
+        text: "text-green-600 dark:text-green-400",
+        iconBg: "bg-green-500",
+      },
+      yellow: {
+        bg: "bg-yellow-100 dark:bg-yellow-900/20",
+        text: "text-yellow-600 dark:text-yellow-400",
+        iconBg: "bg-yellow-500",
+      },
+      red: {
+        bg: "bg-red-100 dark:bg-red-900/20",
+        text: "text-red-600 dark:text-red-400",
+        iconBg: "bg-red-500",
+      },
+      purple: {
+        bg: "bg-purple-100 dark:bg-purple-900/20",
+        text: "text-purple-600 dark:text-purple-400",
+        iconBg: "bg-purple-500",
+      },
+      indigo: {
+        bg: "bg-indigo-100 dark:bg-indigo-900/20",
+        text: "text-indigo-600 dark:text-indigo-400",
+        iconBg: "bg-indigo-500",
+      },
+      orange: {
+        bg: "bg-orange-100 dark:bg-orange-900/20",
+        text: "text-orange-600 dark:text-orange-400",
+        iconBg: "bg-orange-500",
+      },
     };
-    return colors[color] || "bg-gray-500";
+    return colorMap[color] || colorMap.blue;
   };
 
   return (
@@ -183,6 +214,7 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {quickActions.map((action, index) => {
             const Icon = action.icon;
+            const colors = getColorClasses(action.color);
             return (
               <button
                 key={index}
@@ -190,11 +222,9 @@ const AdminDashboard = () => {
                 className="flex flex-col items-center p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all hover:shadow-md group"
               >
                 <div
-                  className={`flex items-center justify-center w-12 h-12 rounded-full bg-${action.color}-100 dark:bg-${action.color}-900/20 group-hover:scale-110 transition-transform`}
+                  className={`flex items-center justify-center w-12 h-12 rounded-full ${colors.bg} group-hover:scale-110 transition-transform`}
                 >
-                  <Icon
-                    className={`w-6 h-6 text-${action.color}-600 dark:text-${action.color}-400`}
-                  />
+                  <Icon className={`w-6 h-6 ${colors.text}`} />
                 </div>
                 <span className="mt-2 text-sm font-medium text-gray-900 dark:text-white text-center">
                   {action.name}
@@ -213,6 +243,7 @@ const AdminDashboard = () => {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           const TrendIcon = stat.trend === "up" ? TrendingUp : TrendingDown;
+          const colors = getColorClasses(stat.color);
 
           return (
             <button
@@ -240,9 +271,7 @@ const AdminDashboard = () => {
                   <div className="flex items-center mt-2">
                     <TrendIcon
                       className={`w-4 h-4 ${
-                        stat.trend === "up"
-                          ? "text-green-500"
-                          : "text-red-500"
+                        stat.trend === "up" ? "text-green-500" : "text-red-500"
                       }`}
                     />
                     <span
@@ -260,16 +289,9 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 <div
-                  className={`flex items-center justify-center w-12 h-12 rounded-full ${getColorClass(
-                    stat.color
-                  )} bg-opacity-10 group-hover:scale-110 transition-transform`}
+                  className={`flex items-center justify-center w-12 h-12 rounded-full ${colors.bg} group-hover:scale-110 transition-transform`}
                 >
-                  <Icon
-                    className={`w-6 h-6 ${getColorClass(stat.color).replace(
-                      "bg-",
-                      "text-"
-                    )}`}
-                  />
+                  <Icon className={`w-6 h-6 ${colors.text}`} />
                 </div>
               </div>
             </button>
@@ -399,7 +421,6 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
-
     </div>
   );
 };

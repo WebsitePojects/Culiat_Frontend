@@ -14,11 +14,18 @@ import {
   Trash2,
   Edit,
   ArrowUpDown,
+  X,
+  MapPin,
+  User,
+  Mail,
+  Calendar as CalendarIcon,
+  AlertTriangle,
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 
 const AdminReports = () => {
-  const { notifyReportResolved, showSuccess, showInfo } = useNotifications();
+  const { notifyReportResolved, showSuccess, showInfo, showError } =
+    useNotifications();
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,9 +34,24 @@ const AdminReports = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [selectedReports, setSelectedReports] = useState([]);
-  const [showActions, setShowActions] = useState(null);
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("desc");
+
+  // Modal states
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
+
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    category: "",
+    priority: "",
+    status: "",
+    location: "",
+  });
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -108,7 +130,15 @@ const AdminReports = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [filter, searchTerm, categoryFilter, priorityFilter, sortBy, sortOrder, reports]);
+  }, [
+    filter,
+    searchTerm,
+    categoryFilter,
+    priorityFilter,
+    sortBy,
+    sortOrder,
+    reports,
+  ]);
 
   const applyFilters = () => {
     let filtered = [...reports];
@@ -120,22 +150,27 @@ const AdminReports = () => {
 
     // Category filter
     if (categoryFilter !== "all") {
-      filtered = filtered.filter((report) => report.category === categoryFilter);
+      filtered = filtered.filter(
+        (report) => report.category === categoryFilter
+      );
     }
 
     // Priority filter
     if (priorityFilter !== "all") {
-      filtered = filtered.filter((report) => report.priority === priorityFilter);
+      filtered = filtered.filter(
+        (report) => report.priority === priorityFilter
+      );
     }
 
     // Search filter
-    if (searchTerm) {
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.trim().toLowerCase();
       filtered = filtered.filter(
         (report) =>
-          report.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          report.resident?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          report.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          report.description?.toLowerCase().includes(searchTerm.toLowerCase())
+          report.title?.toLowerCase().includes(searchLower) ||
+          report.resident?.toLowerCase().includes(searchLower) ||
+          report.category?.toLowerCase().includes(searchLower) ||
+          report.description?.toLowerCase().includes(searchLower)
       );
     }
 
@@ -210,6 +245,24 @@ const AdminReports = () => {
     }
   };
 
+  const getStatColor = (color) => {
+    const colors = {
+      blue: {
+        text: "text-blue-600 dark:text-blue-400",
+        bg: "bg-blue-100 dark:bg-blue-900/20",
+      },
+      yellow: {
+        text: "text-yellow-600 dark:text-yellow-400",
+        bg: "bg-yellow-100 dark:bg-yellow-900/20",
+      },
+      green: {
+        text: "text-green-600 dark:text-green-400",
+        bg: "bg-green-100 dark:bg-green-900/20",
+      },
+    };
+    return colors[color] || colors.blue;
+  };
+
   const handleSelectAll = () => {
     if (selectedReports.length === filteredReports.length) {
       setSelectedReports([]);
@@ -255,7 +308,10 @@ const AdminReports = () => {
 
     const csvContent =
       "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((row) => row.map(cell => `"${cell}"`).join(","))].join("\n");
+      [
+        headers.join(","),
+        ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+      ].join("\n");
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -267,36 +323,94 @@ const AdminReports = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    showSuccess("Reports exported successfully");
   };
 
   const handleBulkStatusUpdate = (newStatus) => {
     const count = selectedReports.length;
     const statusText = newStatus.replace("-", " ");
-    
+
     // Update reports (implement actual API call here)
-    setReports(prevReports =>
-      prevReports.map(report =>
+    setReports((prevReports) =>
+      prevReports.map((report) =>
         selectedReports.includes(report.id)
           ? { ...report, status: newStatus }
           : report
       )
     );
-    
+
     // Show success notification
     if (newStatus === "resolved") {
-      showSuccess(`${count} report${count > 1 ? 's' : ''} marked as resolved`);
+      showSuccess(`${count} report${count > 1 ? "s" : ""} marked as resolved`);
       // Notify individual reports if only one selected
       if (count === 1) {
-        const report = reports.find(r => r.id === selectedReports[0]);
+        const report = reports.find((r) => r.id === selectedReports[0]);
         if (report) {
           notifyReportResolved(report.title);
         }
       }
     } else {
-      showInfo(`${count} report${count > 1 ? 's' : ''} marked as ${statusText}`);
+      showInfo(
+        `${count} report${count > 1 ? "s" : ""} marked as ${statusText}`
+      );
     }
-    
+
     setSelectedReports([]);
+  };
+
+  // View Report Modal
+  const handleViewReport = (report) => {
+    setSelectedReport(report);
+    setViewModalOpen(true);
+  };
+
+  // Edit Report Modal
+  const handleEditReport = (report) => {
+    setSelectedReport(report);
+    setEditForm({
+      title: report.title,
+      description: report.description,
+      category: report.category,
+      priority: report.priority,
+      status: report.status,
+      location: report.location,
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleUpdateReport = () => {
+    if (!editForm.title.trim() || !editForm.description.trim()) {
+      showError("Title and description are required");
+      return;
+    }
+
+    // Update report (implement actual API call here)
+    setReports((prevReports) =>
+      prevReports.map((report) =>
+        report.id === selectedReport.id ? { ...report, ...editForm } : report
+      )
+    );
+
+    showSuccess("Report updated successfully");
+    setEditModalOpen(false);
+    setSelectedReport(null);
+  };
+
+  // Delete Report Modal
+  const handleDeleteReport = (report) => {
+    setSelectedReport(report);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDeleteReport = () => {
+    // Delete report (implement actual API call here)
+    setReports((prevReports) =>
+      prevReports.filter((report) => report.id !== selectedReport.id)
+    );
+
+    showSuccess("Report deleted successfully");
+    setDeleteModalOpen(false);
+    setSelectedReport(null);
   };
 
   const categories = ["Infrastructure", "Sanitation", "Public Safety"];
@@ -329,13 +443,13 @@ const AdminReports = () => {
               </span>
               <button
                 onClick={() => handleBulkStatusUpdate("in-progress")}
-                className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
               >
                 Mark In Progress
               </button>
               <button
                 onClick={() => handleBulkStatusUpdate("resolved")}
-                className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                className="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
               >
                 Mark Resolved
               </button>
@@ -355,20 +469,56 @@ const AdminReports = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-4">
         {[
-          { label: "All Reports", count: statusCounts.all, color: "blue" },
-          { label: "Pending", count: statusCounts.pending, color: "yellow" },
-          { label: "In Progress", count: statusCounts["in-progress"], color: "blue" },
-          { label: "Resolved", count: statusCounts.resolved, color: "green" },
-        ].map((stat, idx) => (
-          <div key={idx} className="p-6 bg-white rounded-lg shadow dark:bg-gray-800">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {stat.label}
-            </p>
-            <p className={`mt-2 text-3xl font-bold text-${stat.color}-600 dark:text-${stat.color}-400`}>
-              {stat.count}
-            </p>
-          </div>
-        ))}
+          {
+            label: "All Reports",
+            count: statusCounts.all,
+            color: "blue",
+            icon: FileText,
+          },
+          {
+            label: "Pending",
+            count: statusCounts.pending,
+            color: "yellow",
+            icon: Clock,
+          },
+          {
+            label: "In Progress",
+            count: statusCounts["in-progress"],
+            color: "blue",
+            icon: AlertCircle,
+          },
+          {
+            label: "Resolved",
+            count: statusCounts.resolved,
+            color: "green",
+            icon: CheckCircle,
+          },
+        ].map((stat, idx) => {
+          const Icon = stat.icon;
+          const colors = getStatColor(stat.color);
+          return (
+            <div
+              key={idx}
+              className="p-6 bg-white rounded-lg shadow dark:bg-gray-800 hover:shadow-lg transition-shadow"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    {stat.label}
+                  </p>
+                  <p className={`mt-2 text-3xl font-bold ${colors.text}`}>
+                    {stat.count}
+                  </p>
+                </div>
+                <div
+                  className={`flex items-center justify-center w-12 h-12 rounded-full ${colors.bg}`}
+                >
+                  <Icon className={`w-6 h-6 ${colors.text}`} />
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Filters Section */}
@@ -386,7 +536,7 @@ const AdminReports = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search reports..."
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -399,12 +549,16 @@ const AdminReports = () => {
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status ({statusCounts.all})</option>
               <option value="pending">Pending ({statusCounts.pending})</option>
-              <option value="in-progress">In Progress ({statusCounts["in-progress"]})</option>
-              <option value="resolved">Resolved ({statusCounts.resolved})</option>
+              <option value="in-progress">
+                In Progress ({statusCounts["in-progress"]})
+              </option>
+              <option value="resolved">
+                Resolved ({statusCounts.resolved})
+              </option>
             </select>
           </div>
 
@@ -416,7 +570,7 @@ const AdminReports = () => {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Categories</option>
               {categories.map((cat) => (
@@ -435,7 +589,7 @@ const AdminReports = () => {
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Priorities</option>
               {priorities.map((priority) => (
@@ -463,7 +617,7 @@ const AdminReports = () => {
           </select>
           <button
             onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600"
+            className="flex items-center gap-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
           >
             <ArrowUpDown className="w-4 h-4" />
             {sortOrder === "asc" ? "Ascending" : "Descending"}
@@ -478,7 +632,9 @@ const AdminReports = () => {
       {loading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Loading reports...</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Loading reports...
+          </p>
         </div>
       )}
 
@@ -487,7 +643,9 @@ const AdminReports = () => {
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
           <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <p className="text-gray-600 dark:text-gray-400">
-            {reports.length === 0 ? "No reports found" : "No reports match your filters"}
+            {reports.length === 0
+              ? "No reports found"
+              : "No reports match your filters"}
           </p>
         </div>
       )}
@@ -502,7 +660,10 @@ const AdminReports = () => {
                   <th className="px-6 py-3 text-left">
                     <input
                       type="checkbox"
-                      checked={selectedReports.length === filteredReports.length}
+                      checked={
+                        selectedReports.length === filteredReports.length &&
+                        filteredReports.length > 0
+                      }
                       onChange={handleSelectAll}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
@@ -605,18 +766,21 @@ const AdminReports = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <button
+                            onClick={() => handleViewReport(report)}
                             className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                             title="View details"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
+                            onClick={() => handleEditReport(report)}
                             className="p-2 text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700 rounded-lg transition-colors"
                             title="Edit report"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
+                            onClick={() => handleDeleteReport(report)}
                             className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                             title="Delete report"
                           >
@@ -629,6 +793,315 @@ const AdminReports = () => {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* View Report Modal */}
+      {viewModalOpen && selectedReport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Report Details
+              </h2>
+              <button
+                onClick={() => setViewModalOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Report Header */}
+              <div>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                      {selectedReport.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Report ID: #{selectedReport.id}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <span
+                      className={`px-3 py-1 text-xs font-medium rounded-full ${getPriorityColor(
+                        selectedReport.priority
+                      )}`}
+                    >
+                      {selectedReport.priority.toUpperCase()}
+                    </span>
+                    <span
+                      className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                        selectedReport.status
+                      )}`}
+                    >
+                      {selectedReport.status.replace("-", " ").toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Report Info Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <User className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Reported By
+                    </p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {selectedReport.resident}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Email
+                    </p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {selectedReport.residentEmail}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <CalendarIcon className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Date Reported
+                    </p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {new Date(selectedReport.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Location
+                    </p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {selectedReport.location}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Category */}
+              <div>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Category
+                </p>
+                <span className="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                  {selectedReport.category}
+                </span>
+              </div>
+
+              {/* Description */}
+              <div>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  {selectedReport.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setViewModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setViewModalOpen(false);
+                  handleEditReport(selectedReport);
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Edit Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Report Modal */}
+      {editModalOpen && selectedReport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Edit Report
+              </h2>
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, title: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, description: e.target.value })
+                  }
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={editForm.location}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, location: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Category
+                  </label>
+                  <select
+                    value={editForm.category}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, category: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Priority
+                  </label>
+                  <select
+                    value={editForm.priority}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, priority: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {priorities.map((priority) => (
+                      <option key={priority} value={priority}>
+                        {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Status
+                  </label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, status: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="resolved">Resolved</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateReport}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && selectedReport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 dark:bg-red-900/20 rounded-full">
+                <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-center text-gray-900 dark:text-white mb-2">
+                Delete Report
+              </h3>
+              <p className="text-sm text-center text-gray-600 dark:text-gray-400 mb-6">
+                Are you sure you want to delete "{selectedReport.title}"? This
+                action cannot be undone.
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setDeleteModalOpen(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteReport}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
