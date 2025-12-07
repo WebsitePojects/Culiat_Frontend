@@ -19,6 +19,9 @@ import {
   Home,
   IdCard,
   Briefcase,
+  FilePlus2,
+  CreditCard,
+  Loader2,
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 
@@ -36,6 +39,7 @@ const AdminDocuments = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [actionReason, setActionReason] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -142,6 +146,12 @@ const AdminDocuments = () => {
     const colors = {
       pending:
         "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+      approved:
+        "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+      pending_payment:
+        "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+      paid:
+        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
       completed:
         "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
       rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
@@ -152,6 +162,9 @@ const AdminDocuments = () => {
   const getStatusIcon = (status) => {
     const icons = {
       pending: Clock,
+      approved: CheckCircle,
+      pending_payment: CreditCard,
+      paid: CheckCircle,
       completed: CheckCircle,
       rejected: XCircle,
     };
@@ -172,8 +185,42 @@ const AdminDocuments = () => {
   const statusCounts = {
     all: requests.length,
     pending: requests.filter((r) => r.status === "pending").length,
+    pending_payment: requests.filter((r) => r.status === "pending_payment").length,
+    paid: requests.filter((r) => r.status === "paid").length,
     completed: requests.filter((r) => r.status === "completed").length,
     rejected: requests.filter((r) => r.status === "rejected").length,
+  };
+
+  // Handle document generation
+  const handleGenerateDocument = async (requestId) => {
+    try {
+      setGenerating(true);
+      setError("");
+      const token = localStorage.getItem("token");
+
+      const request = requests.find((r) => r._id === requestId);
+      const documentType = request?.documentType || "Document";
+
+      const promise = axios.post(
+        `${API_URL}/api/documents/generate/${requestId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      await showPromise(promise, {
+        loading: `Generating ${documentType}...`,
+        success: `${documentType} generated! Resident notified to pay.`,
+        error: `Failed to generate document`,
+      });
+
+      setShowModal(false);
+      setSelectedRequest(null);
+      await fetchRequests();
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to generate document");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -255,6 +302,12 @@ const AdminDocuments = () => {
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             >
               <option value="pending">Pending ({statusCounts.pending})</option>
+              <option value="pending_payment">
+                Awaiting Payment ({statusCounts.pending_payment})
+              </option>
+              <option value="paid">
+                Paid ({statusCounts.paid})
+              </option>
               <option value="completed">
                 Completed ({statusCounts.completed})
               </option>
@@ -386,15 +439,12 @@ const AdminDocuments = () => {
                     {request.status === "pending" && (
                       <div className="flex gap-2">
                         <button
-                          onClick={() => {
-                            setSelectedRequest(request);
-                            handleAction(request._id, "completed");
-                          }}
-                          disabled={updating}
+                          onClick={() => handleGenerateDocument(request._id)}
+                          disabled={generating}
                           className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
                         >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Complete
+                          <FilePlus2 className="w-4 h-4 mr-1" />
+                          Generate
                         </button>
                         <button
                           onClick={() => viewDetails(request)}
@@ -405,6 +455,24 @@ const AdminDocuments = () => {
                           Reject
                         </button>
                       </div>
+                    )}
+
+                    {request.status === "pending_payment" && (
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-orange-600 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                        <CreditCard className="w-4 h-4" />
+                        Awaiting Payment
+                      </div>
+                    )}
+
+                    {request.status === "paid" && (
+                      <button
+                        onClick={() => handleAction(request._id, "completed")}
+                        disabled={updating}
+                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Mark Complete
+                      </button>
                     )}
                   </div>
                 </div>
@@ -719,18 +787,16 @@ const AdminDocuments = () => {
                     Reject Request
                   </button>
                   <button
-                    onClick={() =>
-                      handleAction(
-                        selectedRequest._id,
-                        "completed",
-                        actionReason
-                      )
-                    }
-                    disabled={updating}
+                    onClick={() => handleGenerateDocument(selectedRequest._id)}
+                    disabled={updating || generating}
                     className="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Complete Request
+                    {generating ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <FilePlus2 className="w-4 h-4 mr-2" />
+                    )}
+                    Generate Document
                   </button>
                 </>
               ) : (

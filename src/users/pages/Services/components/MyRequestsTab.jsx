@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Package } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Package, CreditCard, Download, Loader2 } from "lucide-react";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -10,7 +10,21 @@ const statusConfig = {
     color: "text-yellow-600",
     bgColor: "bg-yellow-50",
     borderColor: "border-yellow-200",
-    label: "Pending"
+    label: "Pending Review"
+  },
+  pending_payment: {
+    icon: CreditCard,
+    color: "text-orange-600",
+    bgColor: "bg-orange-50",
+    borderColor: "border-orange-200",
+    label: "Awaiting Payment"
+  },
+  paid: {
+    icon: CheckCircle,
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-50",
+    borderColor: "border-emerald-200",
+    label: "Paid - Ready for Pickup"
   },
   approved: {
     icon: CheckCircle,
@@ -57,6 +71,7 @@ export default function MyRequestsTab() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [downloading, setDownloading] = useState(null);
 
   useEffect(() => {
     fetchMyRequests();
@@ -204,27 +219,39 @@ export default function MyRequestsTab() {
                 )}
               </div>
 
-              {/* Payment Button */}
-              {request.paymentStatus === 'unpaid' && (request.fees > 0 || true) && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end items-center gap-4">
-                    <div className="text-sm text-gray-600">
-                      Payment Status: <span className="font-semibold text-yellow-600">Unpaid</span>
-                    </div>
-                    <button
-                      onClick={() => handlePayment(request._id)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
-                    >
-                      Pay Now (₱{request.fees || 50})
-                    </button>
+              {/* Action Buttons Based on Status */}
+              {request.status === 'pending_payment' && (
+                <div className="mt-4 pt-4 border-t border-orange-200 flex justify-between items-center">
+                  <div className="text-sm text-orange-700">
+                    <CreditCard className="inline w-4 h-4 mr-1" />
+                    Document ready - Payment required
                   </div>
-                )}
-                {request.paymentStatus === 'paid' && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end items-center">
-                     <div className="text-sm text-gray-600">
-                      Payment Status: <span className="font-semibold text-green-600">Paid</span>
-                    </div>
+                  <button
+                    onClick={() => handlePayment(request._id)}
+                    className="bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-700 transition-colors flex items-center gap-2"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Pay Now (₱{request.fees || 50})
+                  </button>
+                </div>
+              )}
+
+              {request.status === 'paid' && (
+                <div className="mt-4 pt-4 border-t border-emerald-200 flex justify-between items-center">
+                  <div className="text-sm text-emerald-700">
+                    <CheckCircle className="inline w-4 h-4 mr-1" />
+                    Payment received - Ready for pickup at Barangay Hall
                   </div>
-                )}
+                </div>
+              )}
+
+              {request.status === 'rejected' && request.rejectionReason && (
+                <div className="mt-4 pt-4 border-t border-red-200">
+                  <p className="text-sm text-red-700">
+                    <strong>Reason:</strong> {request.rejectionReason}
+                  </p>
+                </div>
+              )}
             </div>
           );
         })}
