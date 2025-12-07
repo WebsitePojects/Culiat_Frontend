@@ -185,13 +185,12 @@ const AdminDocuments = () => {
   const statusCounts = {
     all: requests.length,
     pending: requests.filter((r) => r.status === "pending").length,
-    pending_payment: requests.filter((r) => r.status === "pending_payment").length,
-    paid: requests.filter((r) => r.status === "paid").length,
+    approved: requests.filter((r) => r.status === "approved").length,
     completed: requests.filter((r) => r.status === "completed").length,
     rejected: requests.filter((r) => r.status === "rejected").length,
   };
 
-  // Handle document generation
+  // Handle document generation - downloads DOCX blob directly
   const handleGenerateDocument = async (requestId) => {
     try {
       setGenerating(true);
@@ -201,22 +200,51 @@ const AdminDocuments = () => {
       const request = requests.find((r) => r._id === requestId);
       const documentType = request?.documentType || "Document";
 
-      const promise = axios.post(
+      // Check if request is approved or completed
+      if (request?.status !== "approved" && request?.status !== "completed") {
+        setError("Document can only be generated for approved requests");
+        return;
+      }
+
+      const response = await axios.post(
         `${API_URL}/api/documents/generate/${requestId}`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: 'blob'
+        }
       );
 
-      await showPromise(promise, {
-        loading: `Generating ${documentType}...`,
-        success: `${documentType} generated! Resident notified to pay.`,
-        error: `Failed to generate document`,
+      // Create download link for the blob
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Extract filename from Content-Disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `${documentType}_${request?.lastName || 'certificate'}.docx`;
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="(.+)"/);
+        if (match) filename = match[1];
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      // Show success notification
+      setSuccess(`${documentType} document generated and downloaded!`);
+      setTimeout(() => setSuccess(""), 5000);
 
       setShowModal(false);
       setSelectedRequest(null);
-      await fetchRequests();
     } catch (error) {
+      console.error("Document generation error:", error);
       setError(error.response?.data?.message || "Failed to generate document");
     } finally {
       setGenerating(false);
@@ -302,11 +330,8 @@ const AdminDocuments = () => {
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             >
               <option value="pending">Pending ({statusCounts.pending})</option>
-              <option value="pending_payment">
-                Awaiting Payment ({statusCounts.pending_payment})
-              </option>
-              <option value="paid">
-                Paid ({statusCounts.paid})
+              <option value="approved">
+                Approved ({statusCounts.approved || 0})
               </option>
               <option value="completed">
                 Completed ({statusCounts.completed})
@@ -436,15 +461,16 @@ const AdminDocuments = () => {
                       View Details
                     </button>
 
+                    {/* Pending: Show Approve/Reject */}
                     {request.status === "pending" && (
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleGenerateDocument(request._id)}
-                          disabled={generating}
+                          onClick={() => handleAction(request._id, "approved")}
+                          disabled={updating}
                           className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
                         >
-                          <FilePlus2 className="w-4 h-4 mr-1" />
-                          Generate
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Approve
                         </button>
                         <button
                           onClick={() => viewDetails(request)}
@@ -457,21 +483,19 @@ const AdminDocuments = () => {
                       </div>
                     )}
 
-                    {request.status === "pending_payment" && (
-                      <div className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-orange-600 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                        <CreditCard className="w-4 h-4" />
-                        Awaiting Payment
-                      </div>
-                    )}
-
-                    {request.status === "paid" && (
+                    {/* Approved/Completed: Show Generate Document */}
+                    {(request.status === "approved" || request.status === "completed") && (
                       <button
-                        onClick={() => handleAction(request._id, "completed")}
-                        disabled={updating}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50"
+                        onClick={() => handleGenerateDocument(request._id)}
+                        disabled={generating}
+                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
                       >
-                        <Download className="w-4 h-4 mr-2" />
-                        Mark Complete
+                        {generating ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4 mr-2" />
+                        )}
+                        Generate Document
                       </button>
                     )}
                   </div>
@@ -787,14 +811,34 @@ const AdminDocuments = () => {
                     Reject Request
                   </button>
                   <button
-                    onClick={() => handleGenerateDocument(selectedRequest._id)}
-                    disabled={updating || generating}
+                    onClick={() => handleAction(selectedRequest._id, "approved")}
+                    disabled={updating}
                     className="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Approve Request
+                  </button>
+                </>
+              ) : (selectedRequest.status === "approved" || selectedRequest.status === "completed") ? (
+                <>
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      setSelectedRequest(null);
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => handleGenerateDocument(selectedRequest._id)}
+                    disabled={generating}
+                    className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
                   >
                     {generating ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
-                      <FilePlus2 className="w-4 h-4 mr-2" />
+                      <Download className="w-4 h-4 mr-2" />
                     )}
                     Generate Document
                   </button>

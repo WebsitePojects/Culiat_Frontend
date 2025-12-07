@@ -12,26 +12,12 @@ const statusConfig = {
     borderColor: "border-yellow-200",
     label: "Pending Review"
   },
-  pending_payment: {
-    icon: CreditCard,
-    color: "text-orange-600",
-    bgColor: "bg-orange-50",
-    borderColor: "border-orange-200",
-    label: "Awaiting Payment"
-  },
-  paid: {
-    icon: CheckCircle,
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-50",
-    borderColor: "border-emerald-200",
-    label: "Paid - Ready for Pickup"
-  },
   approved: {
     icon: CheckCircle,
     color: "text-green-600",
     bgColor: "bg-green-50",
     borderColor: "border-green-200",
-    label: "Approved"
+    label: "Approved - Ready for Pickup"
   },
   rejected: {
     icon: XCircle,
@@ -220,27 +206,11 @@ export default function MyRequestsTab() {
               </div>
 
               {/* Action Buttons Based on Status */}
-              {request.status === 'pending_payment' && (
-                <div className="mt-4 pt-4 border-t border-orange-200 flex justify-between items-center">
-                  <div className="text-sm text-orange-700">
-                    <CreditCard className="inline w-4 h-4 mr-1" />
-                    Document ready - Payment required
-                  </div>
-                  <button
-                    onClick={() => handlePayment(request._id)}
-                    className="bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-700 transition-colors flex items-center gap-2"
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    Pay Now (₱{request.fees || 50})
-                  </button>
-                </div>
-              )}
-
-              {request.status === 'paid' && (
-                <div className="mt-4 pt-4 border-t border-emerald-200 flex justify-between items-center">
-                  <div className="text-sm text-emerald-700">
+              {request.status === 'approved' && (
+                <div className="mt-4 pt-4 border-t border-green-200 flex justify-between items-center">
+                  <div className="text-sm text-green-700">
                     <CheckCircle className="inline w-4 h-4 mr-1" />
-                    Payment received - Ready for pickup at Barangay Hall
+                    Your document is approved and ready for pickup at the Barangay Hall
                   </div>
                 </div>
               )}

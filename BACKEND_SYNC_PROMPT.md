@@ -1,26 +1,23 @@
 # Backend Sync Prompt - Document Generation System
 
 ## Overview
-Implement document generation APIs for the AIBarangay system with **payment-gated downloads**.
+Implement document generation APIs for the Barangay Culiat system. When admin generates a document, it should return the DOCX file directly for download.
 
 ### Workflow:
-1. **Resident** submits a service request
-2. **Admin** reviews and approves, then generates the document
-3. **Resident** is notified to pay for the document
-4. **Payment** is processed (via PayMongo or other gateway)
-5. After successful payment, **document becomes available for download**
+1. **Resident** submits a service request → status: `pending`
+2. **Admin** reviews and approves → status: `approved`
+3. **Admin** clicks "Generate Document" → **DOCX file downloads immediately**
+4. **Admin** prints and hands document to resident → status: `completed`
 
 ---
 
 ## Technology Stack
 - **docxtemplater**: For filling DOCX templates with dynamic data
 - **pizzip**: For reading/writing DOCX files (used by docxtemplater)
-- **libreoffice-convert** (optional): For converting DOCX to PDF
 
 ### Install Dependencies
 ```bash
 npm install docxtemplater pizzip --save
-npm install libreoffice-convert --save  # Optional: for PDF conversion
 ```
 
 ---
@@ -28,15 +25,17 @@ npm install libreoffice-convert --save  # Optional: for PDF conversion
 ## File Structure
 ```
 backend/
-├── templates/                    # [NEW] DOCX templates folder
-│   └── certificate_of_indigency.docx
+├── templates/                        # DOCX templates folder
+│   ├── certificate_of_indigency.docx
+│   ├── certificate_of_residency.docx
+│   ├── barangay_clearance.docx
+│   └── ...
 ├── controllers/
-│   └── documentController.js     # [NEW] Document generation logic
+│   └── documentController.js         # Document generation logic
 ├── routes/
-│   └── documentRoutes.js         # [NEW] Document API routes
-├── utils/
-│   └── documentGenerator.js      # [NEW] Template filling utility
-└── generated/                    # [NEW] Temporary generated documents
+│   └── documentRoutes.js             # Document API routes
+└── utils/
+    └── documentGenerator.js          # Template filling utility
 ```
 
 ---
@@ -46,92 +45,53 @@ backend/
 ### 1. Generate Document (Admin Only)
 **POST** `/api/documents/generate/:requestId`
 
-Admin generates the document and stores it. Resident is notified to pay.
+Generates the document and returns it as a DOCX file download.
 
 **Request Headers:**
 ```
-Authorization: Bearer <token>
+Authorization: Bearer <admin-token>
+Content-Type: application/json
 ```
 
-**Response (Success - 200):**
-```json
-{
-  "message": "Document generated successfully. Awaiting payment.",
-  "requestId": "abc123",
-  "documentType": "certificate_of_indigency",
-  "amount": 50.00,
-  "status": "pending_payment"
-}
+**Response:** Binary DOCX file with headers:
 ```
-
-**Behavior:**
-- Generates document and stores in `generated/` folder or database
-- Updates service request status to `pending_payment`
-- Sends notification to resident to pay
-
----
-
-### 2. Download Document (Resident - After Payment)
-**GET** `/api/documents/download/:requestId`
-
-Resident downloads their document **only after payment is verified**.
-
-**Request Headers:**
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+Content-Disposition: attachment; filename="Certificate_of_Indigency_LASTNAME.docx"
 ```
-Authorization: Bearer <token>
-```
-
-**Response (Success - 200):**
-Returns the DOCX file for download.
 
 **Error Responses:**
-- `402`: Payment required - document not yet paid
-- `403`: Not authorized to download this document
-- `404`: Document not found
+- `400`: Request not approved (must be status: approved or completed)
+- `403`: Not authorized (non-admin)
+- `404`: Request not found
 
 ---
 
-### 3. Verify Payment Status
-**GET** `/api/documents/status/:requestId`
-
-Check if document is available for download.
-
-**Response:**
-```json
-{
-  "requestId": "abc123",
-  "documentType": "certificate_of_indigency",
-  "status": "paid",           // pending_payment | paid | downloaded
-  "canDownload": true,
-  "amount": 50.00,
-  "paidAt": "2025-12-07T12:30:00Z"
-}
-```
-
----
-
-### 4. Get Available Templates
+### 2. Get Available Templates
 **GET** `/api/documents/templates`
 
-Returns list of available document templates with prices.
+Returns list of available document templates.
 
 **Response:**
 ```json
 {
-  "templates": [
-    {
-      "id": "certificate_of_indigency",
-      "name": "Certificate of Indigency",
-      "description": "Certificate confirming resident's indigent status",
-      "price": 50.00
-    },
-    {
-      "id": "barangay_clearance",
-      "name": "Barangay Clearance",
-      "description": "General purpose barangay clearance",
-      "price": 100.00
-    }
-  ]
+  "success": true,
+  "data": {
+    "templates": [
+      {
+        "id": "indigency",
+        "name": "Certificate of Indigency",
+        "description": "Certificate confirming resident's indigent status",
+        "price": 0,
+        "available": true
+      },
+      {
+        "id": "residency",
+        "name": "Certificate of Residency", 
+        "price": 50,
+        "available": true
+      }
+    ]
+  }
 }
 ```
 
@@ -147,12 +107,54 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * Generate a document from template with data
- * @param {string} templateName - Template filename (e.g., 'certificate_of_indigency.docx')
- * @param {object} data - Data to fill in template
- * @returns {Buffer} - Generated document buffer
+ * Generate official date format: "7th day of December 2025"
  */
-async function generateDocument(templateName, data) {
+function formatOfficialDate(date) {
+  const d = new Date(date);
+  const day = d.getDate();
+  const month = d.toLocaleString('en-US', { month: 'long' });
+  const year = d.getFullYear();
+  
+  // Add ordinal suffix
+  const suffix = ['th', 'st', 'nd', 'rd'];
+  const v = day % 100;
+  const ordinal = suffix[(v - 20) % 10] || suffix[v] || suffix[0];
+  
+  return `${day}${ordinal} day of ${month} ${year}`;
+}
+
+/**
+ * Determine salutation based on gender and civil status
+ */
+function getSalutation(gender, civilStatus) {
+  if (gender?.toLowerCase() === 'male') return 'Mr.';
+  if (gender?.toLowerCase() === 'female') {
+    if (civilStatus?.toLowerCase() === 'married') return 'Mrs.';
+    return 'Ms.';
+  }
+  return '';
+}
+
+/**
+ * Generate control number: IND-2025-00001
+ */
+function generateControlNumber(documentType) {
+  const prefix = {
+    indigency: 'IND',
+    residency: 'RES',
+    clearance: 'CLR',
+    business_permit: 'BIZ',
+    good_moral: 'GMC'
+  };
+  const year = new Date().getFullYear();
+  const random = Math.floor(10000 + Math.random() * 90000);
+  return `${prefix[documentType] || 'DOC'}-${year}-${random}`;
+}
+
+/**
+ * Generate a document from template with data
+ */
+async function generateDocument(templateName, requestData) {
   const templatePath = path.join(__dirname, '../templates', templateName);
   const content = fs.readFileSync(templatePath, 'binary');
   
@@ -162,8 +164,49 @@ async function generateDocument(templateName, data) {
     linebreaks: true,
   });
 
-  // Set template data
-  doc.render(data);
+  // Build full name
+  const nameParts = [
+    requestData.firstName,
+    requestData.middleName,
+    requestData.lastName,
+    requestData.suffix
+  ].filter(Boolean);
+  const fullName = nameParts.join(' ');
+
+  // Build full address
+  const addressParts = [
+    requestData.address?.houseNumber,
+    requestData.address?.street,
+    requestData.address?.subdivision
+  ].filter(Boolean);
+  const fullAddress = addressParts.join(', ');
+
+  // Prepare template data
+  const templateData = {
+    salutation: getSalutation(requestData.gender, requestData.civilStatus),
+    full_name: fullName,
+    first_name: requestData.firstName || '',
+    middle_name: requestData.middleName || '',
+    last_name: requestData.lastName || '',
+    suffix: requestData.suffix || '',
+    full_address: fullAddress,
+    house_number: requestData.address?.houseNumber || '',
+    street: requestData.address?.street || '',
+    subdivision: requestData.address?.subdivision || '',
+    date_of_birth: requestData.dateOfBirth ? formatOfficialDate(requestData.dateOfBirth) : '',
+    gender: requestData.gender || '',
+    civil_status: requestData.civilStatus?.replace(/_/g, ' ') || '',
+    nationality: requestData.nationality || 'Filipino',
+    contact_number: requestData.contactNumber || '',
+    purpose_of_request: requestData.purposeOfRequest || '',
+    issue_date: formatOfficialDate(new Date()),
+    control_number: generateControlNumber(requestData.documentType),
+    barangay_captain: 'Hon. [CAPTAIN NAME]',  // Configure per barangay
+    barangay_secretary: '[SECRETARY NAME]',   // Configure per barangay
+  };
+
+  // Render template
+  doc.render(templateData);
 
   // Generate output buffer
   const buf = doc.getZip().generate({
@@ -174,193 +217,113 @@ async function generateDocument(templateName, data) {
   return buf;
 }
 
-module.exports = { generateDocument };
+module.exports = { generateDocument, formatOfficialDate, getSalutation, generateControlNumber };
 ```
+
+---
 
 ### documentController.js
 ```javascript
-const ServiceRequest = require('../models/ServiceRequest');
 const { generateDocument } = require('../utils/documentGenerator');
+const DocumentRequest = require('../models/DocumentRequest');
 
-// Helper to format date in official government format (e.g., "7th day of December 2025")
-const formatOfficialDate = (date) => {
-  const d = new Date(date);
-  const day = d.getDate();
-  const month = d.toLocaleDateString('en-PH', { month: 'long' });
-  const year = d.getFullYear();
-  
-  // Add ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
-  const ordinal = (n) => {
-    const s = ['th', 'st', 'nd', 'rd'];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
-  };
-  
-  return `${ordinal(day)} day of ${month} ${year}`;
+// Template file mapping
+const TEMPLATE_FILES = {
+  indigency: 'Certificate of Indigency.docx',
+  residency: 'Certificate of Residency.docx',
+  clearance: 'Barangay Clearance.docx',
+  business_permit: 'Certificate for Business Permit.docx',
+  business_clearance: 'Certificate for Business Closure.docx',
+  good_moral: 'Certificate of Good Moral.docx'
 };
 
-// Helper to get salutation based on gender and civil status
-const getSalutation = (gender, civilStatus) => {
-  if (gender?.toLowerCase() === 'male') return 'Mr.';
-  if (gender?.toLowerCase() === 'female') {
-    if (civilStatus?.toLowerCase() === 'married') return 'Mrs.';
-    return 'Ms.';
-  }
-  return ''; // Default empty if unknown
-};
-
-// Helper to calculate age
-const calculateAge = (dateOfBirth) => {
-  const today = new Date();
-  const birthDate = new Date(dateOfBirth);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age;
-};
-
-// Generate control number
-const generateControlNumber = () => {
-  const year = new Date().getFullYear();
-  const random = Math.floor(10000 + Math.random() * 90000);
-  return `COI-${year}-${random}`;
-};
-
-exports.generateDocument = async (req, res) => {
+/**
+ * Generate and download document (Admin only)
+ * POST /api/documents/generate/:requestId
+ */
+exports.generateDocumentController = async (req, res) => {
   try {
     const { requestId } = req.params;
-    const { format = 'docx' } = req.body;
-
-    // Fetch the service request with all data
-    const serviceRequest = await ServiceRequest.findById(requestId).populate('user');
     
-    if (!serviceRequest) {
-      return res.status(404).json({ message: 'Service request not found' });
+    // Get the document request
+    const request = await DocumentRequest.findById(requestId);
+    if (!request) {
+      return res.status(404).json({ message: 'Request not found' });
     }
 
-    // Check if request is approved and paid
-    if (serviceRequest.status !== 'approved' && serviceRequest.status !== 'completed') {
+    // Only allow for approved or completed requests
+    if (request.status !== 'approved' && request.status !== 'completed') {
       return res.status(400).json({ 
         message: 'Document can only be generated for approved requests' 
       });
     }
 
-    // Build full address
-    const address = serviceRequest.address || {};
-    const fullAddress = [
-      address.houseNumber,
-      address.street,
-      address.subdivision
-    ].filter(Boolean).join(', ');
+    // Get template file
+    const templateFile = TEMPLATE_FILES[request.documentType];
+    if (!templateFile) {
+      return res.status(400).json({ message: 'Unknown document type' });
+    }
 
-    // Build full name
-    const fullName = [
-      serviceRequest.firstName,
-      serviceRequest.middleName,
-      serviceRequest.lastName,
-      serviceRequest.suffix
-    ].filter(Boolean).join(' ');
+    // Generate the document
+    const docBuffer = await generateDocument(templateFile, request);
 
-    // Prepare template data
-    const templateData = {
-      // Salutation
-      salutation: getSalutation(serviceRequest.gender, serviceRequest.civilStatus),
-      
-      // Personal info
-      full_name: fullName,
-      first_name: serviceRequest.firstName || '',
-      middle_name: serviceRequest.middleName || '',
-      last_name: serviceRequest.lastName || '',
-      suffix: serviceRequest.suffix || '',
-      
-      // Address
-      full_address: fullAddress,
-      house_number: address.houseNumber || '',
-      street: address.street || '',
-      subdivision: address.subdivision || '',
-      
-      // Demographics
-      date_of_birth: formatOfficialDate(serviceRequest.dateOfBirth),
-      age: calculateAge(serviceRequest.dateOfBirth),
-      gender: serviceRequest.gender || '',
-      civil_status: serviceRequest.civilStatus || '',
-      nationality: serviceRequest.nationality || 'Filipino',
-      contact_number: serviceRequest.contactNumber || '',
-      
-      // Request info
-      purpose_of_request: serviceRequest.purposeOfRequest || '',
-      
-      // Document metadata - Official date format
-      issue_date: formatOfficialDate(new Date()),
-      control_number: generateControlNumber(),
-      
-      // Barangay officials (from settings or hardcoded for now)
-      barangay_captain: 'HON. BARANGAY CAPTAIN NAME',
-      barangay_secretary: 'SECRETARY NAME',
-      
-      // Fixed values - Government document
-      // Note: "Barangay Culiat" and "Quezon City" are hardcoded in template
-    };
+    // Create filename
+    const filename = `${request.documentType}_${request.lastName || 'certificate'}.docx`;
 
-    // Map document type to template file
-    const templateMap = {
-      'certificate_of_indigency': 'certificate_of_indigency.docx',
-      'barangay_clearance': 'barangay_clearance.docx',
-      'barangay_certificate': 'barangay_certificate.docx',
-    };
-
-    const templateFile = templateMap[serviceRequest.documentType] || 'certificate_of_indigency.docx';
-    
-    // Generate document
-    const docBuffer = await generateDocument(templateFile, templateData);
-
-    // Set response headers for file download
-    const fileName = `${serviceRequest.documentType}_${serviceRequest.lastName}_${serviceRequest.firstName}.docx`;
+    // Send file as download
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-    
-    return res.send(docBuffer);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(docBuffer);
 
   } catch (error) {
     console.error('Document generation error:', error);
-    return res.status(500).json({ 
-      message: 'Failed to generate document',
-      error: error.message 
-    });
+    res.status(500).json({ message: 'Failed to generate document' });
   }
 };
+
+/**
+ * Get available templates
+ * GET /api/documents/templates
+ */
+exports.getTemplates = async (req, res) => {
+  const templates = [
+    { id: 'indigency', name: 'Certificate of Indigency', price: 0, available: true },
+    { id: 'residency', name: 'Certificate of Residency', price: 50, available: true },
+    { id: 'clearance', name: 'Barangay Clearance', price: 100, available: true },
+    { id: 'business_permit', name: 'Business Permit Certificate', price: 500, available: true },
+    { id: 'good_moral', name: 'Certificate of Good Moral', price: 75, available: true },
+  ];
+
+  res.json({ success: true, data: { templates } });
+};
 ```
+
+---
 
 ### documentRoutes.js
 ```javascript
 const express = require('express');
 const router = express.Router();
-const { generateDocument, getTemplates } = require('../controllers/documentController');
-const authMiddleware = require('../middleware/authMiddleware');
-const staffOrAdmin = require('../middleware/staffOrAdmin');
+const { protect, adminOnly } = require('../middleware/authMiddleware');
+const { 
+  generateDocumentController,
+  getTemplates 
+} = require('../controllers/documentController');
 
-// All routes require authentication and staff/admin role
-router.use(authMiddleware);
-router.use(staffOrAdmin);
-
-// Generate document for a service request
-router.post('/generate/:requestId', generateDocument);
-
-// Get available templates
+// Public route
 router.get('/templates', getTemplates);
+
+// Admin only routes
+router.post('/generate/:requestId', protect, adminOnly, generateDocumentController);
 
 module.exports = router;
 ```
 
 ---
 
-## Register Routes in server.js
+### Register Routes in server.js
 ```javascript
 const documentRoutes = require('./routes/documentRoutes');
-
-// Add after other routes
 app.use('/api/documents', documentRoutes);
 ```
 
@@ -368,72 +331,78 @@ app.use('/api/documents', documentRoutes);
 
 ## Template Placeholders Reference
 
-| Placeholder | Description | Example |
-|------------|-------------|---------|
-| `{salutation}` | Mr., Mrs., Ms. | "Mr." |
-| `{full_name}` | Complete name with suffix | "Juan Dela Cruz Jr." |
-| `{first_name}` | First name | "Juan" |
-| `{middle_name}` | Middle name | "Santos" |
-| `{last_name}` | Last name | "Dela Cruz" |
-| `{suffix}` | Name suffix | "Jr." |
-| `{full_address}` | Complete address | "123 Main St., Green Village" |
-| `{house_number}` | House/Unit number | "123" |
-| `{street}` | Street name | "Main Street" |
-| `{subdivision}` | Subdivision/Village | "Green Village" |
-| `{date_of_birth}` | Formatted DOB (official) | "15th day of January 1990" |
-| `{age}` | Calculated age | "34" |
-| `{gender}` | Gender | "Male" |
-| `{civil_status}` | Civil status | "Single" |
-| `{nationality}` | Nationality | "Filipino" |
-| `{contact_number}` | Phone number | "09171234567" |
-| `{purpose_of_request}` | Document purpose | "scholarship application" |
-| `{issue_date}` | Official date format | "7th day of December 2025" |
-| `{control_number}` | Unique reference | "COI-2024-12345" |
-| `{barangay_captain}` | Captain's name | "HON. CAPTAIN NAME" |
-| `{barangay_secretary}` | Secretary's name | "SECRETARY NAME" |
+Templates use `{placeholder}` syntax. Available placeholders:
 
-> **Note:** "Barangay Culiat" and "Quezon City" are hardcoded directly in your DOCX template since they never change.
+| Placeholder | Description | Example |
+|-------------|-------------|---------|
+| `{salutation}` | Mr., Mrs., Ms. | Mr. |
+| `{full_name}` | Complete name with suffix | Juan Dela Cruz Jr. |
+| `{first_name}` | First name | Juan |
+| `{middle_name}` | Middle name | Santos |
+| `{last_name}` | Last name | Dela Cruz |
+| `{suffix}` | Name suffix | Jr. |
+| `{full_address}` | House, Street, Subdivision | 123 Main St, Green Village |
+| `{house_number}` | House/Building number | 123 |
+| `{street}` | Street name | Main Street |
+| `{subdivision}` | Subdivision/Village | Green Village |
+| `{date_of_birth}` | Official format | 15th day of January 1990 |
+| `{gender}` | Gender | Male |
+| `{civil_status}` | Civil status | Single |
+| `{nationality}` | Nationality | Filipino |
+| `{contact_number}` | Phone number | 09171234567 |
+| `{purpose_of_request}` | Document purpose | Employment |
+| `{issue_date}` | Today's date | 7th day of December 2025 |
+| `{control_number}` | Unique reference | IND-2025-12345 |
+| `{barangay_captain}` | Captain's name | Hon. [Name] |
+| `{barangay_secretary}` | Secretary's name | [Name] |
 
 ---
 
-## Frontend Integration (Admin Panel)
+## Document Type Mapping
 
-Add a "Generate Document" button in the admin service request details:
+| documentType | Template File | Price (PHP) |
+|--------------|---------------|-------------|
+| `indigency` | Certificate of Indigency.docx | 0 (Free) |
+| `residency` | Certificate of Residency.docx | 50 |
+| `clearance` | Barangay Clearance.docx | 100 |
+| `business_permit` | Certificate for Business Permit.docx | 500 |
+| `business_clearance` | Certificate for Business Closure.docx | 200 |
+| `good_moral` | Certificate of Good Moral.docx | 75 |
 
-```jsx
+---
+
+## Frontend Integration
+
+The frontend calls the API and downloads the blob:
+
+```javascript
 const handleGenerateDocument = async (requestId) => {
-  try {
-    const response = await axios.post(
-      `${API_URL}/api/documents/generate/${requestId}`,
-      { format: 'docx' },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        responseType: 'blob'
-      }
-    );
-    
-    // Create download link
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'Certificate.docx');
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    
-  } catch (error) {
-    console.error('Failed to generate document:', error);
-  }
+  const response = await axios.post(
+    `/api/documents/generate/${requestId}`,
+    {},
+    { 
+      headers: { Authorization: `Bearer ${token}` },
+      responseType: 'blob'  // Important: expect binary data
+    }
+  );
+
+  // Create download link
+  const blob = new Blob([response.data], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'certificate.docx');
+  link.click();
 };
 ```
 
 ---
 
-## Testing Steps
+## Testing
 
-1. Place your `certificate_of_indigency.docx` template in `backend/templates/`
-2. Ensure template uses `{placeholder}` syntax (not underscores)
-3. Create a test service request
-4. Approve the service request
-5. Call the API or click "Generate Document" button
-6. Verify downloaded DOCX has all placeholders replaced correctly
+1. Create a test document request with status `approved`
+2. Call `POST /api/documents/generate/:requestId` with admin token
+3. Verify DOCX file downloads with correct data filled in
+4. Open in Word to verify all placeholders are replaced correctly
