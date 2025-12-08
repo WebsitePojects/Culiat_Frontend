@@ -17,6 +17,21 @@ export default function PersonalInfoTab({ formData, setField, errors, setErrors 
         </p>
       </div>
 
+      {/* Salutation Display */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-[var(--color-text-color)]">
+          Salutation <span className="text-red-500">*</span>
+        </label>
+        <input
+          name="salutation"
+          value={formData.salutation || ""}
+          readOnly
+          className="mt-1 block w-full max-w-[150px] rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+          placeholder="Mr./Mrs./Ms."
+          style={{ backgroundColor: 'var(--color-neutral)' }}
+        />
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div>
           <label className="block text-sm font-medium text-[var(--color-text-color)]">

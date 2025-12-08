@@ -29,6 +29,7 @@ const initialForm = {
   placeOfBirth: "",
   gender: "",
   civilStatus: "",
+  salutation: "",
   nationality: "",
   // Address (atomic structure)
   subdivision: "",
@@ -199,6 +200,7 @@ export default function Services() {
         placeOfBirth: user.placeOfBirth || "",
         gender: user.gender || "",
         civilStatus: user.civilStatus || "",
+        salutation: user.salutation || "",
         nationality: user.nationality || "Filipino",
         contactNumber: user.phoneNumber || "",
         emailAddress: user.email || "",
@@ -329,6 +331,7 @@ export default function Services() {
       if (formData.placeOfBirth) formDataToSend.append('placeOfBirth', formData.placeOfBirth);
       if (formData.gender) formDataToSend.append('gender', formData.gender);
       if (formData.civilStatus) formDataToSend.append('civilStatus', formData.civilStatus);
+      if (formData.salutation) formDataToSend.append('salutation', formData.salutation);
       if (formData.nationality) formDataToSend.append('nationality', formData.nationality);
       if (formData.contactNumber) formDataToSend.append('contactNumber', formData.contactNumber);
       

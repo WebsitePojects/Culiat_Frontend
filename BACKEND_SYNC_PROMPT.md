@@ -124,9 +124,14 @@ function formatOfficialDate(date) {
 }
 
 /**
- * Determine salutation based on gender and civil status
+ * Determine salutation - use explicit if provided, otherwise derive from gender/civilStatus
  */
-function getSalutation(gender, civilStatus) {
+function getSalutation(requestData) {
+  // Use explicit salutation if provided by user
+  if (requestData.salutation) return requestData.salutation;
+  
+  // Fall back to derived salutation from gender and civil status
+  const { gender, civilStatus } = requestData;
   if (gender?.toLowerCase() === 'male') return 'Mr.';
   if (gender?.toLowerCase() === 'female') {
     if (civilStatus?.toLowerCase() === 'married') return 'Mrs.';
@@ -173,17 +178,21 @@ async function generateDocument(templateName, requestData) {
   ].filter(Boolean);
   const fullName = nameParts.join(' ');
 
-  // Build full address
+  // Build user's address (house number and street only - barangay/city are fixed)
   const addressParts = [
     requestData.address?.houseNumber,
-    requestData.address?.street,
-    requestData.address?.subdivision
+    requestData.address?.street
   ].filter(Boolean);
-  const fullAddress = addressParts.join(', ');
+  const fullAddress = addressParts.join(' ');  // e.g., "123 Main Street"
+
+  // Fixed location constants for Barangay Culiat
+  // Note: In templates, use: {full_address}, Barangay Culiat, Quezon City
+  const BARANGAY = 'Culiat';
+  const CITY = 'Quezon City';
 
   // Prepare template data
   const templateData = {
-    salutation: getSalutation(requestData.gender, requestData.civilStatus),
+    salutation: getSalutation(requestData),
     full_name: fullName,
     first_name: requestData.firstName || '',
     middle_name: requestData.middleName || '',
@@ -193,6 +202,8 @@ async function generateDocument(templateName, requestData) {
     house_number: requestData.address?.houseNumber || '',
     street: requestData.address?.street || '',
     subdivision: requestData.address?.subdivision || '',
+    barangay: BARANGAY,
+    city: CITY,
     date_of_birth: requestData.dateOfBirth ? formatOfficialDate(requestData.dateOfBirth) : '',
     gender: requestData.gender || '',
     civil_status: requestData.civilStatus?.replace(/_/g, ' ') || '',
@@ -341,11 +352,16 @@ Templates use `{placeholder}` syntax. Available placeholders:
 | `{middle_name}` | Middle name | Santos |
 | `{last_name}` | Last name | Dela Cruz |
 | `{suffix}` | Name suffix | Jr. |
-| `{full_address}` | House, Street, Subdivision | 123 Main St, Green Village |
+| `{full_address}` | User's address (house + street) | 123 Main Street |
 | `{house_number}` | House/Building number | 123 |
 | `{street}` | Street name | Main Street |
 | `{subdivision}` | Subdivision/Village | Green Village |
+| `{barangay}` | Fixed: Barangay name | Culiat |
+| `{city}` | Fixed: City name | Quezon City |
 | `{date_of_birth}` | Official format | 15th day of January 1990 |
+
+> **Template Usage Note:** For addresses, use the format: `{full_address}, Barangay Culiat, Quezon City` since barangay and city are fixed.
+
 | `{gender}` | Gender | Male |
 | `{civil_status}` | Civil status | Single |
 | `{nationality}` | Nationality | Filipino |

@@ -39,6 +39,7 @@ const Register = () => {
     placeOfBirth: "",
     gender: "",
     civilStatus: "",
+    salutation: "",
     nationality: "Filipino",
     phoneNumber: "",
     houseNumber: "",
@@ -210,6 +211,8 @@ const Register = () => {
         formDataToSend.append("placeOfBirth", formData.placeOfBirth);
       formDataToSend.append("gender", formData.gender);
       formDataToSend.append("civilStatus", formData.civilStatus);
+      if (formData.salutation)
+        formDataToSend.append("salutation", formData.salutation);
       formDataToSend.append("nationality", formData.nationality);
       formDataToSend.append("phoneNumber", formData.phoneNumber);
 
@@ -444,6 +447,24 @@ const Register = () => {
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
     >
+      {/* Salutation Field */}
+      <div className="mb-2">
+        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+          Salutation
+        </label>
+        <select
+          name="salutation"
+          value={formData.salutation}
+          onChange={handleChange}
+          className="block w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+        >
+          <option value="">Select Salutation</option>
+          <option value="Mr.">Mr.</option>
+          <option value="Mrs.">Mrs.</option>
+          <option value="Ms.">Ms.</option>
+        </select>
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">
