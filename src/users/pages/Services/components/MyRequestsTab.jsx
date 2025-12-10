@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Package, CreditCard, Download, Loader2 } from "lucide-react";
+import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Package, Download, Loader2 } from "lucide-react";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -46,11 +46,13 @@ const documentTypeLabels = {
   indigency: "Certificate of Indigency",
   residency: "Certificate of Residency",
   clearance: "Barangay Clearance",
-  ctc: "Community Tax Certificate",
   business_permit: "Business Permit",
-  building_permit: "Building Permit",
+  business_clearance: "Business Clearance",
   good_moral: "Certificate of Good Moral",
-  business_clearance: "Business Clearance"
+  barangay_id: "Barangay ID",
+  liquor_permit: "Liquor Permit",
+  missionary: "Missionary Certificate",
+  rehab: "Rehabilitation Certificate"
 };
 
 export default function MyRequestsTab() {
@@ -83,23 +85,50 @@ export default function MyRequestsTab() {
     }
   };
 
-  const handlePayment = async (requestId) => {
+  const handleDownload = async (requestId, documentType) => {
     try {
+      setDownloading(requestId);
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_URL}/api/payments/create-link`, {
-        requestId
-      }, {
+      const response = await axios.get(`${API_URL}/api/documents/download/${requestId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
-        }
+        },
+        responseType: 'blob'
       });
+
+      // Create download link for the blob
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
       
-      if (response.data.success && response.data.paymentLink) {
-        window.open(response.data.paymentLink, '_blank');
+      // Extract filename from Content-Disposition header or use default
+      const contentDisposition = response.headers['content-disposition'];
+      const docTypeLabel = documentTypeLabels[documentType] || documentType;
+      let filename = `${docTypeLabel.replace(/\s+/g, '_')}.docx`;
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="(.+)"/);
+        if (match) filename = match[1];
       }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Payment error:', err);
-      alert('Failed to create payment link: ' + (err.response?.data?.message || err.message));
+      console.error('Download error:', err);
+      if (err.response?.status === 402) {
+        alert('Please complete payment first to download this document.');
+      } else if (err.response?.status === 404) {
+        alert('Document not found. Please wait for admin to generate it.');
+      } else {
+        alert('Failed to download document: ' + (err.response?.data?.message || err.message));
+      }
+    } finally {
+      setDownloading(null);
     }
   };
 
@@ -206,12 +235,32 @@ export default function MyRequestsTab() {
               </div>
 
               {/* Action Buttons Based on Status */}
-              {request.status === 'approved' && (
-                <div className="mt-4 pt-4 border-t border-green-200 flex justify-between items-center">
+              {(request.status === 'approved' || request.status === 'completed') && (
+                <div className="mt-4 pt-4 border-t border-green-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                   <div className="text-sm text-green-700">
                     <CheckCircle className="inline w-4 h-4 mr-1" />
-                    Your document is approved and ready for pickup at the Barangay Hall
+                    {request.status === 'approved' 
+                      ? 'Your document is approved and ready for pickup at the Barangay Hall'
+                      : 'Your document request has been completed'
+                    }
                   </div>
+                  <button
+                    onClick={() => handleDownload(request._id, request.documentType)}
+                    disabled={downloading === request._id}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {downloading === request._id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Downloading...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        Download Document
+                      </>
+                    )}
+                  </button>
                 </div>
               )}
 

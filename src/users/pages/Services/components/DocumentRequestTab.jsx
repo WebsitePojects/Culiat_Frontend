@@ -1,15 +1,26 @@
 import React from "react";
-import { FileText, Building, Calendar } from "lucide-react";
+import { FileText, Building, Calendar, Users } from "lucide-react";
 
 const DOCUMENT_TYPES = [
   { value: "indigency", label: "Certificate of Indigency" },
   { value: "residency", label: "Certificate of Residency" },
   { value: "clearance", label: "Barangay Clearance" },
-  { value: "ctc", label: "Community Tax Certificate" },
   { value: "business_permit", label: "Business Permit" },
-  { value: "building_permit", label: "Building Permit" },
-  { value: "good_moral", label: "Certificate of Good Moral" },
   { value: "business_clearance", label: "Business Clearance" },
+  { value: "good_moral", label: "Certificate of Good Moral" },
+  { value: "barangay_id", label: "Barangay ID" },
+  { value: "liquor_permit", label: "Liquor Permit" },
+  { value: "missionary", label: "Missionary Certificate" },
+  { value: "rehab", label: "Rehabilitation Certificate" },
+];
+
+const RELATIONSHIP_OPTIONS = [
+  { value: "son", label: "Son" },
+  { value: "daughter", label: "Daughter" },
+  { value: "spouse", label: "Spouse" },
+  { value: "parent", label: "Parent" },
+  { value: "sibling", label: "Sibling" },
+  { value: "other", label: "Other" },
 ];
 
 export default function DocumentRequestTab({ formData, setField, errors, isBusinessDocument }) {
@@ -49,6 +60,112 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
           <p className="text-xs text-red-500 mt-1">{errors.documentType}</p>
         )}
       </div>
+
+      {/* Beneficiary Information Section - Only show for rehab documents */}
+      {formData.documentType === 'rehab' && (
+        <div className="border-t pt-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="text-[var(--color-secondary)]" size={20} />
+            <h2 className="text-lg font-medium">Beneficiary Information</h2>
+          </div>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+            Please provide information about the person who will undergo rehabilitation.
+          </p>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                Beneficiary Full Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="beneficiaryFullName"
+                value={formData.beneficiaryFullName || ""}
+                onChange={onChange}
+                className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                  errors.beneficiaryFullName
+                    ? "border-red-500"
+                    : "border-[var(--color-neutral-active)]"
+                }`}
+                placeholder="Enter beneficiary's full name"
+              />
+              {errors.beneficiaryFullName && (
+                <p className="text-xs text-red-500 mt-1">{errors.beneficiaryFullName}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  Date of Birth <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="beneficiaryDateOfBirth"
+                  value={formData.beneficiaryDateOfBirth || ""}
+                  onChange={onChange}
+                  className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                    errors.beneficiaryDateOfBirth
+                      ? "border-red-500"
+                      : "border-[var(--color-neutral-active)]"
+                  }`}
+                />
+                {errors.beneficiaryDateOfBirth && (
+                  <p className="text-xs text-red-500 mt-1">{errors.beneficiaryDateOfBirth}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  Age <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="beneficiaryAge"
+                  value={formData.beneficiaryAge || ""}
+                  onChange={onChange}
+                  min="1"
+                  max="150"
+                  className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                    errors.beneficiaryAge
+                      ? "border-red-500"
+                      : "border-[var(--color-neutral-active)]"
+                  }`}
+                  placeholder="Age"
+                />
+                {errors.beneficiaryAge && (
+                  <p className="text-xs text-red-500 mt-1">{errors.beneficiaryAge}</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                Relationship to You <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="beneficiaryRelationship"
+                value={formData.beneficiaryRelationship || ""}
+                onChange={onChange}
+                className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                  errors.beneficiaryRelationship
+                    ? "border-red-500"
+                    : "border-[var(--color-neutral-active)]"
+                }`}
+              >
+                <option value="">Select relationship</option>
+                {RELATIONSHIP_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              {errors.beneficiaryRelationship && (
+                <p className="text-xs text-red-500 mt-1">{errors.beneficiaryRelationship}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Business Information Section - Only show for business documents */}
       {isBusinessDocument && (

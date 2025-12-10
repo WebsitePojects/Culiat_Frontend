@@ -48,4 +48,12 @@ export const feedbackAPI = {
   create: (data) => api.post('/feedback', data),
 };
 
+// Documents API
+export const documentsAPI = {
+  getTemplates: () => api.get('/api/documents/templates'),
+  checkStatus: (requestId) => api.get(`/api/documents/status/${requestId}`),
+  download: (requestId) => api.get(`/api/documents/download/${requestId}`, { responseType: 'blob' }),
+};
+
 export default api;
+

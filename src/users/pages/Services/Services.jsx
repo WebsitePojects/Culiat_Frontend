@@ -75,6 +75,11 @@ const initialForm = {
   purposeOfRequest: "",
   preferredPickupDate: "",
   remarks: "",
+  // Beneficiary Info (for rehab certificates)
+  beneficiaryFullName: "",
+  beneficiaryDateOfBirth: "",
+  beneficiaryAge: "",
+  beneficiaryRelationship: "",
 };
 
 export default function Services() {
@@ -296,6 +301,14 @@ export default function Services() {
       if (!formData.natureOfBusiness.trim()) e.natureOfBusiness = "Nature of business is required";
     }
     
+    // Beneficiary fields validation for rehab certificates
+    if (formData.documentType === 'rehab') {
+      if (!formData.beneficiaryFullName?.trim()) e.beneficiaryFullName = "Beneficiary name is required";
+      if (!formData.beneficiaryDateOfBirth) e.beneficiaryDateOfBirth = "Beneficiary date of birth is required";
+      if (!formData.beneficiaryAge) e.beneficiaryAge = "Beneficiary age is required";
+      if (!formData.beneficiaryRelationship) e.beneficiaryRelationship = "Relationship is required";
+    }
+    
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -376,11 +389,18 @@ export default function Services() {
         formDataToSend.append('businessInfo[businessAddress][houseNumber]', formData.businessHouseNumber || '');
       }
       
-      // Document request
       formDataToSend.append('documentType', formData.documentType);
       formDataToSend.append('purposeOfRequest', formData.purposeOfRequest);
       if (formData.preferredPickupDate) formDataToSend.append('preferredPickupDate', formData.preferredPickupDate);
       if (formData.remarks) formDataToSend.append('remarks', formData.remarks);
+      
+      // Beneficiary info (for rehab certificates)
+      if (formData.documentType === 'rehab') {
+        formDataToSend.append('beneficiaryInfo[fullName]', formData.beneficiaryFullName);
+        formDataToSend.append('beneficiaryInfo[dateOfBirth]', formData.beneficiaryDateOfBirth);
+        formDataToSend.append('beneficiaryInfo[age]', formData.beneficiaryAge);
+        formDataToSend.append('beneficiaryInfo[relationship]', formData.beneficiaryRelationship);
+      }
       
       // Files
       if (formData.photo1x1File) formDataToSend.append('photo1x1', formData.photo1x1File);
