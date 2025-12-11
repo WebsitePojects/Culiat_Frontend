@@ -456,60 +456,70 @@ export default function Services() {
       <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative overflow-hidden"
+        transition={{ duration: 0.6 }}
+        className="relative text-white overflow-hidden"
         style={{
           background: "linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-glow) 100%)",
         }}
       >
+        {/* Decorative Background Pattern */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(circle at 20px 20px, white 1px, transparent 0)',
-            backgroundSize: '40px 40px',
-          }}></div>
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+              backgroundSize: "40px 40px",
+            }}
+          ></div>
         </div>
-        
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-16 md:py-24">
+
+        <div className="relative max-w-6xl mx-auto px-6 pt-24 pb-16 sm:pt-28 sm:pb-20 md:pt-32 md:pb-28 text-center">
+          {/* Animated Icon Badge */}
           <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-center"
+            className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-sm rounded-full mb-6"
           >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="inline-block p-3 rounded-full mb-6"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-            >
-              <FileText className="w-8 h-8" style={{ color: "var(--color-text-color-light)" }} />
-            </motion.div>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight"
-                style={{ color: "var(--color-text-color-light)" }}>
-              Barangay Services
-            </h1>
-            
-            <motion.p
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="text-lg md:text-xl max-w-3xl mx-auto opacity-90"
-              style={{ color: "var(--color-text-color-light)" }}
-            >
-              Request your official barangay documents online quickly and securely.
-              Fill out the form below and track your request status.
-            </motion.p>
+            <FileText className="w-8 h-8 md:w-10 md:h-10" />
           </motion.div>
+
+          {/* Title */}
+          <motion.h1
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-4 md:mb-6 max-w-3xl mx-auto"
+          >
+            Barangay Services
+          </motion.h1>
+
+          {/* Description */}
+          <motion.p
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed mx-auto"
+          >
+            Request your official barangay documents online quickly and securely.
+            Fill out the form below and track your request status.
+          </motion.p>
         </div>
-        
+
         {/* Wave Divider */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
-          <svg className="relative block w-full h-12" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100" preserveAspectRatio="none">
+        <div
+          className="absolute bottom-0 left-0 w-full overflow-hidden leading-none"
+          style={{ transform: "rotate(180deg)" }}
+        >
+          <svg
+            className="relative block w-full h-12 md:h-20"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+          >
             <path
+              d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
               fill="var(--color-neutral)"
-              d="M0,64 C480,120 960,0 1440,64 L1440,100 L0,100 Z"
             ></path>
           </svg>
         </div>
