@@ -1,5 +1,14 @@
 import React from "react";
-import { FileText, Building, Calendar, Users } from "lucide-react";
+import {
+  FileText,
+  Building,
+  Calendar,
+  Users,
+  Home,
+  Globe,
+  CreditCard,
+  IdCard,
+} from "lucide-react";
 
 const DOCUMENT_TYPES = [
   { value: "indigency", label: "Certificate of Indigency" },
@@ -23,7 +32,20 @@ const RELATIONSHIP_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
-export default function DocumentRequestTab({ formData, setField, errors, isBusinessDocument }) {
+const RESIDENCY_TYPE_OPTIONS = [
+  { value: "owner", label: "Owner" },
+  { value: "renter", label: "Renter" },
+  { value: "boarder", label: "Boarder" },
+  { value: "relative", label: "Relative" },
+  { value: "other", label: "Other" },
+];
+
+export default function DocumentRequestTab({
+  formData,
+  setField,
+  errors,
+  isBusinessDocument,
+}) {
   const onChange = (e) => setField(e.target.name, e.target.value);
 
   return (
@@ -62,16 +84,17 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
       </div>
 
       {/* Beneficiary Information Section - Only show for rehab documents */}
-      {formData.documentType === 'rehab' && (
+      {formData.documentType === "rehab" && (
         <div className="border-t pt-4">
           <div className="flex items-center gap-2 mb-4">
             <Users className="text-[var(--color-secondary)]" size={20} />
             <h2 className="text-lg font-medium">Beneficiary Information</h2>
           </div>
           <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-            Please provide information about the person who will undergo rehabilitation.
+            Please provide information about the person who will undergo
+            rehabilitation.
           </p>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-[var(--color-text-color)]">
@@ -89,7 +112,9 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
                 placeholder="Enter beneficiary's full name"
               />
               {errors.beneficiaryFullName && (
-                <p className="text-xs text-red-500 mt-1">{errors.beneficiaryFullName}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.beneficiaryFullName}
+                </p>
               )}
             </div>
 
@@ -110,7 +135,9 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
                   }`}
                 />
                 {errors.beneficiaryDateOfBirth && (
-                  <p className="text-xs text-red-500 mt-1">{errors.beneficiaryDateOfBirth}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.beneficiaryDateOfBirth}
+                  </p>
                 )}
               </div>
 
@@ -133,7 +160,9 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
                   placeholder="Age"
                 />
                 {errors.beneficiaryAge && (
-                  <p className="text-xs text-red-500 mt-1">{errors.beneficiaryAge}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.beneficiaryAge}
+                  </p>
                 )}
               </div>
             </div>
@@ -160,8 +189,250 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
                 ))}
               </select>
               {errors.beneficiaryRelationship && (
-                <p className="text-xs text-red-500 mt-1">{errors.beneficiaryRelationship}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.beneficiaryRelationship}
+                </p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Residency Info Section - Only show for residency certificates */}
+      {formData.documentType === "residency" && (
+        <div className="border-t pt-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Home className="text-[var(--color-secondary)]" size={20} />
+            <h2 className="text-lg font-medium">Residency Information</h2>
+          </div>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+            Additional details for your Certificate of Residency.
+          </p>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  Residing in Barangay Since
+                </label>
+                <input
+                  name="residencySince"
+                  value={formData.residencySince || ""}
+                  onChange={onChange}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  placeholder="e.g., January 2008"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  Reference No.
+                </label>
+                <input
+                  name="referenceNo"
+                  value={formData.referenceNo || ""}
+                  onChange={onChange}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  placeholder="e.g., RN2025-4710"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  Document File No.
+                </label>
+                <input
+                  name="documentFileNo"
+                  value={formData.documentFileNo || ""}
+                  onChange={onChange}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  placeholder="e.g., DFN2025-4707"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  Prepared By
+                </label>
+                <input
+                  name="preparedBy"
+                  value={formData.preparedBy || ""}
+                  onChange={onChange}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  placeholder="Staff name"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Barangay ID Fields Section */}
+      {formData.documentType === "barangay_id" && (
+        <div className="border-t pt-4">
+          <div className="flex items-center gap-2 mb-4">
+            <IdCard className="text-[var(--color-secondary)]" size={20} />
+            <h2 className="text-lg font-medium">Barangay ID Information</h2>
+          </div>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+            Additional details for your Barangay ID application.
+          </p>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                Residency Type <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="residencyType"
+                value={formData.residencyType || ""}
+                onChange={onChange}
+                className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                  errors.residencyType
+                    ? "border-red-500"
+                    : "border-[var(--color-neutral-active)]"
+                }`}
+              >
+                <option value="">Select residency type</option>
+                {RESIDENCY_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              {errors.residencyType && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.residencyType}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  Precinct Number
+                </label>
+                <input
+                  name="precinctNumber"
+                  value={formData.precinctNumber || ""}
+                  onChange={onChange}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  placeholder="e.g., 1234 or None"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  SSS/GSIS Number
+                </label>
+                <input
+                  name="sssGsisNumber"
+                  value={formData.sssGsisNumber || ""}
+                  onChange={onChange}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  placeholder="e.g., 12-3456789-0 or None"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  TIN Number
+                </label>
+                <input
+                  name="tinNumber"
+                  value={formData.tinNumber || ""}
+                  onChange={onChange}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  placeholder="e.g., 123-456-789 or None"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Foreign National Info Section - Only show for missionary certificates */}
+      {formData.documentType === "missionary" && (
+        <div className="border-t pt-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Globe className="text-[var(--color-secondary)]" size={20} />
+            <h2 className="text-lg font-medium">
+              Foreign National Information
+            </h2>
+          </div>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-4">
+            Required for missionary visa applications.
+          </p>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  Nationality <span className="text-red-500">*</span>
+                </label>
+                <input
+                  name="nationality"
+                  value={formData.nationality || ""}
+                  onChange={onChange}
+                  className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                    errors.nationality
+                      ? "border-red-500"
+                      : "border-[var(--color-neutral-active)]"
+                  }`}
+                  placeholder="e.g., Vietnamese"
+                />
+                {errors.nationality && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.nationality}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  ACR Number
+                </label>
+                <input
+                  name="acrNumber"
+                  value={formData.acrNumber || ""}
+                  onChange={onChange}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  placeholder="e.g., G0000156451"
+                />
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                  Alien Certificate of Registration
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  ACR Valid Until
+                </label>
+                <input
+                  type="date"
+                  name="acrValidUntil"
+                  value={formData.acrValidUntil || ""}
+                  onChange={onChange}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                  Passport Number
+                </label>
+                <input
+                  name="passportNumber"
+                  value={formData.passportNumber || ""}
+                  onChange={onChange}
+                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  placeholder="e.g., C4366706"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -174,7 +445,7 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
             <Building className="text-[var(--color-secondary)]" size={20} />
             <h2 className="text-lg font-medium">Business Information</h2>
           </div>
-          
+
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -193,7 +464,9 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
                   placeholder="e.g., Juan's Sari-Sari Store"
                 />
                 {errors.businessName && (
-                  <p className="text-xs text-red-500 mt-1">{errors.businessName}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.businessName}
+                  </p>
                 )}
               </div>
 
@@ -213,7 +486,9 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
                   placeholder="e.g., Retail Store, Food Business"
                 />
                 {errors.natureOfBusiness && (
-                  <p className="text-xs text-red-500 mt-1">{errors.natureOfBusiness}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.natureOfBusiness}
+                  </p>
                 )}
               </div>
             </div>
@@ -308,6 +583,74 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
                 />
               </div>
             </div>
+
+            {/* Business Permit Specific Fields */}
+            {formData.documentType === "business_permit" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                    Fees (₱)
+                  </label>
+                  <input
+                    type="number"
+                    name="fees"
+                    value={formData.fees || ""}
+                    onChange={onChange}
+                    className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                    placeholder="e.g., 500.00"
+                    step="0.01"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                    OR Number
+                  </label>
+                  <input
+                    name="orNumber"
+                    value={formData.orNumber || ""}
+                    onChange={onChange}
+                    className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                    placeholder="e.g., PANGKABUHAYAN"
+                  />
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                    Official Receipt Number
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Business Closure Specific Fields */}
+            {formData.documentType === "business_clearance" && (
+              <div className="border-t pt-4 mt-4">
+                <div className="max-w-xs">
+                  <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                    <Calendar className="inline w-4 h-4 mr-1" />
+                    Closure Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="closureDate"
+                    value={formData.closureDate || ""}
+                    onChange={onChange}
+                    className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                      errors.closureDate
+                        ? "border-red-500"
+                        : "border-[var(--color-neutral-active)]"
+                    }`}
+                  />
+                  {errors.closureDate && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.closureDate}
+                    </p>
+                  )}
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                    Date when the business ceased operations
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -315,7 +658,7 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
       {/* Request Details */}
       <div className="border-t pt-4">
         <h2 className="text-lg font-medium mb-3">Request Details</h2>
-        
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-[var(--color-text-color)]">
             Request For <span className="text-red-500">*</span>
@@ -364,7 +707,9 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
             placeholder="Please specify the purpose of your request..."
           />
           {errors.purposeOfRequest && (
-            <p className="text-xs text-red-500 mt-1">{errors.purposeOfRequest}</p>
+            <p className="text-xs text-red-500 mt-1">
+              {errors.purposeOfRequest}
+            </p>
           )}
         </div>
 
@@ -405,7 +750,9 @@ export default function DocumentRequestTab({ formData, setField, errors, isBusin
 
       <div className="pt-2 text-sm text-[var(--color-text-secondary)] flex items-center gap-2">
         <FileText size={16} className="text-[var(--color-secondary)]" />
-        <span>Please review all information before submitting your request.</span>
+        <span>
+          Please review all information before submitting your request.
+        </span>
       </div>
     </div>
   );
