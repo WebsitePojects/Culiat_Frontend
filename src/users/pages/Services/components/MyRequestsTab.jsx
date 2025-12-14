@@ -1,8 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Package, Download, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Package, Download, Loader2, CreditCard, ExternalLink } from "lucide-react";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// Document prices (same as backend)
+const DOCUMENT_PRICES = {
+  'indigency': 0,
+  'residency': 50,
+  'clearance': 100,
+  'business_permit': 500,
+  'business_clearance': 200,
+  'good_moral': 75,
+  'barangay_id': 150,
+  'liquor_permit': 300,
+  'missionary': 50,
+  'rehab': 50,
+  'ctc': 50,
+  'building_permit': 500,
+};
 
 const statusConfig = {
   pending: {
@@ -14,10 +31,10 @@ const statusConfig = {
   },
   approved: {
     icon: CheckCircle,
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-    borderColor: "border-green-200",
-    label: "Approved - Ready for Pickup"
+    color: "text-blue-600",
+    bgColor: "bg-blue-50",
+    borderColor: "border-blue-200",
+    label: "Approved - Awaiting Payment"
   },
   rejected: {
     icon: XCircle,
@@ -28,9 +45,9 @@ const statusConfig = {
   },
   completed: {
     icon: Package,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
+    color: "text-green-600",
+    bgColor: "bg-green-50",
+    borderColor: "border-green-200",
     label: "Completed"
   },
   cancelled: {
@@ -39,6 +56,27 @@ const statusConfig = {
     bgColor: "bg-gray-50",
     borderColor: "border-gray-200",
     label: "Cancelled"
+  }
+};
+
+const paymentStatusConfig = {
+  unpaid: {
+    icon: CreditCard,
+    color: "text-orange-600",
+    bgColor: "bg-orange-50",
+    label: "Unpaid"
+  },
+  paid: {
+    icon: CheckCircle,
+    color: "text-green-600",
+    bgColor: "bg-green-50",
+    label: "Paid"
+  },
+  waived: {
+    icon: CheckCircle,
+    color: "text-blue-600",
+    bgColor: "bg-blue-50",
+    label: "Fee Waived"
   }
 };
 
@@ -56,6 +94,7 @@ const documentTypeLabels = {
 };
 
 export default function MyRequestsTab() {
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -181,6 +220,20 @@ export default function MyRequestsTab() {
         {requests.map((request) => {
           const status = statusConfig[request.status] || statusConfig.pending;
           const StatusIcon = status.icon;
+          const paymentStatus = paymentStatusConfig[request.paymentStatus] || paymentStatusConfig.unpaid;
+          const PaymentIcon = paymentStatus.icon;
+          const price = DOCUMENT_PRICES[request.documentType] || 0;
+          const isFree = price === 0;
+
+          // Determine the actual status label based on payment
+          let actualStatusLabel = status.label;
+          if (request.status === 'approved') {
+            if (request.paymentStatus === 'paid' || request.paymentStatus === 'waived' || isFree) {
+              actualStatusLabel = 'Ready for Download';
+            } else {
+              actualStatusLabel = 'Approved - Awaiting Payment';
+            }
+          }
 
           return (
             <div
@@ -201,11 +254,22 @@ export default function MyRequestsTab() {
                     </p>
                   </div>
                 </div>
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${status.bgColor} border ${status.borderColor}`}>
-                  <StatusIcon className={`h-4 w-4 ${status.color}`} />
-                  <span className={`text-sm font-medium ${status.color}`}>
-                    {status.label}
-                  </span>
+                <div className="flex flex-col items-end gap-2">
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${status.bgColor} border ${status.borderColor}`}>
+                    <StatusIcon className={`h-4 w-4 ${status.color}`} />
+                    <span className={`text-sm font-medium ${status.color}`}>
+                      {actualStatusLabel}
+                    </span>
+                  </div>
+                  {/* Payment Status Badge - only show for approved requests */}
+                  {request.status === 'approved' && !isFree && (
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${paymentStatus.bgColor}`}>
+                      <PaymentIcon className={`h-3.5 w-3.5 ${paymentStatus.color}`} />
+                      <span className={`text-xs font-medium ${paymentStatus.color}`}>
+                        {paymentStatus.label}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -213,6 +277,16 @@ export default function MyRequestsTab() {
                 <div>
                   <p className="text-gray-600">Purpose</p>
                   <p className="font-medium text-gray-900">{request.purposeOfRequest || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Fee</p>
+                  <p className="font-medium text-gray-900">
+                    {isFree ? (
+                      <span className="text-green-600">FREE</span>
+                    ) : (
+                      `₱${price.toFixed(2)}`
+                    )}
+                  </p>
                 </div>
                 {request.preferredPickupDate && (
                   <div>
@@ -235,19 +309,40 @@ export default function MyRequestsTab() {
               </div>
 
               {/* Action Buttons Based on Status */}
-              {(request.status === 'approved' || request.status === 'completed') && (
+              {/* Approved but not paid - show Pay button */}
+              {request.status === 'approved' && request.paymentStatus === 'unpaid' && (
+                <div className="mt-4 pt-4 border-t border-blue-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                  <div className="text-sm text-blue-700">
+                    <CreditCard className="inline w-4 h-4 mr-1" />
+                    Your request has been approved! Please complete payment to download your document.
+                  </div>
+                  <button
+                    onClick={() => navigate(`/payment/${request._id}`)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Pay Now - ₱{DOCUMENT_PRICES[request.documentType] || 0}
+                  </button>
+                </div>
+              )}
+
+              {/* Approved/Completed and paid/waived or free - show Download button */}
+              {(request.status === 'approved' || request.status === 'completed') && 
+               (request.paymentStatus === 'paid' || request.paymentStatus === 'waived' || DOCUMENT_PRICES[request.documentType] === 0) && (
                 <div className="mt-4 pt-4 border-t border-green-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                   <div className="text-sm text-green-700">
                     <CheckCircle className="inline w-4 h-4 mr-1" />
-                    {request.status === 'approved' 
-                      ? 'Your document is approved and ready for pickup at the Barangay Hall'
-                      : 'Your document request has been completed'
+                    {request.paymentStatus === 'paid' 
+                      ? 'Payment confirmed! Your document is ready for download.'
+                      : request.paymentStatus === 'waived'
+                      ? 'Fee has been waived. Your document is ready for download.'
+                      : 'Your document is ready for download.'
                     }
                   </div>
                   <button
                     onClick={() => handleDownload(request._id, request.documentType)}
                     disabled={downloading === request._id}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {downloading === request._id ? (
                       <>

@@ -42,6 +42,7 @@ import Profile from "./users/pages/Profile/Profile";
 import Achievements from "./users/pages/Achievements/Achievements";
 import ForgotPassword from "./users/pages/Auth/ForgotPassword";
 import ResetPassword from "./users/pages/Auth/ResetPassword";
+import PaymentPage from "./users/pages/Payment/PaymentPage";
 
 function App() {
   return (
@@ -224,6 +225,18 @@ function App() {
               <PrivateRoute>
                 <MainLayout>
                   <Services />
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Payment Route */}
+          <Route
+            path="/payment/:requestId"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <PaymentPage />
                 </MainLayout>
               </PrivateRoute>
             }

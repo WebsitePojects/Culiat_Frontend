@@ -55,5 +55,12 @@ export const documentsAPI = {
   download: (requestId) => api.get(`/api/documents/download/${requestId}`, { responseType: 'blob' }),
 };
 
+// Payments API
+export const paymentsAPI = {
+  getDetails: (requestId) => api.get(`/api/payments/details/${requestId}`),
+  createPaymentLink: (requestId) => api.post('/api/payments/create-link', { requestId }),
+  verifyPayment: (requestId) => api.get(`/api/payments/verify/${requestId}`),
+};
+
 export default api;
 

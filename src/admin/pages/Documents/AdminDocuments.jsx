@@ -22,6 +22,8 @@ import {
   FilePlus2,
   CreditCard,
   Loader2,
+  DollarSign,
+  Ban,
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 
@@ -40,6 +42,23 @@ const AdminDocuments = () => {
   const [success, setSuccess] = useState("");
   const [actionReason, setActionReason] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(null);
+
+  // Document prices
+  const DOCUMENT_PRICES = {
+    'indigency': 0,
+    'residency': 50,
+    'clearance': 100,
+    'business_permit': 500,
+    'business_clearance': 200,
+    'good_moral': 75,
+    'barangay_id': 150,
+    'liquor_permit': 300,
+    'missionary': 50,
+    'rehab': 50,
+    'ctc': 50,
+    'building_permit': 500,
+  };
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -251,6 +270,64 @@ const AdminDocuments = () => {
     }
   };
 
+  // Handle manual payment confirmation (for walk-in payments)
+  const handleConfirmPayment = async (requestId) => {
+    try {
+      setProcessingPayment(requestId);
+      setError("");
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        `${API_URL}/api/payments/confirm/${requestId}`,
+        { paymentMethod: "walk-in" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setSuccess("Payment confirmed successfully!");
+      setTimeout(() => setSuccess(""), 5000);
+      await fetchRequests();
+    } catch (error) {
+      console.error("Payment confirmation error:", error);
+      setError(error.response?.data?.message || "Failed to confirm payment");
+    } finally {
+      setProcessingPayment(null);
+    }
+  };
+
+  // Handle payment waiver
+  const handleWaivePayment = async (requestId, reason = "Fee waived by admin") => {
+    try {
+      setProcessingPayment(requestId);
+      setError("");
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        `${API_URL}/api/payments/waive/${requestId}`,
+        { reason },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setSuccess("Payment fee waived successfully!");
+      setTimeout(() => setSuccess(""), 5000);
+      await fetchRequests();
+    } catch (error) {
+      console.error("Payment waiver error:", error);
+      setError(error.response?.data?.message || "Failed to waive payment");
+    } finally {
+      setProcessingPayment(null);
+    }
+  };
+
+  // Get payment status badge color
+  const getPaymentStatusColor = (paymentStatus) => {
+    const colors = {
+      unpaid: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+      paid: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      waived: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+    };
+    return colors[paymentStatus] || colors.unpaid;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -391,15 +468,31 @@ const AdminDocuments = () => {
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {request.documentType}
                         </h3>
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                            request.status
-                          )}`}
-                        >
-                          <StatusIcon className="w-3 h-3 mr-1" />
-                          {request.status.charAt(0).toUpperCase() +
-                            request.status.slice(1)}
-                        </span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                              request.status
+                            )}`}
+                          >
+                            <StatusIcon className="w-3 h-3 mr-1" />
+                            {request.status.charAt(0).toUpperCase() +
+                              request.status.slice(1)}
+                          </span>
+                          {/* Payment Status Badge - show for approved requests */}
+                          {request.status === "approved" && (
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusColor(
+                                request.paymentStatus
+                              )}`}
+                            >
+                              <CreditCard className="w-3 h-3 mr-1" />
+                              {request.paymentStatus === "waived" 
+                                ? "Fee Waived" 
+                                : request.paymentStatus?.charAt(0).toUpperCase() + 
+                                  request.paymentStatus?.slice(1)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -432,6 +525,14 @@ const AdminDocuments = () => {
                         <Calendar className="w-4 h-4" />
                         <span>
                           {new Date(request.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                        <DollarSign className="w-4 h-4" />
+                        <span>
+                          Fee: {DOCUMENT_PRICES[request.documentType] === 0 
+                            ? "FREE" 
+                            : `₱${DOCUMENT_PRICES[request.documentType] || 0}`}
                         </span>
                       </div>
                       {request.dateOfBirth && (
@@ -483,8 +584,39 @@ const AdminDocuments = () => {
                       </div>
                     )}
 
-                    {/* Approved/Completed: Show Generate Document */}
-                    {(request.status === "approved" || request.status === "completed") && (
+                    {/* Approved but unpaid: Show payment management buttons */}
+                    {request.status === "approved" && request.paymentStatus === "unpaid" && DOCUMENT_PRICES[request.documentType] > 0 && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleConfirmPayment(request._id)}
+                          disabled={processingPayment === request._id}
+                          className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+                          title="Confirm walk-in payment"
+                        >
+                          {processingPayment === request._id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <>
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Confirm Paid
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleWaivePayment(request._id)}
+                          disabled={processingPayment === request._id}
+                          className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50"
+                          title="Waive payment fee"
+                        >
+                          <Ban className="w-4 h-4 mr-1" />
+                          Waive Fee
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Approved/Completed and paid/waived: Show Generate Document */}
+                    {(request.status === "approved" || request.status === "completed") && 
+                     (request.paymentStatus === "paid" || request.paymentStatus === "waived" || DOCUMENT_PRICES[request.documentType] === 0) && (
                       <button
                         onClick={() => handleGenerateDocument(request._id)}
                         disabled={generating}
@@ -564,6 +696,16 @@ const AdminDocuments = () => {
                       {new Date(selectedRequest.createdAt).toLocaleString()}
                     </p>
                   </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Document Fee
+                    </label>
+                    <p className="mt-1 text-gray-900 dark:text-white font-semibold">
+                      {DOCUMENT_PRICES[selectedRequest.documentType] === 0 
+                        ? "FREE" 
+                        : `₱${DOCUMENT_PRICES[selectedRequest.documentType] || 0}`}
+                    </p>
+                  </div>
                   {selectedRequest.purposeOfRequest && (
                     <div className="col-span-2">
                       <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -576,6 +718,91 @@ const AdminDocuments = () => {
                   )}
                 </div>
               </div>
+
+              {/* Payment Information - show for approved requests */}
+              {selectedRequest.status === "approved" && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <CreditCard className="w-5 h-5" />
+                    Payment Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Payment Status
+                      </label>
+                      <p className="mt-1">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusColor(
+                            selectedRequest.paymentStatus
+                          )}`}
+                        >
+                          {selectedRequest.paymentStatus === "waived" 
+                            ? "Fee Waived" 
+                            : selectedRequest.paymentStatus?.charAt(0).toUpperCase() + 
+                              selectedRequest.paymentStatus?.slice(1)}
+                        </span>
+                      </p>
+                    </div>
+                    {selectedRequest.paymentReference && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Payment Reference
+                        </label>
+                        <p className="mt-1 text-gray-900 dark:text-white text-xs font-mono">
+                          {selectedRequest.paymentReference}
+                        </p>
+                      </div>
+                    )}
+                    {selectedRequest.paidAt && (
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Paid At
+                        </label>
+                        <p className="mt-1 text-gray-900 dark:text-white">
+                          {new Date(selectedRequest.paidAt).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {selectedRequest.paymentWaivedReason && (
+                      <div className="col-span-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Waiver Reason
+                        </label>
+                        <p className="mt-1 text-gray-900 dark:text-white">
+                          {selectedRequest.paymentWaivedReason}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Payment Actions */}
+                  {selectedRequest.paymentStatus === "unpaid" && DOCUMENT_PRICES[selectedRequest.documentType] > 0 && (
+                    <div className="mt-4 pt-4 border-t border-yellow-200 dark:border-yellow-800 flex gap-3">
+                      <button
+                        onClick={() => handleConfirmPayment(selectedRequest._id)}
+                        disabled={processingPayment === selectedRequest._id}
+                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {processingPayment === selectedRequest._id ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                        )}
+                        Confirm Walk-in Payment
+                      </button>
+                      <button
+                        onClick={() => handleWaivePayment(selectedRequest._id)}
+                        disabled={processingPayment === selectedRequest._id}
+                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <Ban className="w-4 h-4 mr-2" />
+                        Waive Fee
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Personal Information */}
               <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
