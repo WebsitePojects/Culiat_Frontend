@@ -447,7 +447,14 @@ export default function DocumentRequestTab({
           </div>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Business Name - Required for all business documents */}
+            <div
+              className={
+                formData.documentType === "liquor_permit"
+                  ? ""
+                  : "grid grid-cols-1 md:grid-cols-2 gap-4"
+              }
+            >
               <div>
                 <label className="block text-sm font-medium text-[var(--color-text-color)]">
                   Business Name <span className="text-red-500">*</span>
@@ -470,27 +477,32 @@ export default function DocumentRequestTab({
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Nature of Business <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="natureOfBusiness"
-                  value={formData.natureOfBusiness}
-                  onChange={onChange}
-                  className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
-                    errors.natureOfBusiness
-                      ? "border-red-500"
-                      : "border-[var(--color-neutral-active)]"
-                  }`}
-                  placeholder="e.g., Retail Store, Food Business"
-                />
-                {errors.natureOfBusiness && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {errors.natureOfBusiness}
-                  </p>
-                )}
-              </div>
+              {/* Nature of Business - Only for business_permit and business_clearance */}
+              {["business_permit", "business_clearance"].includes(
+                formData.documentType
+              ) && (
+                <div>
+                  <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                    Nature of Business <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    name="natureOfBusiness"
+                    value={formData.natureOfBusiness}
+                    onChange={onChange}
+                    className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                      errors.natureOfBusiness
+                        ? "border-red-500"
+                        : "border-[var(--color-neutral-active)]"
+                    }`}
+                    placeholder="e.g., Retail Store, Food Business"
+                  />
+                  {errors.natureOfBusiness && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.natureOfBusiness}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div>
@@ -525,64 +537,71 @@ export default function DocumentRequestTab({
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Application Type
-                </label>
-                <select
-                  name="applicationType"
-                  value={formData.applicationType}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                >
-                  <option value="">Select type</option>
-                  <option value="new">New Application</option>
-                  <option value="renewal">Renewal</option>
-                </select>
-              </div>
+            {/* Application Type & Owner fields - Only for business_permit and business_clearance */}
+            {["business_permit", "business_clearance"].includes(
+              formData.documentType
+            ) && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                      Application Type
+                    </label>
+                    <select
+                      name="applicationType"
+                      value={formData.applicationType}
+                      onChange={onChange}
+                      className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                    >
+                      <option value="">Select type</option>
+                      <option value="new">New Application</option>
+                      <option value="renewal">Renewal</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Owner/Representative Name
-                </label>
-                <input
-                  name="ownerRepresentative"
-                  value={formData.ownerRepresentative}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                  placeholder="Full name"
-                />
-              </div>
-            </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                      Owner/Representative Name
+                    </label>
+                    <input
+                      name="ownerRepresentative"
+                      value={formData.ownerRepresentative}
+                      onChange={onChange}
+                      className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                      placeholder="Full name"
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Owner Contact Number
-                </label>
-                <input
-                  name="ownerContactNumber"
-                  value={formData.ownerContactNumber}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                  placeholder="09XX XXX XXXX"
-                />
-              </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                      Owner Contact Number
+                    </label>
+                    <input
+                      name="ownerContactNumber"
+                      value={formData.ownerContactNumber}
+                      onChange={onChange}
+                      className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                      placeholder="09XX XXX XXXX"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Representative Contact Number
-                </label>
-                <input
-                  name="representativeContactNumber"
-                  value={formData.representativeContactNumber}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                  placeholder="09XX XXX XXXX"
-                />
-              </div>
-            </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                      Representative Contact Number
+                    </label>
+                    <input
+                      name="representativeContactNumber"
+                      value={formData.representativeContactNumber}
+                      onChange={onChange}
+                      className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                      placeholder="09XX XXX XXXX"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Business Permit Specific Fields */}
             {formData.documentType === "business_permit" && (
