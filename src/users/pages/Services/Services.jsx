@@ -528,6 +528,8 @@ export default function Services() {
 
       formDataToSend.append("documentType", formData.documentType);
       formDataToSend.append("purposeOfRequest", formData.purposeOfRequest);
+      // Use purposeOfRequest for requestFor as well (merged fields)
+      formDataToSend.append("requestFor", formData.purposeOfRequest);
       if (formData.preferredPickupDate)
         formDataToSend.append(
           "preferredPickupDate",
@@ -566,6 +568,10 @@ export default function Services() {
       if (formData.documentType === "barangay_id") {
         if (formData.residencyType)
           formDataToSend.append("residencyType", formData.residencyType);
+        if (formData.civilStatus)
+          formDataToSend.append("civilStatus", formData.civilStatus);
+        if (formData.precinctNumber)
+          formDataToSend.append("precinctNumber", formData.precinctNumber);
       }
 
       // Missionary specific fields (foreign national info)
@@ -603,11 +609,21 @@ export default function Services() {
           );
       }
 
-      // Files
-      if (formData.photo1x1File)
+      // Files - only append new files, not stored ones (stored files are identified by isStored flag)
+      // When using stored files, the backend will reuse the files from user profile
+      if (formData.photo1x1File && !formData.photo1x1File.isStored) {
         formDataToSend.append("photo1x1", formData.photo1x1File);
-      if (formData.validIDFile)
+      } else if (formData.photo1x1File?.isStored) {
+        // Tell backend to use stored photo from user profile
+        formDataToSend.append("useStoredPhoto1x1", "true");
+      }
+
+      if (formData.validIDFile && !formData.validIDFile.isStored) {
         formDataToSend.append("validID", formData.validIDFile);
+      } else if (formData.validIDFile?.isStored) {
+        // Tell backend to use stored valid ID from user profile
+        formDataToSend.append("useStoredValidID", "true");
+      }
 
       const token = localStorage.getItem("token");
       const response = await axios.post(
@@ -926,6 +942,10 @@ export default function Services() {
                       setField={setField}
                       errors={errors}
                       documentType={formData.documentType}
+                      storedDocuments={{
+                        photo1x1: user?.photo1x1,
+                        validID: user?.validID,
+                      }}
                     />
                   </motion.div>
                 )}
