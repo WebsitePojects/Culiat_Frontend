@@ -14,8 +14,8 @@ const DOCUMENT_TYPES = [
   { value: "indigency", label: "Certificate of Indigency" },
   { value: "residency", label: "Certificate of Residency" },
   { value: "clearance", label: "Barangay Clearance" },
-  { value: "business_permit", label: "Business Permit" },
-  { value: "business_clearance", label: "Business Clearance" },
+  { value: "business_permit", label: "Certificate for Business Permit" },
+  { value: "business_clearance", label: "Certificate for Business Closure" },
   { value: "barangay_id", label: "Barangay ID" },
   { value: "liquor_permit", label: "Liquor Permit" },
   { value: "missionary", label: "Missionary Certificate" },
@@ -573,42 +573,7 @@ export default function DocumentRequestTab({
               </>
             )}
 
-            {/* Business Permit Specific Fields */}
-            {formData.documentType === "business_permit" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4 mt-4">
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                    Fees (₱)
-                  </label>
-                  <input
-                    type="number"
-                    name="fees"
-                    value={formData.fees || ""}
-                    onChange={onChange}
-                    className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                    placeholder="e.g., 500.00"
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                    OR Number
-                  </label>
-                  <input
-                    name="orNumber"
-                    value={formData.orNumber || ""}
-                    onChange={onChange}
-                    className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                    placeholder="e.g., PANGKABUHAYAN"
-                  />
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                    Official Receipt Number
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* Note: Business Permit fees and OR number are filled by admin when processing */}
 
             {/* Business Closure Specific Fields */}
             {formData.documentType === "business_clearance" && (
