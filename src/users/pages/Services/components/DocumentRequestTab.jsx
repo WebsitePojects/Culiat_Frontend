@@ -210,60 +210,31 @@ export default function DocumentRequestTab({
           </p>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Residing in Barangay Since
-                </label>
-                <input
-                  name="residencySince"
-                  value={formData.residencySince || ""}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                  placeholder="e.g., January 2008"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Reference No.
-                </label>
-                <input
-                  name="referenceNo"
-                  value={formData.referenceNo || ""}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                  placeholder="e.g., RN2025-4710"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Document File No.
-                </label>
-                <input
-                  name="documentFileNo"
-                  value={formData.documentFileNo || ""}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                  placeholder="e.g., DFN2025-4707"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Prepared By
-                </label>
-                <input
-                  name="preparedBy"
-                  value={formData.preparedBy || ""}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                  placeholder="Staff name"
-                />
-              </div>
+            <div className="max-w-md">
+              <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                Residing in Barangay Since{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="residencySince"
+                value={formData.residencySince || ""}
+                onChange={onChange}
+                className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                  errors.residencySince
+                    ? "border-red-500"
+                    : "border-[var(--color-neutral-active)]"
+                }`}
+                placeholder="e.g., January 2008"
+              />
+              {errors.residencySince && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.residencySince}
+                </p>
+              )}
+              <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                Reference No., Document File No., and Prepared By are
+                automatically generated.
+              </p>
             </div>
           </div>
         </div>

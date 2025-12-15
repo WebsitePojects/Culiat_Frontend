@@ -40,6 +40,8 @@
 
 **Price:** ₱50 | **Photo:** YES (1x1)
 
+> **Note:** `referenceNo`, `documentFileNo`, and `preparedBy` are **auto-generated** by the backend. Only `residencySince` is user input.
+
 ```javascript
 {
   documentType: "residency",
@@ -49,12 +51,10 @@
   address: { houseNumber, street },
   purposeOfRequest,
 
-  // Residency specific fields
+  // Residency specific - only residencySince from user
   residencyInfo: {
-    residencySince: "January 2008",
-    preparedBy: "Staff Name",
-    referenceNo: "RN2025-4710",
-    documentFileNo: "DFN2025-4707"
+    residencySince: "January 2008"  // REQUIRED - user provides this
+    // referenceNo, documentFileNo, preparedBy are AUTO-GENERATED
   },
 
   photo1x1, // file upload - REQUIRED
