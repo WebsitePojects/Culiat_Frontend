@@ -328,14 +328,19 @@ export default function Services() {
     if (isBusinessDocument()) {
       if (!formData.businessName.trim())
         e.businessName = "Business name is required";
-      // Only require natureOfBusiness for business_permit and business_clearance (not liquor_permit)
+      // Only require natureOfBusiness for business_permit (not business_clearance or liquor_permit)
       if (
-        ["business_permit", "business_clearance"].includes(
-          formData.documentType
-        ) &&
+        formData.documentType === "business_permit" &&
         !formData.natureOfBusiness.trim()
       ) {
         e.natureOfBusiness = "Nature of business is required";
+      }
+      // Require closureDate for business_clearance
+      if (
+        formData.documentType === "business_clearance" &&
+        !formData.closureDate
+      ) {
+        e.closureDate = "Closure date is required";
       }
     }
 
