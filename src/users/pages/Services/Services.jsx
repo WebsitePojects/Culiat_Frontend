@@ -360,6 +360,12 @@ export default function Services() {
         e.residencySince = "Residing in Barangay Since is required";
     }
 
+    // Barangay ID validation
+    if (formData.documentType === "barangay_id") {
+      if (!formData.residencyType)
+        e.residencyType = "Residency type is required for Barangay ID";
+    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
