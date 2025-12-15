@@ -568,10 +568,7 @@ export default function Services() {
       if (formData.documentType === "barangay_id") {
         if (formData.residencyType)
           formDataToSend.append("residencyType", formData.residencyType);
-        if (formData.civilStatus)
-          formDataToSend.append("civilStatus", formData.civilStatus);
-        if (formData.precinctNumber)
-          formDataToSend.append("precinctNumber", formData.precinctNumber);
+        // Note: civilStatus and precinctNumber are already appended in the main personal info section
       }
 
       // Missionary specific fields (foreign national info)
