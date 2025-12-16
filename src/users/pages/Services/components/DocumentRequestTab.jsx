@@ -14,9 +14,8 @@ const DOCUMENT_TYPES = [
   { value: "indigency", label: "Certificate of Indigency" },
   { value: "residency", label: "Certificate of Residency" },
   { value: "clearance", label: "Barangay Clearance" },
-  { value: "business_permit", label: "Business Permit" },
-  { value: "business_clearance", label: "Business Clearance" },
-  { value: "good_moral", label: "Certificate of Good Moral" },
+  { value: "business_permit", label: "Certificate for Business Permit" },
+  { value: "business_clearance", label: "Certificate for Business Closure" },
   { value: "barangay_id", label: "Barangay ID" },
   { value: "liquor_permit", label: "Liquor Permit" },
   { value: "missionary", label: "Missionary Certificate" },
@@ -210,60 +209,31 @@ export default function DocumentRequestTab({
           </p>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Residing in Barangay Since
-                </label>
-                <input
-                  name="residencySince"
-                  value={formData.residencySince || ""}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                  placeholder="e.g., January 2008"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Reference No.
-                </label>
-                <input
-                  name="referenceNo"
-                  value={formData.referenceNo || ""}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                  placeholder="e.g., RN2025-4710"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Document File No.
-                </label>
-                <input
-                  name="documentFileNo"
-                  value={formData.documentFileNo || ""}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                  placeholder="e.g., DFN2025-4707"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Prepared By
-                </label>
-                <input
-                  name="preparedBy"
-                  value={formData.preparedBy || ""}
-                  onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                  placeholder="Staff name"
-                />
-              </div>
+            <div className="max-w-md">
+              <label className="block text-sm font-medium text-[var(--color-text-color)]">
+                Residing in Barangay Since{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="residencySince"
+                value={formData.residencySince || ""}
+                onChange={onChange}
+                className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                  errors.residencySince
+                    ? "border-red-500"
+                    : "border-[var(--color-neutral-active)]"
+                }`}
+                placeholder="e.g., January 2008"
+              />
+              {errors.residencySince && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.residencySince}
+                </p>
+              )}
+              <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                Reference No., Document File No., and Prepared By are
+                automatically generated.
+              </p>
             </div>
           </div>
         </div>
@@ -603,42 +573,7 @@ export default function DocumentRequestTab({
               </>
             )}
 
-            {/* Business Permit Specific Fields */}
-            {formData.documentType === "business_permit" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4 mt-4">
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                    Fees (₱)
-                  </label>
-                  <input
-                    type="number"
-                    name="fees"
-                    value={formData.fees || ""}
-                    onChange={onChange}
-                    className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                    placeholder="e.g., 500.00"
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                    OR Number
-                  </label>
-                  <input
-                    name="orNumber"
-                    value={formData.orNumber || ""}
-                    onChange={onChange}
-                    className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-                    placeholder="e.g., PANGKABUHAYAN"
-                  />
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                    Official Receipt Number
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* Note: Business Permit fees and OR number are filled by admin when processing */}
 
             {/* Business Closure Specific Fields */}
             {formData.documentType === "business_clearance" && (
@@ -679,37 +614,6 @@ export default function DocumentRequestTab({
         <h2 className="text-lg font-medium mb-3">Request Details</h2>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-[var(--color-text-color)]">
-            Request For <span className="text-red-500">*</span>
-          </label>
-          <input
-            list="requestForOptions"
-            name="requestFor"
-            value={formData.requestFor || ""}
-            onChange={onChange}
-            className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
-              errors.requestFor
-                ? "border-red-500"
-                : "border-[var(--color-neutral-active)]"
-            }`}
-            placeholder="Select or type reason..."
-          />
-          <datalist id="requestForOptions">
-            <option value="Employment" />
-            <option value="School Requirement" />
-            <option value="ID Application" />
-            <option value="Loan Application" />
-            <option value="Travel" />
-            <option value="Medical Assistance" />
-            <option value="Financial Assistance" />
-            <option value="Others" />
-          </datalist>
-          {errors.requestFor && (
-            <p className="text-xs text-red-500 mt-1">{errors.requestFor}</p>
-          )}
-        </div>
-
-        <div>
           <label className="block text-sm font-medium text-[var(--color-text-color)]">
             Purpose of Request <span className="text-red-500">*</span>
           </label>

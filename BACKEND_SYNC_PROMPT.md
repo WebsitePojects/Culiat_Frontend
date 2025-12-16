@@ -1,6 +1,6 @@
 # Frontend Sync Prompt - Document Request Services
 
-> **Last Updated:** December 14, 2025
+> **Last Updated:** December 15, 2025
 
 ---
 
@@ -18,7 +18,7 @@
 
 ## Document Types & Required Fields
 
-### 1. Certificate of Indigency (`indigency`) ✅ DONE
+### 1. Certificate of Indigency (`indigency`) ✅
 
 **Price:** FREE | **Photo:** No
 
@@ -40,6 +40,8 @@
 
 **Price:** ₱50 | **Photo:** YES (1x1)
 
+> **Note:** `referenceNo`, `documentFileNo`, and `preparedBy` are **auto-generated** by the backend. Only `residencySince` is user input.
+
 ```javascript
 {
   documentType: "residency",
@@ -49,12 +51,10 @@
   address: { houseNumber, street },
   purposeOfRequest,
 
-  // Residency specific fields
+  // Residency specific - only residencySince from user
   residencyInfo: {
-    residencySince: "January 2008",
-    preparedBy: "Staff Name",
-    referenceNo: "RN2025-4710",
-    documentFileNo: "DFN2025-4707"
+    residencySince: "January 2008"  // REQUIRED - user provides this
+    // referenceNo, documentFileNo, preparedBy are AUTO-GENERATED
   },
 
   photo1x1, // file upload - REQUIRED
@@ -103,7 +103,7 @@ Same fields as Barangay Clearance.
 
   businessInfo: {
     businessName: "Store Name",
-    natureOfBusiness: "RETAILING",
+    natureOfBusiness: "RETAILING", // REQUIRED
     applicationType: "new", // or "renewal"
     businessAddress: { houseNumber, street, subdivision },
     orNumber: "PANGKABUHAYAN"
@@ -119,16 +119,18 @@ Same fields as Barangay Clearance.
 
 **Price:** ₱200 | **Photo:** No
 
+> **Note:** `natureOfBusiness` is NOT required for Business Closure
+
 ```javascript
 {
   documentType: "business_clearance",
-  lastName, firstName, middleName,
+  lastName, firstName, middleName, // Owner info
   purposeOfRequest,
 
   businessInfo: {
     businessName: "Store Name",
     businessAddress: { houseNumber, street },
-    closureDate: "2024-12-30"
+    closureDate: "2024-12-30" // REQUIRED
   },
 
   validID // file upload
@@ -174,10 +176,12 @@ Same fields as Barangay Clearance.
 
 **Price:** ₱300 | **Photo:** No
 
+> **Note:** `natureOfBusiness` is NOT required for Liquor Permit
+
 ```javascript
 {
   documentType: "liquor_permit",
-  lastName, firstName, middleName,
+  lastName, firstName, middleName, // Owner info
 
   businessInfo: {
     businessName: "Store Name",
@@ -215,7 +219,7 @@ Same fields as Barangay Clearance.
 
 ---
 
-### 10. Rehabilitation Certificate (`rehab`) ✅ DONE
+### 10. Rehabilitation Certificate (`rehab`) ✅
 
 **Price:** ₱50 | **Photo:** No
 

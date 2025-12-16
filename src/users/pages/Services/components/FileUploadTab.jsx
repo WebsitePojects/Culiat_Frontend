@@ -1,22 +1,65 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Upload, File, X, AlertCircle } from "lucide-react";
+import { Upload, File, X, AlertCircle, CheckCircle } from "lucide-react";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function FileUploadTab({
   formData,
   setField,
   errors,
   documentType,
+  storedDocuments = {}, // { photo1x1: {...}, validID: {...} } from user profile
 }) {
   const photo1x1Ref = useRef(null);
   const validIDRef = useRef(null);
 
   const [photo1x1Preview, setPhoto1x1Preview] = useState(null);
   const [validIDPreview, setValidIDPreview] = useState(null);
+  const [usingStoredPhoto, setUsingStoredPhoto] = useState(false);
+  const [usingStoredValidID, setUsingStoredValidID] = useState(false);
+
+  // Auto-use stored documents on mount if available
+  useEffect(() => {
+    // Auto-use stored photo1x1 if available and no file is currently set
+    if (storedDocuments.photo1x1?.url && !formData.photo1x1File) {
+      const fullUrl = storedDocuments.photo1x1.url.startsWith("http")
+        ? storedDocuments.photo1x1.url
+        : `${API_URL}${storedDocuments.photo1x1.url}`;
+      setPhoto1x1Preview(fullUrl);
+      setUsingStoredPhoto(true);
+      // Create a marker object to indicate using stored file
+      setField("photo1x1File", {
+        name: storedDocuments.photo1x1.originalName || "Stored 1x1 Photo",
+        size: storedDocuments.photo1x1.fileSize || 0,
+        isStored: true,
+        url: storedDocuments.photo1x1.url,
+      });
+    }
+
+    // Auto-use stored validID if available and no file is currently set
+    if (storedDocuments.validID?.url && !formData.validIDFile) {
+      const fullUrl = storedDocuments.validID.url.startsWith("http")
+        ? storedDocuments.validID.url
+        : `${API_URL}${storedDocuments.validID.url}`;
+      setValidIDPreview(fullUrl);
+      setUsingStoredValidID(true);
+      // Create a marker object to indicate using stored file
+      setField("validIDFile", {
+        name: storedDocuments.validID.originalName || "Stored Valid ID",
+        size: storedDocuments.validID.fileSize || 0,
+        isStored: true,
+        url: storedDocuments.validID.url,
+      });
+    }
+  }, [storedDocuments]);
 
   useEffect(() => {
     return () => {
-      if (photo1x1Preview) URL.revokeObjectURL(photo1x1Preview);
-      if (validIDPreview) URL.revokeObjectURL(validIDPreview);
+      // Only revoke if it's a blob URL (not a stored document URL)
+      if (photo1x1Preview && photo1x1Preview.startsWith("blob:"))
+        URL.revokeObjectURL(photo1x1Preview);
+      if (validIDPreview && validIDPreview.startsWith("blob:"))
+        URL.revokeObjectURL(validIDPreview);
     };
   }, [photo1x1Preview, validIDPreview]);
 
@@ -36,6 +79,7 @@ export default function FileUploadTab({
       setField("photo1x1File", file);
       const url = URL.createObjectURL(file);
       setPhoto1x1Preview(url);
+      setUsingStoredPhoto(false);
     }
   };
 
@@ -55,18 +99,21 @@ export default function FileUploadTab({
       setField("validIDFile", file);
       const url = URL.createObjectURL(file);
       setValidIDPreview(url);
+      setUsingStoredValidID(false);
     }
   };
 
   const removePhoto1x1 = () => {
     setField("photo1x1File", null);
     setPhoto1x1Preview(null);
+    setUsingStoredPhoto(false);
     if (photo1x1Ref.current) photo1x1Ref.current.value = "";
   };
 
   const removeValidID = () => {
     setField("validIDFile", null);
     setValidIDPreview(null);
+    setUsingStoredValidID(false);
     if (validIDRef.current) validIDRef.current.value = "";
   };
 
@@ -136,9 +183,18 @@ export default function FileUploadTab({
                 <p className="text-sm font-medium text-[var(--color-text-color)]">
                   {formData.photo1x1File.name}
                 </p>
-                <p className="text-xs text-[var(--color-text-secondary)]">
-                  {(formData.photo1x1File.size / 1024).toFixed(2)} KB
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-[var(--color-text-secondary)]">
+                    {formData.photo1x1File.size
+                      ? `${(formData.photo1x1File.size / 1024).toFixed(2)} KB`
+                      : "Previously uploaded"}
+                  </p>
+                  {usingStoredPhoto && (
+                    <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                      <CheckCircle size={10} /> Saved from account
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <button
@@ -211,9 +267,18 @@ export default function FileUploadTab({
                 <p className="text-sm font-medium text-[var(--color-text-color)]">
                   {formData.validIDFile.name}
                 </p>
-                <p className="text-xs text-[var(--color-text-secondary)]">
-                  {(formData.validIDFile.size / 1024).toFixed(2)} KB
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-[var(--color-text-secondary)]">
+                    {formData.validIDFile.size
+                      ? `${(formData.validIDFile.size / 1024).toFixed(2)} KB`
+                      : "Previously uploaded"}
+                  </p>
+                  {usingStoredValidID && (
+                    <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                      <CheckCircle size={10} /> Saved from account
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <button
@@ -242,6 +307,15 @@ export default function FileUploadTab({
             <li>Photos should be in color and not edited</li>
             <li>File names should not contain special characters</li>
             <li>Maximum file size is 5MB per document</li>
+            {(storedDocuments.photo1x1?.url ||
+              storedDocuments.validID?.url) && (
+              <li className="text-green-600">
+                <strong>
+                  Your previously uploaded documents have been automatically
+                  selected
+                </strong>
+              </li>
+            )}
           </ul>
         </div>
       </div>
