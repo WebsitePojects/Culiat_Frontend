@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Package, Download, Loader2, CreditCard, ExternalLink } from "lucide-react";
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Document prices (same as backend)
 const DOCUMENT_PRICES = {
@@ -27,7 +27,7 @@ const statusConfig = {
     color: "text-yellow-600",
     bgColor: "bg-yellow-50",
     borderColor: "border-yellow-200",
-    label: "Pending Review"
+    label: "Pending Review",
   },
   approved: {
     icon: CheckCircle,
@@ -41,7 +41,7 @@ const statusConfig = {
     color: "text-red-600",
     bgColor: "bg-red-50",
     borderColor: "border-red-200",
-    label: "Rejected"
+    label: "Rejected",
   },
   completed: {
     icon: Package,
@@ -56,7 +56,7 @@ const statusConfig = {
     bgColor: "bg-gray-50",
     borderColor: "border-gray-200",
     label: "Cancelled"
-  }
+  },
 };
 
 const paymentStatusConfig = {
@@ -90,7 +90,7 @@ const documentTypeLabels = {
   barangay_id: "Barangay ID",
   liquor_permit: "Liquor Permit",
   missionary: "Missionary Certificate",
-  rehab: "Rehabilitation Certificate"
+  rehab: "Rehabilitation Certificate",
 };
 
 export default function MyRequestsTab() {
@@ -107,18 +107,21 @@ export default function MyRequestsTab() {
   const fetchMyRequests = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/document-requests/my-requests`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${API_URL}/api/document-requests/my-requests`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
-      
+      );
+
       setRequests(response.data.data || []);
       setError("");
     } catch (err) {
-      console.error('Error fetching requests:', err);
-      setError('Failed to load your requests');
+      console.error("Error fetching requests:", err);
+      setError("Failed to load your requests");
     } finally {
       setLoading(false);
     }
@@ -127,44 +130,50 @@ export default function MyRequestsTab() {
   const handleDownload = async (requestId, documentType) => {
     try {
       setDownloading(requestId);
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/documents/download/${requestId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        responseType: 'blob'
-      });
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${API_URL}/api/documents/download/${requestId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "blob",
+        }
+      );
 
       // Create download link for the blob
       const blob = new Blob([response.data], {
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      
+
       // Extract filename from Content-Disposition header or use default
-      const contentDisposition = response.headers['content-disposition'];
+      const contentDisposition = response.headers["content-disposition"];
       const docTypeLabel = documentTypeLabels[documentType] || documentType;
-      let filename = `${docTypeLabel.replace(/\s+/g, '_')}.docx`;
+      let filename = `${docTypeLabel.replace(/\s+/g, "_")}.docx`;
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="(.+)"/);
         if (match) filename = match[1];
       }
-      
-      link.setAttribute('download', filename);
+
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Download error:', err);
+      console.error("Download error:", err);
       if (err.response?.status === 402) {
-        alert('Please complete payment first to download this document.');
+        alert("Please complete payment first to download this document.");
       } else if (err.response?.status === 404) {
-        alert('Document not found. Please wait for admin to generate it.');
+        alert("Document not found. Please wait for admin to generate it.");
       } else {
-        alert('Failed to download document: ' + (err.response?.data?.message || err.message));
+        alert(
+          "Failed to download document: " +
+            (err.response?.data?.message || err.message)
+        );
       }
     } finally {
       setDownloading(null);
@@ -172,12 +181,12 @@ export default function MyRequestsTab() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -201,8 +210,12 @@ export default function MyRequestsTab() {
     return (
       <div className="text-center py-12">
         <FileText className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No Requests Yet</h3>
-        <p className="text-gray-600">You haven't submitted any document requests.</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          No Requests Yet
+        </h3>
+        <p className="text-gray-600">
+          You haven't submitted any document requests.
+        </p>
       </div>
     );
   }
@@ -247,11 +260,17 @@ export default function MyRequestsTab() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      {documentTypeLabels[request.documentType] || request.documentType}
+                      {documentTypeLabels[request.documentType] ||
+                        request.documentType}
                     </h3>
                     <p className="text-sm text-gray-600">
                       Submitted on {formatDate(request.createdAt)}
                     </p>
+                    {request.controlNumber && (
+                      <p className="text-sm font-mono text-gray-700 bg-gray-100 px-2 py-0.5 rounded inline-block mt-1">
+                        Control #: {request.controlNumber}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
@@ -288,22 +307,38 @@ export default function MyRequestsTab() {
                     )}
                   </p>
                 </div>
+                <div>
+                  <p className="text-gray-600">Fee</p>
+                  <p className="font-medium text-gray-900">
+                    {isFree ? (
+                      <span className="text-green-600">FREE</span>
+                    ) : (
+                      `₱${price.toFixed(2)}`
+                    )}
+                  </p>
+                </div>
                 {request.preferredPickupDate && (
                   <div>
                     <p className="text-gray-600">Preferred Pickup</p>
-                    <p className="font-medium text-gray-900">{formatDate(request.preferredPickupDate)}</p>
+                    <p className="font-medium text-gray-900">
+                      {formatDate(request.preferredPickupDate)}
+                    </p>
                   </div>
                 )}
                 {request.processedAt && (
                   <div>
                     <p className="text-gray-600">Processed On</p>
-                    <p className="font-medium text-gray-900">{formatDate(request.processedAt)}</p>
+                    <p className="font-medium text-gray-900">
+                      {formatDate(request.processedAt)}
+                    </p>
                   </div>
                 )}
                 {request.remarks && (
                   <div className="col-span-2">
                     <p className="text-gray-600">Remarks</p>
-                    <p className="font-medium text-gray-900">{request.remarks}</p>
+                    <p className="font-medium text-gray-900">
+                      {request.remarks}
+                    </p>
                   </div>
                 )}
               </div>
@@ -340,7 +375,9 @@ export default function MyRequestsTab() {
                     }
                   </div>
                   <button
-                    onClick={() => handleDownload(request._id, request.documentType)}
+                    onClick={() =>
+                      handleDownload(request._id, request.documentType)
+                    }
                     disabled={downloading === request._id}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -359,7 +396,7 @@ export default function MyRequestsTab() {
                 </div>
               )}
 
-              {request.status === 'rejected' && request.rejectionReason && (
+              {request.status === "rejected" && request.rejectionReason && (
                 <div className="mt-4 pt-4 border-t border-red-200">
                   <p className="text-sm text-red-700">
                     <strong>Reason:</strong> {request.rejectionReason}

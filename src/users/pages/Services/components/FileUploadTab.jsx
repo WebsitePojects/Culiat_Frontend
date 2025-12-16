@@ -1,10 +1,15 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Upload, File, X, AlertCircle } from "lucide-react";
 
-export default function FileUploadTab({ formData, setField, errors, documentType }) {
+export default function FileUploadTab({
+  formData,
+  setField,
+  errors,
+  documentType,
+}) {
   const photo1x1Ref = useRef(null);
   const validIDRef = useRef(null);
-  
+
   const [photo1x1Preview, setPhoto1x1Preview] = useState(null);
   const [validIDPreview, setValidIDPreview] = useState(null);
 
@@ -19,13 +24,13 @@ export default function FileUploadTab({ formData, setField, errors, documentType
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-        alert('Only JPG, JPEG, and PNG files are allowed');
+      if (!["image/jpeg", "image/jpg", "image/png"].includes(file.type)) {
+        alert("Only JPG, JPEG, and PNG files are allowed");
         return;
       }
       // Validate file size (5MB)
       if (file.size > 5242880) {
-        alert('File size must not exceed 5MB');
+        alert("File size must not exceed 5MB");
         return;
       }
       setField("photo1x1File", file);
@@ -38,13 +43,13 @@ export default function FileUploadTab({ formData, setField, errors, documentType
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
-      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-        alert('Only JPG, JPEG, and PNG files are allowed');
+      if (!["image/jpeg", "image/jpg", "image/png"].includes(file.type)) {
+        alert("Only JPG, JPEG, and PNG files are allowed");
         return;
       }
       // Validate file size (5MB)
       if (file.size > 5242880) {
-        alert('File size must not exceed 5MB');
+        alert("File size must not exceed 5MB");
         return;
       }
       setField("validIDFile", file);
@@ -65,14 +70,15 @@ export default function FileUploadTab({ formData, setField, errors, documentType
     if (validIDRef.current) validIDRef.current.value = "";
   };
 
-  const requiresPhoto = ['clearance', 'business_permit', 'business_clearance'].includes(documentType);
+  const requiresPhoto = documentType === "residency";
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-medium">Upload Required Documents</h1>
         <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-          Please upload clear photos of your documents. Only JPG, JPEG, and PNG files are accepted (max 5MB).
+          Please upload clear photos of your documents. Only JPG, JPEG, and PNG
+          files are accepted (max 5MB).
         </p>
       </div>
 
@@ -83,18 +89,23 @@ export default function FileUploadTab({ formData, setField, errors, documentType
         </label>
         {requiresPhoto && (
           <p className="text-xs text-[var(--color-text-secondary)] mb-2">
-            Required for {documentType.replace('_', ' ')}
+            Required for {documentType.replace("_", " ")}
           </p>
         )}
-        
+
         {!formData.photo1x1File ? (
           <div
             onClick={() => photo1x1Ref.current?.click()}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition hover:border-[var(--color-secondary)] ${
-              errors.photo1x1File ? 'border-red-500' : 'border-[var(--color-neutral-active)]'
+              errors.photo1x1File
+                ? "border-red-500"
+                : "border-[var(--color-neutral-active)]"
             }`}
           >
-            <Upload className="mx-auto mb-3 text-[var(--color-neutral-dark)]" size={32} />
+            <Upload
+              className="mx-auto mb-3 text-[var(--color-neutral-dark)]"
+              size={32}
+            />
             <p className="text-sm text-[var(--color-text-color)] font-medium">
               Click to upload 1x1 photo
             </p>
@@ -153,17 +164,23 @@ export default function FileUploadTab({ formData, setField, errors, documentType
           Valid ID <span className="text-red-500">*</span>
         </label>
         <p className="text-xs text-[var(--color-text-secondary)] mb-2">
-          Required for all document requests (e.g., Driver's License, Passport, National ID, etc.)
+          Required for all document requests (e.g., Driver's License, Passport,
+          National ID, etc.)
         </p>
-        
+
         {!formData.validIDFile ? (
           <div
             onClick={() => validIDRef.current?.click()}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition hover:border-[var(--color-secondary)] ${
-              errors.validIDFile ? 'border-red-500' : 'border-[var(--color-neutral-active)]'
+              errors.validIDFile
+                ? "border-red-500"
+                : "border-[var(--color-neutral-active)]"
             }`}
           >
-            <Upload className="mx-auto mb-3 text-[var(--color-neutral-dark)]" size={32} />
+            <Upload
+              className="mx-auto mb-3 text-[var(--color-neutral-dark)]"
+              size={32}
+            />
             <p className="text-sm text-[var(--color-text-color)] font-medium">
               Click to upload valid ID
             </p>

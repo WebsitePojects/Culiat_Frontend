@@ -9,7 +9,7 @@ import { useAuth } from "../../../context/AuthContext";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const tabs = [
   { id: "personal", label: "Personal Information" },
@@ -59,7 +59,7 @@ const initialForm = {
   // File uploads
   photo1x1File: null,
   validIDFile: null,
-  // Business Info (only for business documents)
+  // Business Info (for business documents)
   businessName: "",
   businessSubdivision: "",
   businessStreet: "",
@@ -69,6 +69,11 @@ const initialForm = {
   ownerRepresentative: "",
   ownerContactNumber: "",
   representativeContactNumber: "",
+  // Business Permit specific
+  fees: "",
+  orNumber: "",
+  // Business Closure specific
+  closureDate: "",
   // Request
   documentType: "",
   requestFor: "",
@@ -80,6 +85,17 @@ const initialForm = {
   beneficiaryDateOfBirth: "",
   beneficiaryAge: "",
   beneficiaryRelationship: "",
+  // Residency specific
+  residencySince: "",
+  preparedBy: "",
+  referenceNo: "",
+  documentFileNo: "",
+  // Barangay ID specific
+  residencyType: "",
+  // Missionary specific (foreign national)
+  acrNumber: "",
+  acrValidUntil: "",
+  passportNumber: "",
 };
 
 export default function Services() {
@@ -97,103 +113,111 @@ export default function Services() {
 
   // Load form data from localStorage on mount
   useEffect(() => {
-    console.log('💾 Checking localStorage for saved form data...');
-    const savedFormData = localStorage.getItem('documentRequestForm');
-    
+    console.log("💾 Checking localStorage for saved form data...");
+    const savedFormData = localStorage.getItem("documentRequestForm");
+
     if (savedFormData) {
-      console.log('📦 Found saved form data in localStorage');
+      console.log("📦 Found saved form data in localStorage");
       try {
         const parsedData = JSON.parse(savedFormData);
-        console.log('📄 Parsed saved data:', parsedData);
-        
+        console.log("📄 Parsed saved data:", parsedData);
+
         // Check if saved data has meaningful content (not just empty strings)
-        const hasContent = parsedData.firstName || parsedData.lastName || parsedData.email;
-        
+        const hasContent =
+          parsedData.firstName || parsedData.lastName || parsedData.email;
+
         if (hasContent) {
           // Don't restore file objects, only text data
           const { photo1x1File, validIDFile, ...restData } = parsedData;
           setFormData((prev) => ({
             ...prev,
-            ...restData
+            ...restData,
           }));
           setAutoFilling(false); // Skip auto-fill if we have saved data
           setHasLoadedData(true);
           setShowLoadingToast(false); // Hide loading immediately
-          console.log('✅ Restored form data from localStorage');
+          console.log("✅ Restored form data from localStorage");
         } else {
-          console.log('📭 Saved data is empty, will auto-fill from user');
-          localStorage.removeItem('documentRequestForm'); // Clear empty data
+          console.log("📭 Saved data is empty, will auto-fill from user");
+          localStorage.removeItem("documentRequestForm"); // Clear empty data
           setShowLoadingToast(true);
         }
       } catch (error) {
-        console.error('❌ Error loading saved form data:', error);
+        console.error("❌ Error loading saved form data:", error);
         setShowLoadingToast(true); // Keep showing loading on error
       }
     } else {
-      console.log('📭 No saved form data in localStorage');
+      console.log("📭 No saved form data in localStorage");
       // Keep loading visible until user data arrives
       setShowLoadingToast(true);
-      console.log('⏳ Waiting for user data to load...');
+      console.log("⏳ Waiting for user data to load...");
     }
   }, []);
 
   // Auto-fill form from user data (only if no saved data and haven't auto-filled yet)
   useEffect(() => {
-    console.log('🔄 Auto-fill useEffect triggered');
-    console.log('📊 User object:', user);
-    console.log('🔐 Auth loading:', authLoading);
-    console.log('🎯 AutoFilling state:', autoFilling);
-    console.log('📍 Has loaded data:', hasLoadedData);
-    
+    console.log("🔄 Auto-fill useEffect triggered");
+    console.log("📊 User object:", user);
+    console.log("🔐 Auth loading:", authLoading);
+    console.log("🎯 AutoFilling state:", autoFilling);
+    console.log("📍 Has loaded data:", hasLoadedData);
+
     // If we already have loaded data, hide loading and exit
     if (hasLoadedData) {
-      console.log('✓ Data already loaded from localStorage or previous auto-fill');
+      console.log(
+        "✓ Data already loaded from localStorage or previous auto-fill"
+      );
       setShowLoadingToast(false);
       return;
     }
-    
+
     // Wait for auth to finish loading
     if (authLoading) {
-      console.log('⏳ Auth still loading, keeping loading overlay visible...');
+      console.log("⏳ Auth still loading, keeping loading overlay visible...");
       setShowLoadingToast(true);
       return;
     }
-    
+
     // If auth finished but no user, something went wrong - hide loading
     if (!authLoading && !user) {
-      console.log('❌ Auth finished but no user available');
+      console.log("❌ Auth finished but no user available");
       setShowLoadingToast(false);
       return;
     }
-    
+
     if (user && autoFilling) {
-      console.log('✅ Starting auto-fill process...');
-      console.log('🔍 Full user object:', JSON.stringify(user, null, 2));
+      console.log("✅ Starting auto-fill process...");
+      console.log("🔍 Full user object:", JSON.stringify(user, null, 2));
       setShowLoadingToast(true);
-      
+
       // Format date of birth to YYYY-MM-DD for HTML date input
       const formatDate = (dateString) => {
         if (!dateString) return "";
         try {
           const date = new Date(dateString);
           if (isNaN(date.getTime())) return "";
-          return date.toISOString().split('T')[0];
+          return date.toISOString().split("T")[0];
         } catch (error) {
-          console.error('Error formatting date:', error);
+          console.error("Error formatting date:", error);
           return "";
         }
       };
 
       const formattedDate = formatDate(user.dateOfBirth);
-      console.log('📅 Date of Birth:', user.dateOfBirth, '→ Formatted:', formattedDate);
-      console.log('👤 Name fields:', {
+      console.log(
+        "📅 Date of Birth:",
+        user.dateOfBirth,
+        "→ Formatted:",
+        formattedDate
+      );
+      console.log("👤 Name fields:", {
         firstName: user.firstName,
         middleName: user.middleName,
         lastName: user.lastName,
-        suffix: user.suffix
+        suffix: user.suffix,
       });
-      console.log('🏠 Address:', user.address);
-      console.log('🆘 Emergency Contact:', user.emergencyContact);
+      console.log("🏠 Address:", user.address);
+      console.log("🆘 Emergency Contact:", user.emergencyContact);
 
       const newFormData = {
         ...formData,
@@ -234,23 +258,23 @@ export default function Services() {
         emergencyHouseNumber: user.emergencyContact?.address?.houseNumber || "",
       };
 
-      console.log('📝 New form data being set:', newFormData);
+      console.log("📝 New form data being set:", newFormData);
       setFormData(newFormData);
       setAutoFilling(false);
       setHasLoadedData(true);
-      
-      console.log('✅ Auto-fill completed!');
-      console.log('📊 Form data after auto-fill:', newFormData);
-      
+
+      console.log("✅ Auto-fill completed!");
+      console.log("📊 Form data after auto-fill:", newFormData);
+
       // Hide loading toast after a short delay to show completion
       setTimeout(() => {
         setShowLoadingToast(false);
-        console.log('🎉 Loading overlay hidden');
+        console.log("🎉 Loading overlay hidden");
       }, 800);
     } else {
-      console.log('⏭️ Auto-fill condition not met');
+      console.log("⏭️ Auto-fill condition not met");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, autoFilling, hasLoadedData, authLoading]);
 
   // Save form data to localStorage whenever it changes
@@ -258,7 +282,7 @@ export default function Services() {
     if (!autoFilling && formData !== initialForm) {
       // Save to localStorage (excluding file objects)
       const { photo1x1File, validIDFile, ...dataToSave } = formData;
-      localStorage.setItem('documentRequestForm', JSON.stringify(dataToSave));
+      localStorage.setItem("documentRequestForm", JSON.stringify(dataToSave));
     }
   }, [formData, autoFilling]);
 
@@ -266,7 +290,9 @@ export default function Services() {
     setFormData((p) => ({ ...p, [name]: value }));
 
   const isBusinessDocument = () => {
-    return ['business_permit', 'business_clearance'].includes(formData.documentType);
+    return ["business_permit", "business_clearance", "liquor_permit"].includes(
+      formData.documentType
+    );
   };
 
   const validateAll = () => {
@@ -276,39 +302,55 @@ export default function Services() {
     if (!formData.firstName.trim()) e.firstName = "First name is required";
     if (!formData.dateOfBirth) e.dateOfBirth = "Date of birth is required";
     if (!formData.gender) e.gender = "Gender is required";
-    if (!formData.contactNumber.trim()) e.contactNumber = "Contact number is required";
-    
+    if (!formData.contactNumber.trim())
+      e.contactNumber = "Contact number is required";
+
     // File uploads
     if (!formData.validIDFile) e.validIDFile = "Valid ID is required";
-    
+
     // Emergency contact
-    if (!formData.emergencyName.trim()) e.emergencyName = "Emergency contact name is required";
-    if (!formData.emergencyContact.trim()) e.emergencyContact = "Emergency contact number is required";
-    
+    if (!formData.emergencyName.trim())
+      e.emergencyName = "Emergency contact name is required";
+    if (!formData.emergencyContact.trim())
+      e.emergencyContact = "Emergency contact number is required";
+
     // Document request
     if (!formData.documentType) e.documentType = "Select a document type";
-    if (!formData.purposeOfRequest.trim()) e.purposeOfRequest = "Purpose is required";
-    
-    // Photo 1x1 required for specific documents
-    const requiresPhoto = ['clearance', 'business_permit', 'business_clearance'].includes(formData.documentType);
-    if (requiresPhoto && !formData.photo1x1File) {
-      e.photo1x1File = "Photo 1x1 is required for this document type";
+    if (!formData.purposeOfRequest.trim())
+      e.purposeOfRequest = "Purpose is required";
+
+    // Photo 1x1 required only for residency
+    if (formData.documentType === "residency" && !formData.photo1x1File) {
+      e.photo1x1File = "Photo 1x1 is required for Certificate of Residency";
     }
-    
+
     // Business fields validation
     if (isBusinessDocument()) {
-      if (!formData.businessName.trim()) e.businessName = "Business name is required";
-      if (!formData.natureOfBusiness.trim()) e.natureOfBusiness = "Nature of business is required";
+      if (!formData.businessName.trim())
+        e.businessName = "Business name is required";
+      // Only require natureOfBusiness for business_permit and business_clearance (not liquor_permit)
+      if (
+        ["business_permit", "business_clearance"].includes(
+          formData.documentType
+        ) &&
+        !formData.natureOfBusiness.trim()
+      ) {
+        e.natureOfBusiness = "Nature of business is required";
+      }
     }
-    
+
     // Beneficiary fields validation for rehab certificates
-    if (formData.documentType === 'rehab') {
-      if (!formData.beneficiaryFullName?.trim()) e.beneficiaryFullName = "Beneficiary name is required";
-      if (!formData.beneficiaryDateOfBirth) e.beneficiaryDateOfBirth = "Beneficiary date of birth is required";
-      if (!formData.beneficiaryAge) e.beneficiaryAge = "Beneficiary age is required";
-      if (!formData.beneficiaryRelationship) e.beneficiaryRelationship = "Relationship is required";
+    if (formData.documentType === "rehab") {
+      if (!formData.beneficiaryFullName?.trim())
+        e.beneficiaryFullName = "Beneficiary name is required";
+      if (!formData.beneficiaryDateOfBirth)
+        e.beneficiaryDateOfBirth = "Beneficiary date of birth is required";
+      if (!formData.beneficiaryAge)
+        e.beneficiaryAge = "Beneficiary age is required";
+      if (!formData.beneficiaryRelationship)
+        e.beneficiaryRelationship = "Relationship is required";
     }
-    
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -317,11 +359,23 @@ export default function Services() {
     e.preventDefault();
     if (!validateAll()) {
       // Navigate to first error tab
-      if (Object.keys(errors).some(k => ['lastName', 'firstName', 'dateOfBirth', 'gender'].includes(k))) {
+      if (
+        Object.keys(errors).some((k) =>
+          ["lastName", "firstName", "dateOfBirth", "gender"].includes(k)
+        )
+      ) {
         setActive("personal");
-      } else if (Object.keys(errors).some(k => ['emergencyName', 'emergencyContact'].includes(k))) {
+      } else if (
+        Object.keys(errors).some((k) =>
+          ["emergencyName", "emergencyContact"].includes(k)
+        )
+      ) {
         setActive("emergency");
-      } else if (Object.keys(errors).some(k => ['photo1x1File', 'validIDFile'].includes(k))) {
+      } else if (
+        Object.keys(errors).some((k) =>
+          ["photo1x1File", "validIDFile"].includes(k)
+        )
+      ) {
         setActive("files");
       } else {
         setActive("request");
@@ -335,113 +389,266 @@ export default function Services() {
     try {
       // Create FormData for file upload
       const formDataToSend = new FormData();
-      
+
       // Personal info
-      formDataToSend.append('lastName', formData.lastName);
-      formDataToSend.append('firstName', formData.firstName);
-      if (formData.middleName) formDataToSend.append('middleName', formData.middleName);
-      if (formData.dateOfBirth) formDataToSend.append('dateOfBirth', formData.dateOfBirth);
-      if (formData.placeOfBirth) formDataToSend.append('placeOfBirth', formData.placeOfBirth);
-      if (formData.gender) formDataToSend.append('gender', formData.gender);
-      if (formData.civilStatus) formDataToSend.append('civilStatus', formData.civilStatus);
-      if (formData.salutation) formDataToSend.append('salutation', formData.salutation);
-      if (formData.nationality) formDataToSend.append('nationality', formData.nationality);
-      if (formData.contactNumber) formDataToSend.append('contactNumber', formData.contactNumber);
-      
+      formDataToSend.append("lastName", formData.lastName);
+      formDataToSend.append("firstName", formData.firstName);
+      if (formData.middleName)
+        formDataToSend.append("middleName", formData.middleName);
+      if (formData.dateOfBirth)
+        formDataToSend.append("dateOfBirth", formData.dateOfBirth);
+      if (formData.placeOfBirth)
+        formDataToSend.append("placeOfBirth", formData.placeOfBirth);
+      if (formData.gender) formDataToSend.append("gender", formData.gender);
+      if (formData.civilStatus)
+        formDataToSend.append("civilStatus", formData.civilStatus);
+      if (formData.salutation)
+        formDataToSend.append("salutation", formData.salutation);
+      if (formData.nationality)
+        formDataToSend.append("nationality", formData.nationality);
+      if (formData.contactNumber)
+        formDataToSend.append("contactNumber", formData.contactNumber);
+
       // Address
-      formDataToSend.append('address[subdivision]', formData.subdivision || '');
-      formDataToSend.append('address[street]', formData.street || '');
-      formDataToSend.append('address[houseNumber]', formData.houseNumber || '');
-      
+      formDataToSend.append("address[subdivision]", formData.subdivision || "");
+      formDataToSend.append("address[street]", formData.street || "");
+      formDataToSend.append("address[houseNumber]", formData.houseNumber || "");
+
       // Additional fields
-      if (formData.tinNumber) formDataToSend.append('tinNumber', formData.tinNumber);
-      if (formData.sssGsisNumber) formDataToSend.append('sssGsisNumber', formData.sssGsisNumber);
-      if (formData.precinctNumber) formDataToSend.append('precinctNumber', formData.precinctNumber);
-      if (formData.religion) formDataToSend.append('religion', formData.religion);
-      if (formData.heightWeight) formDataToSend.append('heightWeight', formData.heightWeight);
-      if (formData.colorOfHairEyes) formDataToSend.append('colorOfHairEyes', formData.colorOfHairEyes);
-      if (formData.occupation) formDataToSend.append('occupation', formData.occupation);
-      if (formData.emailAddress) formDataToSend.append('emailAddress', formData.emailAddress);
-      
+      if (formData.tinNumber)
+        formDataToSend.append("tinNumber", formData.tinNumber);
+      if (formData.sssGsisNumber)
+        formDataToSend.append("sssGsisNumber", formData.sssGsisNumber);
+      if (formData.precinctNumber)
+        formDataToSend.append("precinctNumber", formData.precinctNumber);
+      if (formData.religion)
+        formDataToSend.append("religion", formData.religion);
+      if (formData.heightWeight)
+        formDataToSend.append("heightWeight", formData.heightWeight);
+      if (formData.colorOfHairEyes)
+        formDataToSend.append("colorOfHairEyes", formData.colorOfHairEyes);
+      if (formData.occupation)
+        formDataToSend.append("occupation", formData.occupation);
+      if (formData.emailAddress)
+        formDataToSend.append("emailAddress", formData.emailAddress);
+
       // Spouse info
-      if (formData.spouseName) formDataToSend.append('spouseInfo[name]', formData.spouseName);
-      if (formData.spouseOccupation) formDataToSend.append('spouseInfo[occupation]', formData.spouseOccupation);
-      if (formData.spouseContact) formDataToSend.append('spouseInfo[contactNumber]', formData.spouseContact);
-      
+      if (formData.spouseName)
+        formDataToSend.append("spouseInfo[name]", formData.spouseName);
+      if (formData.spouseOccupation)
+        formDataToSend.append(
+          "spouseInfo[occupation]",
+          formData.spouseOccupation
+        );
+      if (formData.spouseContact)
+        formDataToSend.append(
+          "spouseInfo[contactNumber]",
+          formData.spouseContact
+        );
+
       // Emergency contact
-      formDataToSend.append('emergencyContact[fullName]', formData.emergencyName);
-      if (formData.emergencyRelationship) formDataToSend.append('emergencyContact[relationship]', formData.emergencyRelationship);
-      formDataToSend.append('emergencyContact[contactNumber]', formData.emergencyContact);
-      formDataToSend.append('emergencyContact[address][subdivision]', formData.emergencySubdivision || '');
-      formDataToSend.append('emergencyContact[address][street]', formData.emergencyStreet || '');
-      formDataToSend.append('emergencyContact[address][houseNumber]', formData.emergencyHouseNumber || '');
-      
+      formDataToSend.append(
+        "emergencyContact[fullName]",
+        formData.emergencyName
+      );
+      if (formData.emergencyRelationship)
+        formDataToSend.append(
+          "emergencyContact[relationship]",
+          formData.emergencyRelationship
+        );
+      formDataToSend.append(
+        "emergencyContact[contactNumber]",
+        formData.emergencyContact
+      );
+      formDataToSend.append(
+        "emergencyContact[address][subdivision]",
+        formData.emergencySubdivision || ""
+      );
+      formDataToSend.append(
+        "emergencyContact[address][street]",
+        formData.emergencyStreet || ""
+      );
+      formDataToSend.append(
+        "emergencyContact[address][houseNumber]",
+        formData.emergencyHouseNumber || ""
+      );
+
       // Business info (if applicable)
       if (isBusinessDocument()) {
-        formDataToSend.append('businessInfo[businessName]', formData.businessName);
-        formDataToSend.append('businessInfo[natureOfBusiness]', formData.natureOfBusiness);
-        if (formData.applicationType) formDataToSend.append('businessInfo[applicationType]', formData.applicationType);
-        if (formData.ownerRepresentative) formDataToSend.append('businessInfo[ownerRepresentative]', formData.ownerRepresentative);
-        if (formData.ownerContactNumber) formDataToSend.append('businessInfo[ownerContactNumber]', formData.ownerContactNumber);
-        if (formData.representativeContactNumber) formDataToSend.append('businessInfo[representativeContactNumber]', formData.representativeContactNumber);
-        formDataToSend.append('businessInfo[businessAddress][subdivision]', formData.businessSubdivision || '');
-        formDataToSend.append('businessInfo[businessAddress][street]', formData.businessStreet || '');
-        formDataToSend.append('businessInfo[businessAddress][houseNumber]', formData.businessHouseNumber || '');
+        formDataToSend.append(
+          "businessInfo[businessName]",
+          formData.businessName
+        );
+        formDataToSend.append(
+          "businessInfo[natureOfBusiness]",
+          formData.natureOfBusiness
+        );
+        if (formData.applicationType)
+          formDataToSend.append(
+            "businessInfo[applicationType]",
+            formData.applicationType
+          );
+        if (formData.ownerRepresentative)
+          formDataToSend.append(
+            "businessInfo[ownerRepresentative]",
+            formData.ownerRepresentative
+          );
+        if (formData.ownerContactNumber)
+          formDataToSend.append(
+            "businessInfo[ownerContactNumber]",
+            formData.ownerContactNumber
+          );
+        if (formData.representativeContactNumber)
+          formDataToSend.append(
+            "businessInfo[representativeContactNumber]",
+            formData.representativeContactNumber
+          );
+        formDataToSend.append(
+          "businessInfo[businessAddress][subdivision]",
+          formData.businessSubdivision || ""
+        );
+        formDataToSend.append(
+          "businessInfo[businessAddress][street]",
+          formData.businessStreet || ""
+        );
+        formDataToSend.append(
+          "businessInfo[businessAddress][houseNumber]",
+          formData.businessHouseNumber || ""
+        );
       }
-      
-      formDataToSend.append('documentType', formData.documentType);
-      formDataToSend.append('purposeOfRequest', formData.purposeOfRequest);
-      if (formData.preferredPickupDate) formDataToSend.append('preferredPickupDate', formData.preferredPickupDate);
-      if (formData.remarks) formDataToSend.append('remarks', formData.remarks);
-      
-      // Beneficiary info (for rehab certificates)
-      if (formData.documentType === 'rehab') {
-        formDataToSend.append('beneficiaryInfo[fullName]', formData.beneficiaryFullName);
-        formDataToSend.append('beneficiaryInfo[dateOfBirth]', formData.beneficiaryDateOfBirth);
-        formDataToSend.append('beneficiaryInfo[age]', formData.beneficiaryAge);
-        formDataToSend.append('beneficiaryInfo[relationship]', formData.beneficiaryRelationship);
-      }
-      
-      // Files
-      if (formData.photo1x1File) formDataToSend.append('photo1x1', formData.photo1x1File);
-      if (formData.validIDFile) formDataToSend.append('validID', formData.validIDFile);
 
-      const token = localStorage.getItem('token');
+      formDataToSend.append("documentType", formData.documentType);
+      formDataToSend.append("purposeOfRequest", formData.purposeOfRequest);
+      if (formData.preferredPickupDate)
+        formDataToSend.append(
+          "preferredPickupDate",
+          formData.preferredPickupDate
+        );
+      if (formData.remarks) formDataToSend.append("remarks", formData.remarks);
+
+      // Beneficiary info (for rehab certificates)
+      if (formData.documentType === "rehab") {
+        formDataToSend.append(
+          "beneficiaryInfo[fullName]",
+          formData.beneficiaryFullName
+        );
+        formDataToSend.append(
+          "beneficiaryInfo[dateOfBirth]",
+          formData.beneficiaryDateOfBirth
+        );
+        formDataToSend.append("beneficiaryInfo[age]", formData.beneficiaryAge);
+        formDataToSend.append(
+          "beneficiaryInfo[relationship]",
+          formData.beneficiaryRelationship
+        );
+      }
+
+      // Residency specific fields
+      if (formData.documentType === "residency") {
+        if (formData.residencySince)
+          formDataToSend.append(
+            "residencyInfo[residencySince]",
+            formData.residencySince
+          );
+        if (formData.preparedBy)
+          formDataToSend.append(
+            "residencyInfo[preparedBy]",
+            formData.preparedBy
+          );
+        if (formData.referenceNo)
+          formDataToSend.append(
+            "residencyInfo[referenceNo]",
+            formData.referenceNo
+          );
+        if (formData.documentFileNo)
+          formDataToSend.append(
+            "residencyInfo[documentFileNo]",
+            formData.documentFileNo
+          );
+      }
+
+      // Barangay ID specific fields
+      if (formData.documentType === "barangay_id") {
+        if (formData.residencyType)
+          formDataToSend.append("residencyType", formData.residencyType);
+      }
+
+      // Missionary specific fields (foreign national info)
+      if (formData.documentType === "missionary") {
+        if (formData.acrNumber)
+          formDataToSend.append(
+            "foreignNationalInfo[acrNumber]",
+            formData.acrNumber
+          );
+        if (formData.acrValidUntil)
+          formDataToSend.append(
+            "foreignNationalInfo[acrValidUntil]",
+            formData.acrValidUntil
+          );
+        if (formData.passportNumber)
+          formDataToSend.append(
+            "foreignNationalInfo[passportNumber]",
+            formData.passportNumber
+          );
+      }
+
+      // Business Permit specific fields
+      if (formData.documentType === "business_permit") {
+        if (formData.fees) formDataToSend.append("fees", formData.fees);
+        if (formData.orNumber)
+          formDataToSend.append("businessInfo[orNumber]", formData.orNumber);
+      }
+
+      // Business Closure specific fields
+      if (formData.documentType === "business_clearance") {
+        if (formData.closureDate)
+          formDataToSend.append(
+            "businessInfo[closureDate]",
+            formData.closureDate
+          );
+      }
+
+      // Files
+      if (formData.photo1x1File)
+        formDataToSend.append("photo1x1", formData.photo1x1File);
+      if (formData.validIDFile)
+        formDataToSend.append("validID", formData.validIDFile);
+
+      const token = localStorage.getItem("token");
       const response = await axios.post(
         `${API_URL}/api/document-requests`,
         formDataToSend,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`
-          }
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
-      console.log('✅ Document request submitted successfully!', response.data);
-      
+      console.log("✅ Document request submitted successfully!", response.data);
+
       // Show success message
       setShowSuccess(true);
       setShowError(false);
-      
+
       // Reset form
       setFormData(initialForm);
       setAutoFilling(true); // Re-enable auto-fill for next request
       setHasLoadedData(false); // Allow auto-fill on next visit
-      localStorage.removeItem('documentRequestForm'); // Clear saved form data
-      
+      localStorage.removeItem("documentRequestForm"); // Clear saved form data
+
       // Scroll to top to show success message
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
       // Hide success message after 7 seconds
       setTimeout(() => setShowSuccess(false), 7000);
-      
     } catch (error) {
-      console.error('Submit error:', error);
+      console.error("Submit error:", error);
       setErrorMessage(
-        error.response?.data?.message || 
-        error.response?.data?.error ||
-        'Failed to submit request. Please try again.'
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to submit request. Please try again."
       );
       setShowError(true);
       setTimeout(() => setShowError(false), 5000);
@@ -451,7 +658,10 @@ export default function Services() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--color-neutral)" }}>
+    <div
+      className="min-h-screen"
+      style={{ backgroundColor: "var(--color-neutral)" }}
+    >
       {/* Hero Section with Animation */}
       <motion.section
         initial={{ opacity: 0 }}
@@ -459,7 +669,8 @@ export default function Services() {
         transition={{ duration: 0.6 }}
         className="relative text-white overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-glow) 100%)",
+          background:
+            "linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-glow) 100%)",
         }}
       >
         {/* Decorative Background Pattern */}
@@ -505,6 +716,7 @@ export default function Services() {
             Fill out the form below and track your request status.
           </motion.p>
         </div>
+
 
         {/* Wave Divider */}
         <div
@@ -559,10 +771,7 @@ export default function Services() {
               style={{ borderColor: "#ef4444" }}
             >
               <div className="p-4 flex items-center">
-                <AlertCircle
-                  className="text-red-500"
-                  size={24}
-                />
+                <AlertCircle className="text-red-500" size={24} />
               </div>
               <div className="px-4 py-3">
                 <p className="font-semibold text-[var(--color-text-color)]">
@@ -592,24 +801,42 @@ export default function Services() {
                   <div className="w-20 h-20 relative">
                     <div className="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
                     <div className="absolute inset-0 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
-                    <div className="absolute inset-2 border-4 border-transparent border-t-blue-400 rounded-full animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
+                    <div
+                      className="absolute inset-2 border-4 border-transparent border-t-blue-400 rounded-full animate-spin"
+                      style={{
+                        animationDuration: "1.5s",
+                        animationDirection: "reverse",
+                      }}
+                    ></div>
                   </div>
                 </div>
                 <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Loading Your Information</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                    Loading Your Information
+                  </h3>
                   <p className="text-sm text-gray-600 max-w-sm">
-                    Please wait while we auto-fill your personal details from your profile...
+                    Please wait while we auto-fill your personal details from
+                    your profile...
                   </p>
                   <div className="flex items-center justify-center gap-1 mt-4">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    <div
+                      className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                      style={{ animationDelay: "0ms" }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                      style={{ animationDelay: "150ms" }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                      style={{ animationDelay: "300ms" }}
+                    ></div>
                   </div>
                 </div>
               </div>
             </div>
           )}
-          
+
           {/* Tabs */}
           <div className="px-2 md:px-6 py-4 border-b border-[var(--color-neutral-active)] flex ">
             <nav
@@ -788,7 +1015,7 @@ export default function Services() {
                       boxShadow: `0 6px 18px -6px ${"var(--color-secondary-glow)"}`,
                     }}
                   >
-                    {loading ? 'Submitting...' : 'Submit Request'}
+                    {loading ? "Submitting..." : "Submit Request"}
                   </button>
                 )}
               </div>
