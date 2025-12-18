@@ -215,15 +215,49 @@ export default function DocumentRequestTab({
                 <span className="text-red-500">*</span>
               </label>
               <input
+                type="month"
                 name="residencySince"
-                value={formData.residencySince || ""}
-                onChange={onChange}
+                value={
+                  formData.residencySince 
+                    ? (() => {
+                        // Convert "Month YYYY" format back to "YYYY-MM" for the input
+                        const monthNames = [
+                          'January', 'February', 'March', 'April', 'May', 'June',
+                          'July', 'August', 'September', 'October', 'November', 'December'
+                        ];
+                        const parts = formData.residencySince.split(' ');
+                        if (parts.length === 2) {
+                          const monthIndex = monthNames.indexOf(parts[0]);
+                          if (monthIndex !== -1) {
+                            const month = String(monthIndex + 1).padStart(2, '0');
+                            return `${parts[1]}-${month}`;
+                          }
+                        }
+                        return '';
+                      })()
+                    : ""
+                }
+                onChange={(e) => {
+                  // Convert YYYY-MM format to "Month YYYY" format for storage
+                  const value = e.target.value;
+                  if (value) {
+                    const [year, month] = value.split('-');
+                    const monthNames = [
+                      'January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December'
+                    ];
+                    const monthName = monthNames[parseInt(month) - 1];
+                    const formattedValue = `${monthName} ${year}`;
+                    onChange({ target: { name: 'residencySince', value: formattedValue } });
+                  } else {
+                    onChange({ target: { name: 'residencySince', value: '' } });
+                  }
+                }}
                 className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
                   errors.residencySince
                     ? "border-red-500"
                     : "border-[var(--color-neutral-active)]"
                 }`}
-                placeholder="e.g., January 2008"
               />
               {errors.residencySince && (
                 <p className="text-xs text-red-500 mt-1">
@@ -231,8 +265,7 @@ export default function DocumentRequestTab({
                 </p>
               )}
               <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                Reference No., Document File No., and Prepared By are
-                automatically generated.
+                Select the month and year when you started residing in the barangay. Reference No., Document File No., and Prepared By are automatically generated.
               </p>
             </div>
           </div>

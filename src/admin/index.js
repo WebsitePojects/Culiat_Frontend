@@ -13,4 +13,5 @@ export { default as AdminDashboard } from './pages/Dashboard/AdminDashboard';
 export { default as AdminUsers } from './pages/Users/AdminUsers';
 export { default as AdminReports } from './pages/Reports/AdminReports';
 export { default as AdminAnnouncements } from './pages/Announcements/AdminAnnouncements';
+export { default as AdminOfficials } from './pages/Officials/AdminOfficials';
 export { default as SettingsPage } from './pages/Settings/SettingsPage';

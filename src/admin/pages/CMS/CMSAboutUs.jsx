@@ -8,6 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const CMSAboutUs = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isNewRecord, setIsNewRecord] = useState(false);
   const [formData, setFormData] = useState({
     barangayName: "",
     description: "",
@@ -86,7 +87,12 @@ const CMSAboutUs = () => {
       }
     } catch (error) {
       if (error.response?.status === 404) {
-        toast.error("Barangay information not found. Please create it first.");
+        // No existing data - show form for initial creation
+        setIsNewRecord(true);
+        toast("No existing barangay information. Fill in the form to create.", {
+          icon: "ℹ️",
+          duration: 4000,
+        });
       } else {
         toast.error("Failed to fetch barangay information");
       }
@@ -106,13 +112,24 @@ const CMSAboutUs = () => {
         headers: { Authorization: `Bearer ${token}` },
       };
 
-      const response = await axios.put(
-        `${API_URL}/api/barangay-info`,
-        formData,
-        config
-      );
-
-      if (response.data.success) {
+      let response;
+      
+      if (isNewRecord) {
+        // Create new barangay info
+        response = await axios.post(
+          `${API_URL}/api/barangay-info`,
+          formData,
+          config
+        );
+        setIsNewRecord(false);
+        toast.success("Barangay information created successfully");
+      } else {
+        // Update existing
+        response = await axios.put(
+          `${API_URL}/api/barangay-info`,
+          formData,
+          config
+        );
         toast.success("About Us section updated successfully");
       }
     } catch (error) {
@@ -123,6 +140,7 @@ const CMSAboutUs = () => {
             headers: { Authorization: `Bearer ${token}` },
           };
           await axios.post(`${API_URL}/api/barangay-info`, formData, config);
+          setIsNewRecord(false);
           toast.success("About Us section created successfully");
         } catch (createError) {
           toast.error("Failed to create barangay information");

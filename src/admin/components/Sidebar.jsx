@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Info,
   Briefcase,
+  UserCircle,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -77,6 +78,7 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
           icon: Megaphone,
         },
         { name: "Achievements", path: "/admin/achievements", icon: Trophy },
+        { name: "Officials", path: "/admin/officials", icon: UserCircle },
         { name: "Documents", path: "/admin/documents", icon: FolderOpen },
         { name: "About Us", path: "/admin/cms/about-us", icon: Info },
         { name: "Services", path: "/admin/cms/services", icon: Briefcase },

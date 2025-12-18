@@ -32,6 +32,7 @@ import AdminCalendar from "./admin/pages/Calendar/AdminCalendar";
 import AdminNotifications from "./admin/pages/Notifications/AdminNotifications";
 import AdminTermsAcceptances from "./admin/pages/TermsAcceptances/AdminTermsAcceptances";
 import AdminAchievements from "./admin/pages/Achievements/AdminAchievements";
+import AdminOfficials from "./admin/pages/Officials/AdminOfficials";
 import CMSServices from "./admin/pages/CMS/CMSServices";
 import CMSAboutUs from "./admin/pages/CMS/CMSAboutUs";
 import AdminProfile from "./admin/pages/Profile/AdminProfile";
@@ -163,6 +164,7 @@ function App() {
               element={<RegistrationHistory />}
             />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="officials" element={<AdminOfficials />} />
             <Route path="cms/services" element={<CMSServices />} />
             <Route path="cms/about-us" element={<CMSAboutUs />} />
           </Route>
