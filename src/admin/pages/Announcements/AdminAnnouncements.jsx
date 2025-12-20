@@ -28,6 +28,8 @@ const AdminAnnouncements = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   
   const [formData, setFormData] = useState({
     title: "",
@@ -133,7 +135,9 @@ const AdminAnnouncements = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
     setError("");
+    setSaving(true);
 
     try {
       const token = localStorage.getItem("token");
@@ -166,10 +170,14 @@ const AdminAnnouncements = () => {
       fetchAnnouncements();
     } catch (error) {
       setError(error.response?.data?.message || "Failed to save announcement");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async () => {
+    if (deleting) return;
+    setDeleting(true);
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
@@ -182,6 +190,8 @@ const AdminAnnouncements = () => {
       fetchAnnouncements();
     } catch (error) {
       setError(error.response?.data?.message || "Failed to delete announcement");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -424,7 +434,7 @@ const AdminAnnouncements = () => {
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-3xl bg-white dark:bg-gray-800 rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -560,10 +570,20 @@ const AdminAnnouncements = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                  disabled={saving}
+                  className={`flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg transition-colors ${saving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
                 >
-                  <Save className="w-4 h-4 mr-2" />
-                  {isEditMode ? "Update" : "Create"} Announcement
+                  {saving ? (
+                    <>
+                      <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      {isEditMode ? "Update" : "Create"} Announcement
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -573,7 +593,7 @@ const AdminAnnouncements = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl">
             <div className="p-6">
               <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full">
@@ -589,16 +609,27 @@ const AdminAnnouncements = () => {
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                disabled={deleting}
+                className={`flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg transition-colors ${deleting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
               >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
+                {deleting ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -23,6 +23,8 @@ const AdminAchievements = () => {
   const [selectedAchievement, setSelectedAchievement] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   
   const [formData, setFormData] = useState({
     title: "",
@@ -106,6 +108,8 @@ const AdminAchievements = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
+    setSaving(true);
     
     const submitData = new FormData();
     submitData.append("title", formData.title);
@@ -142,10 +146,14 @@ const AdminAchievements = () => {
     } catch (error) {
       console.error("Error saving achievement:", error);
       toast.error(error.response?.data?.message || "Error saving achievement");
+    } finally {
+      setSaving(false);
     }
   };
 
   const confirmDelete = async () => {
+    if (deleting) return;
+    setDeleting(true);
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`${API_URL}/api/achievements/${selectedAchievement._id}`, {
@@ -157,6 +165,8 @@ const AdminAchievements = () => {
     } catch (error) {
       console.error("Error deleting achievement:", error);
       toast.error("Error deleting achievement");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -229,7 +239,7 @@ const AdminAchievements = () => {
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white">
@@ -328,16 +338,27 @@ const AdminAchievements = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
+                  disabled={saving}
                   className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  disabled={saving}
+                  className={`px-4 py-2 bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2 ${saving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
                 >
-                  <Save size={18} />
-                  {isEditMode ? "Update Achievement" : "Save Achievement"}
+                  {saving ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={18} />
+                      {isEditMode ? "Update Achievement" : "Save Achievement"}
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -347,7 +368,7 @@ const AdminAchievements = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6">
             <div className="flex items-center gap-3 text-red-600 mb-4">
               <AlertCircle size={24} />
@@ -359,15 +380,24 @@ const AdminAchievements = () => {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
                 className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                disabled={deleting}
+                className={`px-4 py-2 bg-red-600 text-white rounded-lg transition-colors flex items-center gap-2 ${deleting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
               >
-                Delete
+                {deleting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete'
+                )}
               </button>
             </div>
           </div>

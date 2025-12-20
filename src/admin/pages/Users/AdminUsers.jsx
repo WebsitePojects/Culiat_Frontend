@@ -41,6 +41,9 @@ const AdminUsers = () => {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [updating, setUpdating] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -186,6 +189,8 @@ const AdminUsers = () => {
 
   // Update user
   const handleUpdateUser = async () => {
+    if (updating) return;
+    setUpdating(true);
     try {
       setError("");
       const token = localStorage.getItem("token");
@@ -206,11 +211,15 @@ const AdminUsers = () => {
       fetchUsers();
     } catch (error) {
       setError(error.response?.data?.message || "Failed to update user");
+    } finally {
+      setUpdating(false);
     }
   };
 
   // Delete user
   const handleDeleteUser = async () => {
+    if (deletingUser) return;
+    setDeletingUser(true);
     try {
       setError("");
       const token = localStorage.getItem("token");
@@ -229,11 +238,15 @@ const AdminUsers = () => {
       fetchUsers();
     } catch (error) {
       setError(error.response?.data?.message || "Failed to delete user");
+    } finally {
+      setDeletingUser(false);
     }
   };
 
   // Create user
   const handleCreateUser = async () => {
+    if (creating) return;
+    setCreating(true);
     try {
       setError("");
       const token = localStorage.getItem("token");
@@ -254,6 +267,8 @@ const AdminUsers = () => {
       fetchUsers();
     } catch (error) {
       setError(error.response?.data?.message || "Failed to create user");
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -481,7 +496,7 @@ const AdminUsers = () => {
 
       {/* Edit User Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -576,16 +591,27 @@ const AdminUsers = () => {
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowEditModal(false)}
+                disabled={updating}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdateUser}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                disabled={updating}
+                className={`flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg transition-colors ${updating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
               >
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
+                {updating ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -594,7 +620,7 @@ const AdminUsers = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl">
             <div className="p-6">
               <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full">
@@ -616,16 +642,27 @@ const AdminUsers = () => {
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowDeleteModal(false)}
+                disabled={deletingUser}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteUser}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                disabled={deletingUser}
+                className={`flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg transition-colors ${deletingUser ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
               >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete User
+                {deletingUser ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete User
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -634,7 +671,7 @@ const AdminUsers = () => {
 
       {/* Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -733,16 +770,27 @@ const AdminUsers = () => {
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={() => setShowCreateModal(false)}
+                disabled={creating}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateUser}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                disabled={creating}
+                className={`flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg transition-colors ${creating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Create User
+                {creating ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create User
+                  </>
+                )}
               </button>
             </div>
           </div>

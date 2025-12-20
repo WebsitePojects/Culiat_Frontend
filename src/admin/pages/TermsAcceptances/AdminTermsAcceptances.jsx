@@ -243,7 +243,7 @@ const AdminTermsAcceptances = () => {
 
       {/* Signature Modal */}
       {showSignatureModal && selectedSignature && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full p-6">
             <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
               Signature - {selectedSignature.userId?.firstName} {selectedSignature.userId?.lastName}
