@@ -48,7 +48,7 @@ const RegistrationHistory = () => {
 
       setRegistrations(processedRegs);
     } catch (error) {
-      console.error("Error fetching registrations:", error);
+      // Error fetching registrations - silently fail
     } finally {
       setLoading(false);
     }

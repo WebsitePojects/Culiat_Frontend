@@ -44,8 +44,7 @@ const MediaSequence = () => {
       const playPromise = video.play();
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
-          // avoid "play() request interrupted" error
-          console.warn("Video play interrupted:", err.message);
+          // Avoid "play() request interrupted" error - silently fail
         });
       }
 

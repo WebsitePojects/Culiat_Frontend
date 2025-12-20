@@ -16,7 +16,7 @@ const Footer = () => {
       const response = await axios.get(`${API_URL}/api/settings`);
       setSettings(response.data.data);
     } catch (error) {
-      console.error("Error fetching settings:", error);
+      // Error fetching settings - silently fail
     } finally {
       setLoading(false);
     }

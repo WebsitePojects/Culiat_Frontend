@@ -55,7 +55,6 @@ const AdminProfile = () => {
       });
       setProfile(response.data.data);
     } catch (error) {
-      console.error("Error fetching profile:", error);
       showError("Failed to load profile");
     } finally {
       setLoading(false);
@@ -87,7 +86,6 @@ const AdminProfile = () => {
       setCountdown(600); // 10 minutes
       showSuccess("Verification code sent to your email");
     } catch (error) {
-      console.error("Error requesting verification code:", error);
       showError(
         error.response?.data?.message || "Failed to send verification code"
       );
@@ -152,7 +150,6 @@ const AdminProfile = () => {
       setVerificationCode("");
       await fetchProfile();
     } catch (error) {
-      console.error("Error verifying and updating:", error);
       showError(error.response?.data?.message || "Verification failed");
     } finally {
       setVerificationLoading(false);
@@ -173,7 +170,6 @@ const AdminProfile = () => {
       setEditValues({});
       await fetchProfile();
     } catch (error) {
-      console.error("Error updating profile:", error);
       showError(error.response?.data?.message || "Failed to update profile");
     }
   };

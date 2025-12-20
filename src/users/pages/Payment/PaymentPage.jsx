@@ -59,7 +59,6 @@ const PaymentPage = () => {
       setPaymentDetails(response.data.data);
       setError("");
     } catch (err) {
-      console.error("Error fetching payment details:", err);
       if (err.response?.status === 404) {
         setError("Document request not found");
       } else if (err.response?.status === 403) {
@@ -86,7 +85,7 @@ const PaymentPage = () => {
         await fetchPaymentDetails();
       }
     } catch (err) {
-      console.error("Verification error:", err);
+      // Verification error - silently fail
     } finally {
       if (showLoading) setVerifying(false);
     }
@@ -117,7 +116,6 @@ const PaymentPage = () => {
         await fetchPaymentDetails();
       }
     } catch (err) {
-      console.error("Payment error:", err);
       setError(err.response?.data?.message || "Failed to initiate payment");
     } finally {
       setProcessingPayment(false);
@@ -158,7 +156,6 @@ const PaymentPage = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Download error:", err);
       if (err.response?.status === 402) {
         setError("Please complete payment first to download this document.");
       } else {

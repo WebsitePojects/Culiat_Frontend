@@ -96,7 +96,6 @@ const CMSAboutUs = () => {
       } else {
         toast.error("Failed to fetch barangay information");
       }
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -144,12 +143,10 @@ const CMSAboutUs = () => {
           toast.success("About Us section created successfully");
         } catch (createError) {
           toast.error("Failed to create barangay information");
-          console.error(createError);
         }
       } else {
         toast.error(error.response?.data?.message || "Failed to update");
       }
-      console.error(error);
     } finally {
       setSaving(false);
     }

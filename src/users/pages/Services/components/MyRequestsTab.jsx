@@ -120,7 +120,6 @@ export default function MyRequestsTab() {
       setRequests(response.data.data || []);
       setError("");
     } catch (err) {
-      console.error("Error fetching requests:", err);
       setError("Failed to load your requests");
     } finally {
       setLoading(false);
@@ -164,7 +163,6 @@ export default function MyRequestsTab() {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Download error:", err);
       if (err.response?.status === 402) {
         alert("Please complete payment first to download this document.");
       } else if (err.response?.status === 404) {

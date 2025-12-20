@@ -19,7 +19,7 @@ const History = () => {
         setBarangayInfo(response.data.data);
       }
     } catch (error) {
-      console.error("Failed to fetch barangay info:", error);
+      // Failed to fetch barangay info - silently fail
     } finally {
       setLoading(false);
     }

@@ -66,7 +66,6 @@ const AdminOfficials = () => {
       }
     } catch (error) {
       toast.error("Failed to fetch officials");
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -175,7 +174,6 @@ const AdminOfficials = () => {
       closeModal();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to save official");
-      console.error(error);
     } finally {
       setSaving(false);
     }
@@ -195,7 +193,6 @@ const AdminOfficials = () => {
       fetchOfficials();
     } catch (error) {
       toast.error("Failed to delete official");
-      console.error(error);
     }
   };
 
@@ -213,7 +210,6 @@ const AdminOfficials = () => {
       fetchOfficials();
     } catch (error) {
       toast.error("Failed to update status");
-      console.error(error);
     }
   };
 

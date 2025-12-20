@@ -22,7 +22,6 @@ const ForgotPassword = () => {
         toast.success('Email sent successfully!');
         // For demo purposes, since we don't have email service
         if (res.data.testToken) {
-            console.log('Test Token:', res.data.testToken);
             toast('Check console for reset token (Demo Mode)', { icon: '🐛' });
         }
       }

@@ -131,7 +131,6 @@ const OrganizationMembers = () => {
             setOfficials(response.data.data);
          }
       } catch (err) {
-         console.error("Error fetching officials:", err);
          setError("Unable to load officials");
       } finally {
          setLoading(false);

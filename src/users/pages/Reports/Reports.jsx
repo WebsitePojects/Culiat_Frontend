@@ -31,7 +31,7 @@ const Reports = () => {
             : await reportAPI.getMyReports();
          setReports(response.data.data);
       } catch (error) {
-         console.error("Error fetching reports:", error);
+         // Error fetching reports - silently fail
       } finally {
          setLoading(false);
       }

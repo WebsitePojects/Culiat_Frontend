@@ -44,7 +44,7 @@ const AdminTermsAcceptances = () => {
         });
       }
     } catch (error) {
-      console.error("Error fetching acceptances:", error);
+      // Error fetching acceptances - silently fail
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ const AdminTermsAcceptances = () => {
         setShowSignatureModal(true);
       }
     } catch (error) {
-      console.error("Error fetching signature:", error);
+      // Error fetching signature - silently fail
     }
   };
 

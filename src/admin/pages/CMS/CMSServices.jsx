@@ -71,7 +71,6 @@ const CMSServices = () => {
       setServices(response.data.data);
     } catch (error) {
       toast.error("Failed to fetch services");
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -113,7 +112,6 @@ const CMSServices = () => {
       fetchServices();
     } catch (error) {
       toast.error(error.response?.data?.message || "Operation failed");
-      console.error(error);
     }
   };
 
@@ -150,7 +148,6 @@ const CMSServices = () => {
       fetchServices();
     } catch (error) {
       toast.error("Failed to delete service");
-      console.error(error);
     }
   };
 
@@ -168,7 +165,6 @@ const CMSServices = () => {
       fetchServices();
     } catch (error) {
       toast.error("Failed to update status");
-      console.error(error);
     }
   };
 

@@ -37,7 +37,7 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
         setUnreadCount(response.data.data.unreadCount);
       }
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      // Error fetching notifications - silently fail
     } finally {
       setLoading(false);
     }

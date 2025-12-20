@@ -54,7 +54,6 @@ const AdminAnnouncements = () => {
       });
       setAnnouncements(response.data.data || []);
     } catch (error) {
-      console.error("Error fetching announcements:", error);
       // Use sample data if API fails
       setAnnouncements([
         {
@@ -209,7 +208,7 @@ const AdminAnnouncements = () => {
       
       fetchAnnouncements();
     } catch (error) {
-      console.error("Failed to toggle status:", error);
+      // Failed to toggle status - silently fail
     }
   };
 

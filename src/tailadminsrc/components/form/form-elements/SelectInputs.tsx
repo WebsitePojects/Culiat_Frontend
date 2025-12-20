@@ -11,7 +11,7 @@ export default function SelectInputs() {
     { value: "development", label: "Development" },
   ];
   const handleSelectChange = (value: string) => {
-    console.log("Selected value:", value);
+    // Handle select change
   };
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
 

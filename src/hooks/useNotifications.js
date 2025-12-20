@@ -20,7 +20,6 @@ export const useNotifications = () => {
   useEffect(() => {
     const unsubscribe = notificationService.subscribe((notification) => {
       // Handle notification event (e.g., update state, trigger actions)
-      console.log('New notification:', notification);
     });
 
     return unsubscribe;
@@ -101,9 +100,8 @@ export const useNotifications = () => {
         // const response = await fetch('/api/notifications/recent');
         // const data = await response.json();
         // Process new notifications
-        console.log('Polling for new notifications...');
       } catch (error) {
-        console.error('Error polling notifications:', error);
+        // Error polling notifications - silently fail
       }
     }, interval);
 

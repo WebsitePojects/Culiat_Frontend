@@ -79,7 +79,7 @@ const AdminDocuments = () => {
       });
       setRequests(response.data.data || []);
     } catch (error) {
-      console.error("Error fetching requests:", error);
+      // Error fetching requests - silently fail
     } finally {
       setLoading(false);
     }
@@ -263,7 +263,6 @@ const AdminDocuments = () => {
       setShowModal(false);
       setSelectedRequest(null);
     } catch (error) {
-      console.error("Document generation error:", error);
       setError(error.response?.data?.message || "Failed to generate document");
     } finally {
       setGenerating(false);
@@ -287,7 +286,6 @@ const AdminDocuments = () => {
       setTimeout(() => setSuccess(""), 5000);
       await fetchRequests();
     } catch (error) {
-      console.error("Payment confirmation error:", error);
       setError(error.response?.data?.message || "Failed to confirm payment");
     } finally {
       setProcessingPayment(null);
@@ -311,7 +309,6 @@ const AdminDocuments = () => {
       setTimeout(() => setSuccess(""), 5000);
       await fetchRequests();
     } catch (error) {
-      console.error("Payment waiver error:", error);
       setError(error.response?.data?.message || "Failed to waive payment");
     } finally {
       setProcessingPayment(null);

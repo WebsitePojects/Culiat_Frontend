@@ -60,7 +60,6 @@ const SettingsPage = () => {
         system: data.system || {},
       });
     } catch (error) {
-      console.error("Error fetching settings:", error);
       showError("Failed to load settings");
     } finally {
       setLoading(false);
@@ -101,7 +100,7 @@ const SettingsPage = () => {
       await fetchSettings();
       setHasChanges(false);
     } catch (error) {
-      console.error("Error saving settings:", error);
+      // Error saving settings - handled by showPromise
     } finally {
       setSaving(false);
     }

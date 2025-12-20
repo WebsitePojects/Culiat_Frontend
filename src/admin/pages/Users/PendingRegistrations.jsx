@@ -32,7 +32,6 @@ export default function PendingRegistrations() {
   const fetchPendingRegistrations = async () => {
     setLoading(true);
     try {
-      console.log('Fetching pending registrations from:', `${API_URL}/api/auth/pending-registrations`);
       const token = localStorage.getItem("token");
       const response = await axios.get(`${API_URL}/api/auth/pending-registrations`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -42,7 +41,6 @@ export default function PendingRegistrations() {
         setPendingUsers(response.data.data || []);
       }
     } catch (error) {
-      console.error('Error fetching pending registrations:', error);
       setPendingUsers([]); // Set to empty array on error
       setAlert({
         type: "error",
@@ -171,7 +169,6 @@ export default function PendingRegistrations() {
       const results = performVerification(text, selectedUser);
       setVerificationResults(results);
     } catch (error) {
-      console.error('OCR Error:', error);
       setAlert({
         type: "error",
         message: "Failed to process the ID image. Please try again.",
@@ -579,7 +576,6 @@ export default function PendingRegistrations() {
                     alt={selectedUser.validID ? "Valid ID" : "Proof of Residency"}
                     className="w-full h-auto max-h-48 object-contain bg-white dark:bg-gray-800"
                     onError={(e) => {
-                      console.error('Image failed to load:', selectedUser.validID?.url);
                       e.target.style.display = 'none';
                     }}
                   />

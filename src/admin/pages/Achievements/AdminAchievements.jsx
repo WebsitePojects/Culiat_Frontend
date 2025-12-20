@@ -46,7 +46,6 @@ const AdminAchievements = () => {
       const response = await axios.get(`${API_URL}/api/achievements`);
       setAchievements(response.data.data || []);
     } catch (error) {
-      console.error("Error fetching achievements:", error);
       toast.error("Failed to fetch achievements");
     } finally {
       setLoading(false);
@@ -140,7 +139,6 @@ const AdminAchievements = () => {
       setIsModalOpen(false);
       fetchAchievements();
     } catch (error) {
-      console.error("Error saving achievement:", error);
       toast.error(error.response?.data?.message || "Error saving achievement");
     }
   };
@@ -155,7 +153,6 @@ const AdminAchievements = () => {
       setShowDeleteModal(false);
       fetchAchievements();
     } catch (error) {
-      console.error("Error deleting achievement:", error);
       toast.error("Error deleting achievement");
     }
   };

@@ -22,7 +22,7 @@ const Achievements = () => {
       const response = await axios.get(`${API_URL}/api/achievements`);
       setAchievements(response.data.data || []);
     } catch (error) {
-      console.error("Error fetching achievements:", error);
+      // Error fetching achievements - silently fail
     } finally {
       setLoading(false);
     }

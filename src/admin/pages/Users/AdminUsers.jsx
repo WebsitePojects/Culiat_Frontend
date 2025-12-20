@@ -58,7 +58,7 @@ const AdminUsers = () => {
       });
       setCurrentUser(response.data.data);
     } catch (error) {
-      console.error("Error fetching current user:", error);
+      // Error fetching current user - silently fail
     }
   };
 
@@ -71,7 +71,7 @@ const AdminUsers = () => {
       });
       setUsers(response.data.data || []);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      // Error fetching users - silently fail
     } finally {
       setLoading(false);
     }

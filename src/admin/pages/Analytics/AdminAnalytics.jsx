@@ -276,7 +276,7 @@ const AdminAnalytics = () => {
       // Set summary
       setSummary(summaryRes.data.data);
     } catch (error) {
-      console.error("Error fetching analytics data:", error);
+      // Error fetching analytics data - silently fail
     } finally {
       setLoading(false);
     }

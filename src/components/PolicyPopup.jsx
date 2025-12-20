@@ -44,7 +44,6 @@ const PolicyPopup = () => {
           setShowPopup(true);
         }
       } catch (error) {
-        console.error("Error checking terms acceptance:", error);
         // On error, check localStorage fallback
         const termsAccepted = localStorage.getItem("termsAccepted");
         if (termsAccepted !== "true") {
@@ -112,7 +111,6 @@ const PolicyPopup = () => {
         }, 2000);
       }
     } catch (error) {
-      console.error("Error accepting terms:", error);
       setSubmitError(
         error.response?.data?.message ||
           "Failed to submit acceptance. Please try again."

@@ -59,7 +59,7 @@ const Services = () => {
         setServices(response.data.data);
       }
     } catch (error) {
-      console.error("Failed to fetch services:", error);
+      // Failed to fetch services - silently fail
     } finally {
       setLoading(false);
     }
