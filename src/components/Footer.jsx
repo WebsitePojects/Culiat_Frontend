@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 import { Facebook } from "lucide-react";
 
 const Footer = () => {
@@ -60,6 +61,19 @@ const Footer = () => {
     facebook: barangayInfo?.socialMedia?.facebook || settings?.socialMedia?.facebook || "https://www.facebook.com/profile.php?id=100091344363854",
   };
 
+  const navigate = useNavigate();
+
+  // Default quick links with proper routes
+  const defaultQuickLinks = [
+    { title: "Online Services", url: "/services", isRoute: true },
+    { title: "Report Incident", url: "/reports", isRoute: true },
+    { title: "Announcements", url: "/announcements", isRoute: true },
+    { title: "Achievements", url: "/achievements", isRoute: true },
+    { title: "About Us", url: "/about", isRoute: true },
+    { title: "Privacy Policy", url: "#privacy", isRoute: false },
+    { title: "Terms of Service", url: "#terms", isRoute: false },
+  ];
+
   const footer = settings?.footer || {
     aboutText:
       "Serving our community with transparency, dedication, and excellence. Building a safer and unified Barangay Culiat for all residents.",
@@ -67,24 +81,16 @@ const Footer = () => {
       "© 2025 Barangay Culiat | Managed by Barangay Culiat Information Office",
     poweredByText: "Prince IT Solutions",
     showQuickLinks: true,
-    quickLinks: [
-      { title: "Online Services", url: "#" },
-      { title: "Report Incident", url: "#" },
-      { title: "Announcements", url: "#" },
-      { title: "Barangay Officials", url: "#" },
-      { title: "Transparency Report", url: "#" },
-      { title: "Privacy Policy", url: "#" },
-      { title: "Feedback Form", url: "#" },
-    ],
+    quickLinks: defaultQuickLinks,
     showMap: true,
   };
 
   return (
     <footer className="bg-secondary text-white py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {/* Barangay Info */}
-          <div>
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 mb-8">
+          {/* Barangay Info - 3 columns */}
+          <div className="lg:col-span-3">
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden">
                 <img
@@ -169,9 +175,9 @@ const Footer = () => {
             )}
           </div>
 
-          {/* Contact Information */}
-          <div>
-            <h4 className="font-bold text-lg mb-4">Contact Information</h4>
+          {/* Contact Information - 4 columns */}
+          <div className="lg:col-span-4">
+            <h4 className="font-bold text-lg mb-4">Contact Us</h4>
             <div className="space-y-3 text-sm">
               <div className="flex items-start space-x-2">
                 <svg
@@ -263,74 +269,56 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
-          {footer.showQuickLinks &&
-            footer.quickLinks &&
-            footer.quickLinks.length > 0 && (
-              <div>
-                <h4 className="font-bold text-lg mb-4">Quick Links</h4>
-                <ul className="space-y-2 text-sm">
-                  {footer.quickLinks.map((link, index) => (
-                    <li key={index}>
-                      <a
-                        href={link.url}
-                        className="underline text-white/90 hover:text-white transition-colors flex items-center space-x-2"
-                      >
-                        <span>{link.title}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-          {/* Location Map */}
+          {/* Location Map - 5 columns */}
           {footer.showMap && contactInfo.mapEmbedUrl && (
-            <div>
+            <div className="lg:col-span-5">
               <h4 className="font-bold text-lg mb-4">Location Map</h4>
-              <div className="bg-white/10 rounded-lg overflow-hidden mb-4">
+              <div className="bg-white/10 rounded-lg overflow-hidden mb-3">
                 <iframe
                   src={contactInfo.mapEmbedUrl}
                   width="100%"
-                  height="200"
+                  height="220"
                   allowFullScreen=""
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   title={`${siteInfo.barangayName} Location`}
+                  className="w-full"
                 ></iframe>
               </div>
-              <p className="text-sm text-white/90 mb-3">
-                Visit our barangay hall for in-person services and assistance.
-              </p>
-              {contactInfo.mapDirectionsUrl && (
-                <a
-                  href={contactInfo.mapDirectionsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-white text-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors inline-flex items-center space-x-2"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <p className="text-sm text-white/90">
+                  Visit our barangay hall for in-person services and assistance.
+                </p>
+                {contactInfo.mapDirectionsUrl && (
+                  <a
+                    href={contactInfo.mapDirectionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-white text-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors inline-flex items-center space-x-2"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  <span>Get Directions</span>
-                </a>
-              )}
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    <span>Get Directions</span>
+                  </a>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -352,24 +340,24 @@ const Footer = () => {
               )}
             </div>
             <div className="flex space-x-6 text-sm">
-              <a
-                href="#"
+              <Link
+                to="/about"
                 className="text-white/80 hover:text-white transition-colors"
               >
                 Terms of Service
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                to="/about"
                 className="text-white/80 hover:text-white transition-colors"
               >
                 Privacy Policy
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                to="/about"
                 className="text-white/80 hover:text-white transition-colors"
               >
                 Accessibility
-              </a>
+              </Link>
             </div>
           </div>
         </div>

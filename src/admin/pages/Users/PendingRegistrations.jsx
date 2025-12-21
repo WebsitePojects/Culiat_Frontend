@@ -140,7 +140,7 @@ export default function PendingRegistrations() {
     });
   };
 
-  // Open Verify ID Modal and start OCR
+  // Open Verify ID Modal and start OCR on both front and back of ID
   const handleVerifyID = async () => {
     if (!selectedUser?.validID?.url) return;
     
@@ -151,26 +151,46 @@ export default function PendingRegistrations() {
     setVerificationResults(null);
 
     try {
-      const result = await Tesseract.recognize(
+      let combinedText = "";
+      
+      // OCR on front of ID
+      const frontResult = await Tesseract.recognize(
         selectedUser.validID.url,
         'eng',
         {
           logger: (m) => {
             if (m.status === 'recognizing text') {
-              setOcrProgress(Math.round(m.progress * 100));
+              // Front takes 0-50% of progress
+              setOcrProgress(Math.round(m.progress * 50));
             }
           }
         }
       );
+      combinedText += "=== FRONT OF ID ===\n" + frontResult.data.text + "\n\n";
 
-      const text = result.data.text;
-      setExtractedText(text);
+      // OCR on back of ID if available
+      if (selectedUser?.backOfValidID?.url) {
+        const backResult = await Tesseract.recognize(
+          selectedUser.backOfValidID.url,
+          'eng',
+          {
+            logger: (m) => {
+              if (m.status === 'recognizing text') {
+                // Back takes 50-100% of progress
+                setOcrProgress(50 + Math.round(m.progress * 50));
+              }
+            }
+          }
+        );
+        combinedText += "=== BACK OF ID ===\n" + backResult.data.text;
+      }
+
+      setExtractedText(combinedText);
       
-      // Perform verification matching
-      const results = performVerification(text, selectedUser);
+      // Perform verification matching using combined text
+      const results = performVerification(combinedText, selectedUser);
       setVerificationResults(results);
     } catch (error) {
-      console.error('OCR Error:', error);
       setAlert({
         type: "error",
         message: "Failed to process the ID image. Please try again.",
@@ -555,7 +575,7 @@ export default function PendingRegistrations() {
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2.5">
               <div className="flex items-center justify-between mb-1.5">
                 <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-xs">
-                  {selectedUser.validID ? 'Valid ID' : 'Proof of Residency'}
+                  {selectedUser.validID ? 'Valid ID (Front & Back)' : 'Proof of Residency'}
                 </h4>
                 {selectedUser.validID?.url && (
                   <button
@@ -568,19 +588,41 @@ export default function PendingRegistrations() {
                 )}
               </div>
               {(selectedUser.validID?.url || selectedUser.proofOfResidency) ? (
-                <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-                  <img
-                    src={
-                      selectedUser.validID?.url 
-                        ? selectedUser.validID.url 
-                        : `${API_URL}/${selectedUser.proofOfResidency}`
-                    }
-                    alt={selectedUser.validID ? "Valid ID" : "Proof of Residency"}
-                    className="w-full h-auto max-h-48 object-contain bg-white dark:bg-gray-800"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
+                <div className="space-y-3">
+                  {/* Front of ID */}
+                  <div>
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Front of ID:</p>
+                    <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                      <img
+                        src={
+                          selectedUser.validID?.url 
+                            ? selectedUser.validID.url 
+                            : `${API_URL}/${selectedUser.proofOfResidency}`
+                        }
+                        alt={selectedUser.validID ? "Valid ID Front" : "Proof of Residency"}
+                        className="w-full h-auto max-h-48 object-contain bg-white dark:bg-gray-800"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                  {/* Back of ID */}
+                  {selectedUser.backOfValidID?.url && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Back of ID:</p>
+                      <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                        <img
+                          src={selectedUser.backOfValidID.url}
+                          alt="Valid ID Back"
+                          className="w-full h-auto max-h-48 object-contain bg-white dark:bg-gray-800"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p className="text-gray-500 dark:text-gray-400 italic text-xs">No ID/proof uploaded</p>
@@ -696,20 +738,36 @@ export default function PendingRegistrations() {
 
             {/* Content */}
             <div className="flex-1 overflow-hidden flex">
-              {/* Left Panel - Large ID Image */}
+              {/* Left Panel - Large ID Images (Front & Back) */}
               <div className="w-1/2 p-6 border-r border-gray-200 dark:border-gray-700 overflow-auto bg-gray-50 dark:bg-gray-900">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                   <ZoomIn className="w-5 h-5 text-blue-600" />
                   Valid ID Document
                 </h3>
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 border border-gray-200 dark:border-gray-700">
-                  <img
-                    ref={imageRef}
-                    src={selectedUser.validID?.url}
-                    alt="Valid ID"
-                    className="w-full h-auto rounded-lg object-contain"
-                    style={{ maxHeight: '70vh' }}
-                  />
+                <div className="space-y-4">
+                  {/* Front of ID */}
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 border border-gray-200 dark:border-gray-700">
+                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 px-2">Front of ID:</p>
+                    <img
+                      ref={imageRef}
+                      src={selectedUser.validID?.url}
+                      alt="Valid ID Front"
+                      className="w-full h-auto rounded-lg object-contain"
+                      style={{ maxHeight: '35vh' }}
+                    />
+                  </div>
+                  {/* Back of ID */}
+                  {selectedUser.backOfValidID?.url && (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 border border-gray-200 dark:border-gray-700">
+                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 px-2">Back of ID:</p>
+                      <img
+                        src={selectedUser.backOfValidID.url}
+                        alt="Valid ID Back"
+                        className="w-full h-auto rounded-lg object-contain"
+                        style={{ maxHeight: '35vh' }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -724,7 +782,7 @@ export default function PendingRegistrations() {
                       </div>
                     </div>
                     <p className="mt-4 text-gray-600 dark:text-gray-400 font-medium">
-                      Scanning ID document...
+                      Scanning ID document{selectedUser.backOfValidID?.url ? 's' : ''}...
                     </p>
                     <div className="w-64 h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-3 overflow-hidden">
                       <div 
@@ -733,8 +791,9 @@ export default function PendingRegistrations() {
                       />
                     </div>
                     <p className="mt-2 text-sm text-gray-500">
-                      {ocrProgress < 30 ? 'Initializing OCR engine...' : 
-                       ocrProgress < 70 ? 'Extracting text from image...' : 
+                      {ocrProgress < 30 ? 'Scanning front of ID...' : 
+                       ocrProgress < 50 ? 'Extracting text from front...' :
+                       ocrProgress < 70 ? 'Scanning back of ID...' : 
                        'Analyzing results...'}
                     </p>
                   </div>

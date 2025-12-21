@@ -1,59 +1,60 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import { User } from "lucide-react";
 import ImageHover from "../../../../components/Animation/ImageHover";
 
-const kagawads = [
-  {
-    name: "Hon. Roberto Dela Cruz",
-    role: "Kagawad - Health & Sanitation",
-    email: "health.kagawad@barangayculiat.gov.ph",
-  },
-  {
-    name: "Hon. Ana Reyes-Garcia",
-    role: "Kagawad - Education & Youth",
-    email: "education.kagawad@barangayculiat.gov.ph",
-  },
-  {
-    name: "Hon. Carlos Mendoza",
-    role: "Kagawad - Infrastructure",
-    email: "infrastructure.kagawad@barangayculiat.gov.ph",
-  },
-  {
-    name: "Hon. Elena Villanueva",
-    role: "Kagawad - Women & Family",
-    email: "women.kagawad@barangayculiat.gov.ph",
-  },
-  {
-    name: "Hon. Miguel Torres",
-    role: "Kagawad - Peace & Order",
-    email: "peace.kagawad@barangayculiat.gov.ph",
-  },
-  {
-    name: "Hon. Luz Fernandez",
-    role: "Kagawad - Environment",
-    email: "environment.kagawad@barangayculiat.gov.ph",
-  },
-];
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+// Position labels for display
+const positionLabels = {
+  barangay_captain: "Barangay Captain",
+  barangay_kagawad: "Barangay Kagawad",
+  sk_chairman: "SK Chairman",
+  barangay_secretary: "Barangay Secretary",
+  barangay_treasurer: "Barangay Treasurer",
+  administrative_officer: "Administrative Officer",
+  deputy_officer: "Deputy Officer",
+  other: "Official",
+};
 
 const Council = () => {
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 600,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 2800,
-    pauseOnHover: true,
-    // responsive: [
-    //   { breakpoint: 1024, settings: { slidesToShow: 2 } },
-    //   { breakpoint: 768, settings: { slidesToShow: 1 } },
-    // ],
+  const [officials, setOfficials] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOfficials();
+  }, []);
+
+  const fetchOfficials = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/officials`);
+      if (response.data.success) {
+        // Filter to get only active kagawads and other officials (not captain)
+        const councilMembers = response.data.data.filter(
+          (official) => official.position !== "barangay_captain" && official.isActive
+        );
+        setOfficials(councilMembers);
+      }
+    } catch (error) {
+      console.error("Failed to fetch officials:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper to get full name
+  const getFullName = (official) => {
+    const parts = [official.firstName];
+    if (official.middleName) parts.push(official.middleName.charAt(0) + ".");
+    parts.push(official.lastName);
+    return parts.join(" ");
+  };
+
+  // Helper to get position label
+  const getPositionLabel = (position) => {
+    return positionLabels[position] || position;
   };
 
   return (
@@ -133,61 +134,70 @@ const Council = () => {
           </div>
         </div>
 
-        {/* --- Kagawad Carousel --- */}
+        {/* --- Council Members Grid (Hierarchical Layout) --- */}
         <motion.div
           initial={{ opacity: 0, y: 60 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
           viewport={{ once: true }}
-          className="overflow-hidden max-w-lg mx-auto"
+          className="mt-16"
         >
           <h3 className="text-center text-2xl font-bold text-text-color mb-10">
             Our Dedicated Council Members
           </h3>
 
-          <Slider {...settings}>
-            {kagawads.map((k, index) => (
-              <div key={index} className="px-3 py-2 max-h-64 h-64">
-                <div
-                  className="flex flex-col justify-around bg-white h-full rounded-2xl shadow-md border border-gray-100 text-center p-6 
-        transition-all duration-500 transform hover:-translate-y-3 hover:rotate-x-3 hover:rotate-y-1 
-        hover:shadow-lg group perspective-[1000px]"
-                  style={{
-                    transformStyle: "preserve-3d",
-                  }}
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : officials.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-6">
+              {officials.map((official, index) => (
+                <motion.div
+                  key={official._id || index}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-white rounded-xl shadow-md border border-gray-100 text-center p-5 hover:shadow-lg transition-shadow"
                 >
-                  {/* User Icon (Pops Out in 3D) */}
-                  <div
-                    className="mx-auto mb-4 flex items-center justify-center transition-transform duration-500 
-          group-hover:-translate-y-2 group-hover:scale-120"
-                    style={{
-                      transform: "translateZ(20px)",
-                    }}
-                  >
-                    <User size={100} className="text-neutral-500" />
+                  {/* Official Image or Fallback Icon */}
+                  <div className="mx-auto mb-4 flex items-center justify-center">
+                    {official.photo ? (
+                      <img
+                        src={official.photo}
+                        alt={getFullName(official)}
+                        className="w-24 h-24 rounded-full object-cover border-3 border-blue-100"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center border-3 border-gray-200">
+                        <User size={48} className="text-gray-400" />
+                      </div>
+                    )}
                   </div>
 
                   {/* Name */}
-                  <h4 className="font-bold text-[#1e3a8a]  text-sm">
-                    {k.name}
+                  <h4 className="font-bold text-secondary text-sm mb-1">
+                    Hon. {getFullName(official)}
                   </h4>
 
-                  {/* Role */}
-                  <p className="text-xs text-primary font-semibold ">
-                    {k.role}
+                  {/* Position */}
+                  <p className="text-xs text-primary font-semibold mb-1">
+                    {getPositionLabel(official.position)}
                   </p>
 
-                  {/* Email (fades & slides up on hover) */}
-                  <p
-                    className="text-xs text-gray-500 absolute group-hover:static 
-          translate-y-2 group-hover:translate-y-0 transition-all duration-500 ease-out -bottom-full"
-                  >
-                    {k.email}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </Slider>
+                  {/* Committee */}
+                  {official.committee && (
+                    <p className="text-xs text-gray-500">
+                      {official.committee}
+                    </p>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">No council members available</p>
+          )}
         </motion.div>
       </div>
     </section>
