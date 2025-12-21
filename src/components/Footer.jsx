@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Facebook } from "lucide-react";
 
 const Footer = () => {
   const [settings, setSettings] = useState(null);
+  const [barangayInfo, setBarangayInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetchSettings();
+    fetchBarangayInfo();
   }, []);
 
   const fetchSettings = async () => {
@@ -17,6 +20,17 @@ const Footer = () => {
       setSettings(response.data.data);
     } catch (error) {
       console.error("Error fetching settings:", error);
+    }
+  };
+
+  const fetchBarangayInfo = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/barangay-info`);
+      if (response.data.success) {
+        setBarangayInfo(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching barangay info:", error);
     } finally {
       setLoading(false);
     }
@@ -24,24 +38,26 @@ const Footer = () => {
 
   // Default values if settings not loaded
   const siteInfo = settings?.siteInfo || {
-    barangayName: "Barangay Culiat",
+    barangayName: barangayInfo?.barangayName || "Barangay Culiat",
     city: "Quezon City",
   };
 
-  const contactInfo = settings?.contactInfo || {
-    officeAddress: "467 Tandang Sora Ave, Quezon City, 1128 Metro Manila",
-    phoneNumber: "+63 962-582-1531",
-    mobileNumber: "856-722-60",
-    emailAddress: "brgy.culiat@yahoo.com",
-    officeHours: "Monday - Friday, 8:00 AM - 5:00 PM",
+  const contactInfo = {
+    officeAddress: barangayInfo?.address
+      ? `${barangayInfo.address.street}, ${barangayInfo.address.municipality}, ${barangayInfo.address.province}`
+      : settings?.contactInfo?.officeAddress || "467 Tandang Sora Ave, Quezon City, 1128 Metro Manila",
+    phoneNumber: barangayInfo?.contactInfo?.phoneNumber || settings?.contactInfo?.phoneNumber || "+63 962-582-1531",
+    mobileNumber: settings?.contactInfo?.mobileNumber || "856-722-60",
+    emailAddress: barangayInfo?.contactInfo?.email || settings?.contactInfo?.emailAddress || "brgy.culiat@yahoo.com",
+    officeHours: settings?.contactInfo?.officeHours || "Monday - Friday, 8:00 AM - 5:00 PM",
     mapEmbedUrl:
       "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d964.9469179112511!2d121.05602636955277!3d14.667987796511813!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b7475e1333fb%3A0xb01b3d6a168686a5!2sCuliat%20Barangay%20Hall!5e0!3m2!1sen!2sph!4v1760884990064!5m2!1sen!2sph",
     mapDirectionsUrl:
       "https://www.google.com/maps/place/Culiat+Barangay+Hall/@14.667987,121.05667,17z/data=!4m6!3m5!1s0x3397b7475e1333fb:0xb01b3d6a168686a5!8m2!3d14.6679865!4d121.0566701!16s%2Fg%2F11c3tsgbjt?hl=en&entry=ttu&g_ep=EgoyMDI1MTAyMC4wIKXMDSoASAFQAw%3D%3D",
   };
 
-  const socialMedia = settings?.socialMedia || {
-    facebook: "https://www.facebook.com/profile.php?id=100091344363854",
+  const socialMedia = {
+    facebook: barangayInfo?.socialMedia?.facebook || settings?.socialMedia?.facebook || "https://www.facebook.com/profile.php?id=100091344363854",
   };
 
   const footer = settings?.footer || {
@@ -96,13 +112,7 @@ const Footer = () => {
                   className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
                   aria-label="Visit our Facebook page"
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
+                  <Facebook className="w-4 h-4" />
                 </a>
                 {socialMedia.twitter && (
                   <a

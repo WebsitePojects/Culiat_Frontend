@@ -230,14 +230,14 @@ const AdminOfficials = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Barangay Officials</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Barangay Officials</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Manage barangay officials and their information
           </p>
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
         >
           <Plus size={20} />
           Add Official
@@ -246,17 +246,17 @@ const AdminOfficials = () => {
 
       {/* Officials Grid */}
       {officials.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <User size={48} className="mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
+          <User size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             No Officials Yet
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Start by adding your first barangay official
           </p>
           <button
             onClick={() => openModal()}
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 shadow-md hover:shadow-lg"
           >
             <Plus size={20} />
             Add First Official
@@ -267,12 +267,12 @@ const AdminOfficials = () => {
           {officials.map((official) => (
             <div
               key={official._id}
-              className={`bg-white rounded-lg shadow overflow-hidden ${
+              className={`bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden ${
                 !official.isActive ? "opacity-60" : ""
               }`}
             >
               {/* Photo */}
-              <div className="h-48 bg-gray-100 relative">
+              <div className="h-48 bg-gray-100 dark:bg-gray-700 relative">
                 {official.photo ? (
                   <img
                     src={official.photo}
@@ -288,8 +288,8 @@ const AdminOfficials = () => {
                 <div
                   className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium ${
                     official.isActive
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
+                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                      : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
                   }`}
                 >
                   {official.isActive ? "Active" : "Inactive"}
@@ -298,20 +298,20 @@ const AdminOfficials = () => {
 
               {/* Content */}
               <div className="p-4">
-                <h3 className="font-semibold text-gray-900">
+                <h3 className="font-semibold text-gray-900 dark:text-white">
                   {official.firstName} {official.middleName ? `${official.middleName[0]}.` : ""} {official.lastName}
                 </h3>
-                <p className="text-sm text-red-600 font-medium">
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
                   {getPositionLabel(official.position)}
                 </p>
                 {official.committee && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Committee: {official.committee}
                   </p>
                 )}
 
                 {/* Actions */}
-                <div className="flex gap-2 mt-4 pt-4 border-t">
+                <div className="flex gap-2 mt-4 pt-4 border-t dark:border-gray-700">
                   <button
                     onClick={() => handleToggleActive(official._id)}
                     className="flex-1 flex items-center justify-center gap-1 py-2 text-sm rounded-lg border hover:bg-gray-50"
@@ -344,16 +344,16 @@ const AdminOfficials = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-xl font-semibold text-gray-900">
+            <div className="flex justify-between items-center p-6 border-b dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 {editingOfficial ? "Edit Official" : "Add New Official"}
               </h2>
               <button
                 onClick={closeModal}
-                className="p-2 hover:bg-gray-100 rounded-full"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400"
               >
                 <X size={20} />
               </button>
@@ -364,7 +364,7 @@ const AdminOfficials = () => {
               {/* Photo Upload */}
               <div className="flex flex-col items-center">
                 <div
-                  className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden cursor-pointer border-2 border-dashed border-gray-300 hover:border-blue-500"
+                  className="w-32 h-32 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {previewUrl ? (
@@ -375,8 +375,8 @@ const AdminOfficials = () => {
                     />
                   ) : (
                     <div className="text-center">
-                      <Upload size={24} className="mx-auto text-gray-400" />
-                      <span className="text-xs text-gray-500">Upload Photo</span>
+                      <Upload size={24} className="mx-auto text-gray-400 dark:text-gray-500" />
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Upload Photo</span>
                     </div>
                   )}
                 </div>
@@ -387,7 +387,7 @@ const AdminOfficials = () => {
                   accept="image/jpeg,image/jpg,image/png"
                   className="hidden"
                 />
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   Click to upload (JPG, PNG, max 5MB)
                 </p>
               </div>
@@ -395,7 +395,7 @@ const AdminOfficials = () => {
               {/* Name Fields */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     First Name *
                   </label>
                   <input
@@ -404,12 +404,12 @@ const AdminOfficials = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, firstName: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Middle Name
                   </label>
                   <input
@@ -418,11 +418,11 @@ const AdminOfficials = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, middleName: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Last Name *
                   </label>
                   <input
@@ -431,7 +431,7 @@ const AdminOfficials = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, lastName: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -448,7 +448,7 @@ const AdminOfficials = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, position: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
                     {POSITION_OPTIONS.map((opt) => (
@@ -459,7 +459,7 @@ const AdminOfficials = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Committee
                   </label>
                   <input
@@ -468,7 +468,7 @@ const AdminOfficials = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, committee: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="e.g., Health & Sanitation"
                   />
                 </div>
@@ -476,7 +476,7 @@ const AdminOfficials = () => {
 
               {/* Contact */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Contact Number
                 </label>
                 <input
@@ -485,14 +485,14 @@ const AdminOfficials = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, contactNumber: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="e.g., 09171234567"
                 />
               </div>
 
               {/* Bio */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Bio / Description
                 </label>
                 <textarea
@@ -501,7 +501,7 @@ const AdminOfficials = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, bio: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Brief description about the official"
                 />
               </div>
@@ -509,7 +509,7 @@ const AdminOfficials = () => {
               {/* Display Order & Active Status */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Display Order
                   </label>
                   <input
@@ -521,10 +521,10 @@ const AdminOfficials = () => {
                         displayOrder: parseInt(e.target.value) || 0,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     min="0"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Lower numbers appear first
                   </p>
                 </div>
@@ -536,9 +536,9 @@ const AdminOfficials = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, isActive: e.target.checked })
                       }
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
                     />
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Active (visible on website)
                     </span>
                   </label>
@@ -546,18 +546,18 @@ const AdminOfficials = () => {
               </div>
 
               {/* Submit Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400"
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 shadow-md hover:shadow-lg"
                 >
                   {saving ? (
                     <>
@@ -578,8 +578,8 @@ const AdminOfficials = () => {
       )}
 
       {/* Info Box */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
+      <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <p className="text-sm text-blue-800 dark:text-blue-300">
           <strong>Note:</strong> Officials marked as "Active" will be displayed
           on the About Us page. Photos are uploaded to cloud storage for optimal
           performance.

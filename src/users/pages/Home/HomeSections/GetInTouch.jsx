@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { MapPin, Clock, FileText } from "lucide-react";
 import Button from "../../../../tailadminsrc/components/ui/button/Button";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Animation variants
 const fadeUp = {
@@ -15,6 +18,38 @@ const fadeUp = {
 };
 
 const GetInTouch = () => {
+  const [contactInfo, setContactInfo] = useState({
+    address: {
+      street: "Barangay Hall, Culiat",
+      municipality: "Quezon City",
+      province: "Metro Manila",
+      region: "Philippines"
+    },
+    contactInfo: {
+      phoneNumber: "(02) 8123-4567",
+      email: "barangay@culiat.gov.ph"
+    },
+    socialMedia: {
+      facebook: "",
+      twitter: "",
+      instagram: ""
+    }
+  });
+
+  useEffect(() => {
+    const fetchBarangayInfo = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/barangay-info`);
+        if (response.data.success) {
+          setContactInfo(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching barangay info:", error);
+      }
+    };
+    fetchBarangayInfo();
+  }, []);
+
   return (
     <section className="py-16 px-4 bg-background text-foreground">
       <div className="max-w-6xl mx-auto">
@@ -60,10 +95,10 @@ const GetInTouch = () => {
                     Address
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Barangay Hall, Culiat, Quezon City
+                    {contactInfo.address?.street || "Barangay Hall, Culiat"}, {contactInfo.address?.municipality || "Quezon City"}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Metro Manila, Philippines
+                    {contactInfo.address?.province || "Metro Manila"}, {contactInfo.address?.region || "Philippines"}
                   </p>
                 </div>
               </motion.div>
@@ -94,10 +129,7 @@ const GetInTouch = () => {
                     Phone Numbers
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Main Line: (02) 8123-4567
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Emergency Hotline: 0919-000-0000
+                    Main Line: {contactInfo.contactInfo?.phoneNumber || "(02) 8123-4567"}
                   </p>
                 </div>
               </motion.div>
@@ -126,10 +158,7 @@ const GetInTouch = () => {
                 <div>
                   <h4 className="font-semibold mb-1 text-foreground">Email</h4>
                   <p className="text-sm text-muted-foreground">
-                    info@barangayculiat.gov.ph
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    services@barangayculiat.gov.ph
+                    {contactInfo.contactInfo?.email || "info@barangayculiat.gov.ph"}
                   </p>
                 </div>
               </motion.div>
