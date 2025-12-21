@@ -111,14 +111,11 @@ export default function Services() {
 
   // Load form data from localStorage on mount
   useEffect(() => {
-    console.log("💾 Checking localStorage for saved form data...");
     const savedFormData = localStorage.getItem("documentRequestForm");
 
     if (savedFormData) {
-      console.log("📦 Found saved form data in localStorage");
       try {
         const parsedData = JSON.parse(savedFormData);
-        console.log("📄 Parsed saved data:", parsedData);
 
         // Check if saved data has meaningful content (not just empty strings)
         const hasContent =
@@ -134,58 +131,40 @@ export default function Services() {
           setAutoFilling(false); // Skip auto-fill if we have saved data
           setHasLoadedData(true);
           setShowLoadingToast(false); // Hide loading immediately
-          console.log("✅ Restored form data from localStorage");
         } else {
-          console.log("📭 Saved data is empty, will auto-fill from user");
           localStorage.removeItem("documentRequestForm"); // Clear empty data
           setShowLoadingToast(true);
         }
       } catch (error) {
-        console.error("❌ Error loading saved form data:", error);
         setShowLoadingToast(true); // Keep showing loading on error
       }
     } else {
-      console.log("📭 No saved form data in localStorage");
       // Keep loading visible until user data arrives
       setShowLoadingToast(true);
-      console.log("⏳ Waiting for user data to load...");
     }
   }, []);
 
   // Auto-fill form from user data (only if no saved data and haven't auto-filled yet)
   useEffect(() => {
-    console.log("🔄 Auto-fill useEffect triggered");
-    console.log("📊 User object:", user);
-    console.log("🔐 Auth loading:", authLoading);
-    console.log("🎯 AutoFilling state:", autoFilling);
-    console.log("📍 Has loaded data:", hasLoadedData);
-
     // If we already have loaded data, hide loading and exit
     if (hasLoadedData) {
-      console.log(
-        "✓ Data already loaded from localStorage or previous auto-fill"
-      );
       setShowLoadingToast(false);
       return;
     }
 
     // Wait for auth to finish loading
     if (authLoading) {
-      console.log("⏳ Auth still loading, keeping loading overlay visible...");
       setShowLoadingToast(true);
       return;
     }
 
     // If auth finished but no user, something went wrong - hide loading
     if (!authLoading && !user) {
-      console.log("❌ Auth finished but no user available");
       setShowLoadingToast(false);
       return;
     }
 
     if (user && autoFilling) {
-      console.log("✅ Starting auto-fill process...");
-      console.log("🔍 Full user object:", JSON.stringify(user, null, 2));
       setShowLoadingToast(true);
 
       // Format date of birth to YYYY-MM-DD for HTML date input
@@ -196,26 +175,11 @@ export default function Services() {
           if (isNaN(date.getTime())) return "";
           return date.toISOString().split("T")[0];
         } catch (error) {
-          console.error("Error formatting date:", error);
           return "";
         }
       };
 
       const formattedDate = formatDate(user.dateOfBirth);
-      console.log(
-        "📅 Date of Birth:",
-        user.dateOfBirth,
-        "→ Formatted:",
-        formattedDate
-      );
-      console.log("👤 Name fields:", {
-        firstName: user.firstName,
-        middleName: user.middleName,
-        lastName: user.lastName,
-        suffix: user.suffix,
-      });
-      console.log("🏠 Address:", user.address);
-      console.log("🆘 Emergency Contact:", user.emergencyContact);
 
       const newFormData = {
         ...formData,
@@ -256,21 +220,14 @@ export default function Services() {
         emergencyHouseNumber: user.emergencyContact?.address?.houseNumber || "",
       };
 
-      console.log("📝 New form data being set:", newFormData);
       setFormData(newFormData);
       setAutoFilling(false);
       setHasLoadedData(true);
 
-      console.log("✅ Auto-fill completed!");
-      console.log("📊 Form data after auto-fill:", newFormData);
-
       // Hide loading toast after a short delay to show completion
       setTimeout(() => {
         setShowLoadingToast(false);
-        console.log("🎉 Loading overlay hidden");
       }, 800);
-    } else {
-      console.log("⏭️ Auto-fill condition not met");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, autoFilling, hasLoadedData, authLoading]);
@@ -639,8 +596,6 @@ export default function Services() {
           },
         }
       );
-
-      console.log("✅ Document request submitted successfully!", response.data);
 
       // Show success message
       setShowSuccess(true);
