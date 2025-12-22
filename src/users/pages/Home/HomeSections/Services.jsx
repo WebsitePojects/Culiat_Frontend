@@ -77,7 +77,7 @@ const Services = () => {
 
   return (
     <section
-      className="py-16 px-6 bg-neutral dark:from-gray-900 dark:to-gray-950"
+      className="py-16 px-6 bg-neutral"
       id="home-services"
     >
       <div className="max-w-6xl mx-auto">
@@ -86,7 +86,7 @@ const Services = () => {
           <h2 className="text-4xl sm:text-4xl font-bold text-text-color mb-4">
             Online Services
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="text-gray-600 max-w-2xl mx-auto">
             Residents can easily access a variety of official certificates and
             permits. Each document includes a QR code for verification and
             authenticity.
@@ -94,15 +94,15 @@ const Services = () => {
         </div>
 
         {/* Info Banner */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-5 mb-10 flex items-start gap-3">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-10 flex items-start gap-3">
           <div className="bg-blue-600 text-white rounded-full p-1 px-3 flex items-center justify-center mt-0.5">
             <span className="font-bold text-sm">i</span>
           </div>
           <div>
-            <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-1">
+            <h4 className="font-semibold text-blue-800 mb-1">
               Authentication Required
             </h4>
-            <p className="text-sm text-gray-700 dark:text-gray-400">
+            <p className="text-sm text-gray-700">
               To access these online services, you must log in or register as a
               verified user. Provide valid identification for verification
               before making a request.
@@ -129,22 +129,22 @@ const Services = () => {
                   scale: 1.03,
                   transition: { type: "spring", stiffness: 150, damping: 12 },
                 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-lg border border-gray-200 dark:border-gray-700 p-6 cursor-pointer group transition-all"
+                className="bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-200 p-6 cursor-pointer group transition-all"
               >
                 <motion.div
                   whileHover={{
                     rotate: [0, -5, 5, 0],
                     transition: { duration: 0.4, ease: "easeInOut" },
                   }}
-                  className="w-12 h-12 bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all"
+                  className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all"
                 >
                   <Icon size={24} />
                 </motion.div>
 
-                <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-2">
+                <h3 className="font-semibold text-gray-800 mb-2">
                   {service.title}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-snug">
+                <p className="text-sm text-gray-600 leading-snug">
                   {service.description}
                 </p>
               </motion.div>

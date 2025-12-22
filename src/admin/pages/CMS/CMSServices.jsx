@@ -9,10 +9,34 @@ import {
   EyeOff,
   GripVertical,
   X,
+  FileText,
+  Home,
+  BadgeCheck,
+  Building2,
+  HandCoins,
+  Hammer,
+  AlertCircle,
+  HeartHandshake,
+  Shield,
+  Heart,
 } from "lucide-react";
 import Modal from "../../components/Modal";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+// Icon component mapping
+const iconComponents = {
+  FileText,
+  Home,
+  BadgeCheck,
+  Building2,
+  HandCoins,
+  Hammer,
+  AlertCircle,
+  HeartHandshake,
+  Shield,
+  Heart,
+};
 
 const CMSServices = () => {
   const [services, setServices] = useState([]);
@@ -235,52 +259,52 @@ const CMSServices = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Order
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Title
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Category
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {services.map((service) => (
                 <tr
                   key={service._id}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <GripVertical size={16} className="text-gray-400" />
-                      <span className="text-sm text-gray-900 font-medium">
+                      <GripVertical size={16} className="text-gray-400 dark:text-gray-500" />
+                      <span className="text-sm text-gray-900 dark:text-white font-medium">
                         {service.displayOrder}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
                       {service.title}
                     </div>
-                    <div className="text-sm text-gray-500 truncate max-w-xs">
+                    <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
                       {service.description}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
                       {service.category.replace("_", " ")}
                     </span>
                   </td>
@@ -289,8 +313,8 @@ const CMSServices = () => {
                       onClick={() => toggleActive(service._id)}
                       className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                         service.isActive
-                          ? "bg-green-100 text-green-800 hover:bg-green-200"
-                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
                       }`}
                     >
                       {service.isActive ? (
@@ -335,6 +359,7 @@ const CMSServices = () => {
           resetForm();
         }}
         title={editingService ? "Edit Service" : "Add New Service"}
+        size="3xl"
       >
         <form
           onSubmit={handleSubmit}
@@ -342,12 +367,12 @@ const CMSServices = () => {
         >
           {/* Basic Information */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 border-b pb-2">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 pb-2">
               Basic Information
             </h3>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Title <span className="text-red-500">*</span>
               </label>
               <input
@@ -357,13 +382,13 @@ const CMSServices = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="e.g., Barangay Clearance"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Description <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -373,14 +398,14 @@ const CMSServices = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Brief description of the service"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Category <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -388,7 +413,7 @@ const CMSServices = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, category: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {categories.map((cat) => (
                     <option key={cat.value} value={cat.value}>
@@ -399,35 +424,50 @@ const CMSServices = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Icon
                 </label>
-                <select
-                  value={formData.icon}
-                  onChange={(e) =>
-                    setFormData({ ...formData, icon: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select Icon</option>
-                  {iconOptions.map((icon) => (
-                    <option key={icon} value={icon}>
-                      {icon}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex gap-3">
+                  <select
+                    value={formData.icon}
+                    onChange={(e) =>
+                      setFormData({ ...formData, icon: e.target.value })
+                    }
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select Icon</option>
+                    {iconOptions.map((icon) => (
+                      <option key={icon} value={icon}>
+                        {icon}
+                      </option>
+                    ))}
+                  </select>
+                  {formData.icon && iconComponents[formData.icon] && (
+                    <div className="w-12 h-10 flex items-center justify-center border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      {React.createElement(iconComponents[formData.icon], {
+                        size: 24,
+                        className: "text-blue-600 dark:text-blue-400",
+                      })}
+                    </div>
+                  )}
+                </div>
+                {formData.icon && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Selected: {formData.icon}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Requirements */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 border-b pb-2">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 pb-2">
               Requirements
             </h3>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Document Requirements
               </label>
               {formData.requirements.map((req, index) => (
@@ -438,13 +478,13 @@ const CMSServices = () => {
                     onChange={(e) =>
                       handleRequirementChange(index, e.target.value)
                     }
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={`Requirement ${index + 1}`}
                   />
                   <button
                     type="button"
                     onClick={() => removeRequirement(index)}
-                    className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   >
                     <X size={18} />
                   </button>
@@ -453,7 +493,7 @@ const CMSServices = () => {
               <button
                 type="button"
                 onClick={addRequirement}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
               >
                 + Add Requirement
               </button>
@@ -462,13 +502,13 @@ const CMSServices = () => {
 
           {/* Processing Details */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 border-b pb-2">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 pb-2">
               Processing Details
             </h3>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Processing Time
                 </label>
                 <input
@@ -477,13 +517,13 @@ const CMSServices = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, processingTime: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="e.g., 3-5 business days"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Fees (₱)
                 </label>
                 <input
@@ -495,7 +535,7 @@ const CMSServices = () => {
                       fees: parseFloat(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="0"
                 />
               </div>
@@ -504,12 +544,12 @@ const CMSServices = () => {
 
           {/* Office & Contact Information */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 border-b pb-2">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 pb-2">
               Office & Contact Information
             </h3>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Office In Charge
               </label>
               <input
@@ -518,14 +558,14 @@ const CMSServices = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, officeInCharge: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="e.g., Barangay Hall Office"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Contact Person
                 </label>
                 <input
@@ -534,13 +574,13 @@ const CMSServices = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, contactPerson: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="e.g., Juan Dela Cruz"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Contact Number
                 </label>
                 <input
@@ -549,14 +589,14 @@ const CMSServices = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, contactNumber: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="+63 XXX XXX XXXX"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Available Hours
               </label>
               <input
@@ -565,7 +605,7 @@ const CMSServices = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, availableHours: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="e.g., Monday-Friday, 8:00 AM - 5:00 PM"
               />
             </div>
@@ -573,13 +613,13 @@ const CMSServices = () => {
 
           {/* Display Settings */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 border-b pb-2">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 border-b dark:border-gray-600 pb-2">
               Display Settings
             </h3>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Display Order
                 </label>
                 <input
@@ -591,10 +631,10 @@ const CMSServices = () => {
                       displayOrder: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="0"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Lower numbers appear first
                 </p>
               </div>
@@ -607,9 +647,9 @@ const CMSServices = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, isActive: e.target.checked })
                     }
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
                   />
-                  <span className="ml-2 text-sm text-gray-700 font-medium">
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
                     Active
                   </span>
                 </label>
@@ -618,14 +658,14 @@ const CMSServices = () => {
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-white">
+          <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-600 sticky bottom-0 bg-white dark:bg-gray-800">
             <button
               type="button"
               onClick={() => {
                 setShowModal(false);
                 resetForm();
               }}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
@@ -640,8 +680,8 @@ const CMSServices = () => {
       </Modal>
 
       {/* Info Banner */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
+      <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <p className="text-sm text-blue-800 dark:text-blue-300">
           <strong>Note:</strong> All changes will be reflected immediately on
           the homepage Services section. Active services will be displayed to
           users based on their display order.

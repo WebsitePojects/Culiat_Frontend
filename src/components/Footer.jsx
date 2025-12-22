@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import { Facebook } from "lucide-react";
 
 const Footer = () => {
   const [settings, setSettings] = useState(null);
+  const [barangayInfo, setBarangayInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     fetchSettings();
+    fetchBarangayInfo();
   }, []);
 
   const fetchSettings = async () => {
@@ -17,6 +21,17 @@ const Footer = () => {
       setSettings(response.data.data);
     } catch (error) {
       console.error("Error fetching settings:", error);
+    }
+  };
+
+  const fetchBarangayInfo = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/barangay-info`);
+      if (response.data.success) {
+        setBarangayInfo(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching barangay info:", error);
     } finally {
       setLoading(false);
     }
@@ -24,25 +39,40 @@ const Footer = () => {
 
   // Default values if settings not loaded
   const siteInfo = settings?.siteInfo || {
-    barangayName: "Barangay Culiat",
+    barangayName: barangayInfo?.barangayName || "Barangay Culiat",
     city: "Quezon City",
   };
 
-  const contactInfo = settings?.contactInfo || {
-    officeAddress: "467 Tandang Sora Ave, Quezon City, 1128 Metro Manila",
-    phoneNumber: "+63 962-582-1531",
-    mobileNumber: "856-722-60",
-    emailAddress: "brgy.culiat@yahoo.com",
-    officeHours: "Monday - Friday, 8:00 AM - 5:00 PM",
+  const contactInfo = {
+    officeAddress: barangayInfo?.address
+      ? `${barangayInfo.address.street}, ${barangayInfo.address.municipality}, ${barangayInfo.address.province}`
+      : settings?.contactInfo?.officeAddress || "467 Tandang Sora Ave, Quezon City, 1128 Metro Manila",
+    phoneNumber: barangayInfo?.contactInfo?.phoneNumber || settings?.contactInfo?.phoneNumber || "+63 962-582-1531",
+    mobileNumber: settings?.contactInfo?.mobileNumber || "856-722-60",
+    emailAddress: barangayInfo?.contactInfo?.email || settings?.contactInfo?.emailAddress || "brgy.culiat@yahoo.com",
+    officeHours: settings?.contactInfo?.officeHours || "Monday - Friday, 8:00 AM - 5:00 PM",
     mapEmbedUrl:
       "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d964.9469179112511!2d121.05602636955277!3d14.667987796511813!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b7475e1333fb%3A0xb01b3d6a168686a5!2sCuliat%20Barangay%20Hall!5e0!3m2!1sen!2sph!4v1760884990064!5m2!1sen!2sph",
     mapDirectionsUrl:
       "https://www.google.com/maps/place/Culiat+Barangay+Hall/@14.667987,121.05667,17z/data=!4m6!3m5!1s0x3397b7475e1333fb:0xb01b3d6a168686a5!8m2!3d14.6679865!4d121.0566701!16s%2Fg%2F11c3tsgbjt?hl=en&entry=ttu&g_ep=EgoyMDI1MTAyMC4wIKXMDSoASAFQAw%3D%3D",
   };
 
-  const socialMedia = settings?.socialMedia || {
-    facebook: "https://www.facebook.com/profile.php?id=100091344363854",
+  const socialMedia = {
+    facebook: barangayInfo?.socialMedia?.facebook || settings?.socialMedia?.facebook || "https://www.facebook.com/profile.php?id=100091344363854",
   };
+
+  const navigate = useNavigate();
+
+  // Default quick links with proper routes
+  const defaultQuickLinks = [
+    { title: "Online Services", url: "/services", isRoute: true },
+    { title: "Report Incident", url: "/reports", isRoute: true },
+    { title: "Announcements", url: "/announcements", isRoute: true },
+    { title: "Achievements", url: "/achievements", isRoute: true },
+    { title: "About Us", url: "/about", isRoute: true },
+    { title: "Privacy Policy", url: "#privacy", isRoute: false },
+    { title: "Terms of Service", url: "#terms", isRoute: false },
+  ];
 
   const footer = settings?.footer || {
     aboutText:
@@ -51,24 +81,16 @@ const Footer = () => {
       "© 2025 Barangay Culiat | Managed by Barangay Culiat Information Office",
     poweredByText: "Prince IT Solutions",
     showQuickLinks: true,
-    quickLinks: [
-      { title: "Online Services", url: "#" },
-      { title: "Report Incident", url: "#" },
-      { title: "Announcements", url: "#" },
-      { title: "Barangay Officials", url: "#" },
-      { title: "Transparency Report", url: "#" },
-      { title: "Privacy Policy", url: "#" },
-      { title: "Feedback Form", url: "#" },
-    ],
+    quickLinks: defaultQuickLinks,
     showMap: true,
   };
 
   return (
     <footer className="bg-secondary text-white py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {/* Barangay Info */}
-          <div>
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 mb-8">
+          {/* Barangay Info - 3 columns */}
+          <div className="lg:col-span-3">
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden">
                 <img
@@ -96,13 +118,7 @@ const Footer = () => {
                   className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
                   aria-label="Visit our Facebook page"
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
+                  <Facebook className="w-4 h-4" />
                 </a>
                 {socialMedia.twitter && (
                   <a
@@ -159,9 +175,9 @@ const Footer = () => {
             )}
           </div>
 
-          {/* Contact Information */}
-          <div>
-            <h4 className="font-bold text-lg mb-4">Contact Information</h4>
+          {/* Contact Information - 4 columns */}
+          <div className="lg:col-span-4">
+            <h4 className="font-bold text-lg mb-4">Contact Us</h4>
             <div className="space-y-3 text-sm">
               <div className="flex items-start space-x-2">
                 <svg
@@ -253,74 +269,56 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
-          {footer.showQuickLinks &&
-            footer.quickLinks &&
-            footer.quickLinks.length > 0 && (
-              <div>
-                <h4 className="font-bold text-lg mb-4">Quick Links</h4>
-                <ul className="space-y-2 text-sm">
-                  {footer.quickLinks.map((link, index) => (
-                    <li key={index}>
-                      <a
-                        href={link.url}
-                        className="underline text-white/90 hover:text-white transition-colors flex items-center space-x-2"
-                      >
-                        <span>{link.title}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-          {/* Location Map */}
+          {/* Location Map - 5 columns */}
           {footer.showMap && contactInfo.mapEmbedUrl && (
-            <div>
+            <div className="lg:col-span-5">
               <h4 className="font-bold text-lg mb-4">Location Map</h4>
-              <div className="bg-white/10 rounded-lg overflow-hidden mb-4">
+              <div className="bg-white/10 rounded-lg overflow-hidden mb-3">
                 <iframe
                   src={contactInfo.mapEmbedUrl}
                   width="100%"
-                  height="200"
+                  height="220"
                   allowFullScreen=""
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   title={`${siteInfo.barangayName} Location`}
+                  className="w-full"
                 ></iframe>
               </div>
-              <p className="text-sm text-white/90 mb-3">
-                Visit our barangay hall for in-person services and assistance.
-              </p>
-              {contactInfo.mapDirectionsUrl && (
-                <a
-                  href={contactInfo.mapDirectionsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-white text-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors inline-flex items-center space-x-2"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <p className="text-sm text-white/90">
+                  Visit our barangay hall for in-person services and assistance.
+                </p>
+                {contactInfo.mapDirectionsUrl && (
+                  <a
+                    href={contactInfo.mapDirectionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-white text-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors inline-flex items-center space-x-2"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  <span>Get Directions</span>
-                </a>
-              )}
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    <span>Get Directions</span>
+                  </a>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -342,24 +340,24 @@ const Footer = () => {
               )}
             </div>
             <div className="flex space-x-6 text-sm">
-              <a
-                href="#"
+              <Link
+                to="/about"
                 className="text-white/80 hover:text-white transition-colors"
               >
                 Terms of Service
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                to="/about"
                 className="text-white/80 hover:text-white transition-colors"
               >
                 Privacy Policy
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                to="/about"
                 className="text-white/80 hover:text-white transition-colors"
               >
                 Accessibility
-              </a>
+              </Link>
             </div>
           </div>
         </div>

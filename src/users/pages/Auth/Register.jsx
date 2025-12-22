@@ -26,6 +26,9 @@ const Register = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showOccupationDropdown, setShowOccupationDropdown] = useState(false);
+  const [occupationSearch, setOccupationSearch] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -45,6 +48,7 @@ const Register = () => {
     houseNumber: "",
     street: "",
     subdivision: "",
+    area: "",
     tinNumber: "",
     sssGsisNumber: "",
     precinctNumber: "",
@@ -62,25 +66,304 @@ const Register = () => {
     emergencyStreet: "",
     emergencySubdivision: "",
     validIDFile: null,
+    backOfValidIDFile: null,
     termsAccepted: false,
   });
 
   const [validIDPreview, setValidIDPreview] = useState(null);
+  const [backOfValidIDPreview, setBackOfValidIDPreview] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    const value =
-      e.target.type === "checkbox" ? e.target.checked : e.target.value;
-    setFormData({
-      ...formData,
-      [e.target.name]: value,
-    });
+  // Philippine occupations dropdown - comprehensive list
+  const occupationOptions = [
+    // Employment Status
+    "Employed",
+    "Self-Employed",
+    "Unemployed",
+    "Student",
+    "Retired",
+    // Government Sector
+    "Government Employee",
+    "Public School Teacher",
+    "Military/Armed Forces",
+    "Police/Law Enforcement",
+    "Barangay Official",
+    "LGU Employee",
+    // Private Sector
+    "Private Employee",
+    "Office Worker/Clerk",
+    "Sales/Marketing",
+    "Customer Service",
+    "IT/Software Developer",
+    "Engineer",
+    "Accountant",
+    "Human Resources",
+    // Healthcare
+    "Doctor/Physician",
+    "Nurse",
+    "Midwife",
+    "Pharmacist",
+    "Medical Technologist",
+    "Caregiver",
+    // Education
+    "Teacher",
+    "Professor",
+    "Tutor",
+    // Trades & Services
+    "Driver (Public/Private)",
+    "Tricycle/Jeepney Driver",
+    "Electrician",
+    "Plumber",
+    "Carpenter",
+    "Mason/Construction Worker",
+    "Mechanic",
+    "Welder",
+    "Painter",
+    "Security Guard",
+    "Janitor/Maintenance",
+    "Housekeeper/Helper",
+    // Business & Entrepreneurship
+    "Business Owner",
+    "Sari-sari Store Owner",
+    "Vendor/Market Seller",
+    "Online Seller",
+    "Freelancer",
+    // Agriculture & Fisheries
+    "Farmer",
+    "Fisherman",
+    "Agricultural Worker",
+    // Professional Services
+    "Lawyer",
+    "Architect",
+    "Dentist",
+    "Veterinarian",
+    "Real Estate Agent",
+    // Creative & Media
+    "Artist/Designer",
+    "Writer/Journalist",
+    "Photographer/Videographer",
+    // Hospitality
+    "Chef/Cook",
+    "Waiter/Waitress",
+    "Hotel Staff",
+    // Other
+    "OFW (Overseas Filipino Worker)",
+    "Homemaker/Housewife",
+    "Others",
+  ];
+
+  // Philippine religions dropdown - Major religions only
+  const religionOptions = [
+    "Roman Catholic",
+    "Islam",
+    "Iglesia ni Cristo",
+    "Born Again Christian",
+    "Protestant",
+    "Buddhism",
+    "Hinduism",
+    "None/Atheist",
+    "Prefer not to say",
+    "Others",
+  ];
+
+  // Suffix options for dropdown
+  const suffixOptions = ["", "Jr.", "Sr.", "II", "III", "IV", "V"];
+
+  // Area/Zone options for Barangay Culiat
+  const areaOptions = [
+    "Zone 1",
+    "Zone 2",
+    "Zone 3",
+    "Zone 4",
+    "Zone 5",
+    "Zone 6",
+    "Zone 7",
+    "Zone 8",
+    "Zone 9",
+    "Zone 10",
+  ];
+
+  // Auto-determine salutation based on sex and civil status
+  const getSalutation = (gender, civilStatus) => {
+    if (gender === "Male") {
+      return "Mr.";
+    } else if (gender === "Female") {
+      if (civilStatus === "Single") {
+        return "Ms.";
+      } else {
+        // Married, Widowed, Separated are all Mrs.
+        return "Mrs.";
+      }
+    }
+    return "";
   };
 
-  const handleFileChange = (e) => {
+  // Email validation
+  const validateEmail = (email) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
+  // Calculate age from date of birth
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return null;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  // Phone number formatting - auto prepend +63 and validate
+  const formatPhoneNumber = (value) => {
+    // Remove all non-digits
+    let cleaned = value.replace(/\D/g, "");
+    
+    // Remove leading 63 if present (we'll add it back)
+    if (cleaned.startsWith("63")) {
+      cleaned = cleaned.substring(2);
+    }
+    
+    // Remove leading 0 if present
+    if (cleaned.startsWith("0")) {
+      cleaned = cleaned.substring(1);
+    }
+    
+    // Limit to 10 digits (9XX XXX XXXX)
+    cleaned = cleaned.substring(0, 10);
+    
+    // Format as +63 9XX XXX XXXX
+    if (cleaned.length === 0) return "";
+    if (cleaned.length <= 3) return `+63 ${cleaned}`;
+    if (cleaned.length <= 6) return `+63 ${cleaned.substring(0, 3)} ${cleaned.substring(3)}`;
+    return `+63 ${cleaned.substring(0, 3)} ${cleaned.substring(3, 6)} ${cleaned.substring(6)}`;
+  };
+
+  // Validate phone number
+  const validatePhone = (value) => {
+    const cleaned = value.replace(/\D/g, "");
+    // Should be 12 digits total (63 + 10 digit number starting with 9)
+    if (cleaned.length === 12 && cleaned.startsWith("639")) {
+      return true;
+    }
+    if (cleaned.length === 10 && cleaned.startsWith("9")) {
+      return true;
+    }
+    return false;
+  };
+
+  // TIN formatting - ###-###-###-###
+  const formatTIN = (value) => {
+    const cleaned = value.replace(/\D/g, "").substring(0, 12);
+    const parts = [];
+    for (let i = 0; i < cleaned.length; i += 3) {
+      parts.push(cleaned.substring(i, i + 3));
+    }
+    return parts.join("-");
+  };
+
+  // SSS formatting - ##-#######-#
+  const formatSSS = (value) => {
+    const cleaned = value.replace(/\D/g, "").substring(0, 10);
+    if (cleaned.length <= 2) return cleaned;
+    if (cleaned.length <= 9) return `${cleaned.substring(0, 2)}-${cleaned.substring(2)}`;
+    return `${cleaned.substring(0, 2)}-${cleaned.substring(2, 9)}-${cleaned.substring(9)}`;
+  };
+
+  // GSIS formatting - 11 digits
+  const formatGSIS = (value) => {
+    return value.replace(/\D/g, "").substring(0, 11);
+  };
+
+  // Filtered occupation options based on search
+  const filteredOccupations = occupationOptions.filter((occ) =>
+    occ.toLowerCase().includes(occupationSearch.toLowerCase())
+  );
+
+  const handleChange = (e) => {
+    const { name, type, checked, value } = e.target;
+    let newValue = type === "checkbox" ? checked : value;
+    let newFieldErrors = { ...fieldErrors };
+
+    // Special handling for email validation
+    if (name === "email") {
+      if (value && !validateEmail(value)) {
+        newFieldErrors.email = "Please enter a valid email address";
+      } else {
+        delete newFieldErrors.email;
+      }
+    }
+
+    // Special handling for phone number
+    if (name === "phoneNumber") {
+      newValue = formatPhoneNumber(value);
+      if (newValue && !validatePhone(newValue)) {
+        newFieldErrors.phoneNumber = "Phone must start with 9 after +63";
+      } else {
+        delete newFieldErrors.phoneNumber;
+      }
+    }
+
+    // Special handling for TIN
+    if (name === "tinNumber") {
+      newValue = formatTIN(value);
+      const tinRegex = /^\d{3}-\d{3}-\d{3}-\d{3}$/;
+      if (newValue && newValue.length > 0 && !tinRegex.test(newValue) && newValue.replace(/-/g, "").length === 12) {
+        // Only show error when fully typed
+      } else if (newValue && newValue.replace(/-/g, "").length === 12 && !tinRegex.test(newValue)) {
+        newFieldErrors.tinNumber = "Invalid TIN format (###-###-###-###)";
+      } else {
+        delete newFieldErrors.tinNumber;
+      }
+    }
+
+    // Special handling for SSS/GSIS
+    if (name === "sssGsisNumber") {
+      // Detect format based on length
+      const cleaned = value.replace(/\D/g, "");
+      if (cleaned.length <= 10) {
+        newValue = formatSSS(value);
+      } else {
+        newValue = formatGSIS(value);
+      }
+      delete newFieldErrors.sssGsisNumber;
+    }
+
+    // Special handling for emergency contact phone number
+    if (name === "emergencyContact") {
+      newValue = formatPhoneNumber(value);
+      if (newValue && !validatePhone(newValue)) {
+        newFieldErrors.emergencyContact = "Phone must start with 9 after +63";
+      } else {
+        delete newFieldErrors.emergencyContact;
+      }
+    }
+
+    setFieldErrors(newFieldErrors);
+    
+    // Create updated form data
+    const updatedFormData = {
+      ...formData,
+      [name]: newValue,
+    };
+
+    // Auto-determine salutation when gender or civil status changes
+    if (name === "gender" || name === "civilStatus") {
+      const gender = name === "gender" ? newValue : formData.gender;
+      const civilStatus = name === "civilStatus" ? newValue : formData.civilStatus;
+      updatedFormData.salutation = getSalutation(gender, civilStatus);
+    }
+
+    setFormData(updatedFormData);
+  };
+
+  const handleFileChange = (e, fieldName = "validIDFile") => {
     const file = e.target.files[0];
     if (file) {
       const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
@@ -94,17 +377,30 @@ const Register = () => {
         return;
       }
 
-      setFormData({ ...formData, validIDFile: file });
-      setValidIDPreview(URL.createObjectURL(file));
+      if (fieldName === "validIDFile") {
+        setFormData({ ...formData, validIDFile: file });
+        setValidIDPreview(URL.createObjectURL(file));
+      } else if (fieldName === "backOfValidIDFile") {
+        setFormData({ ...formData, backOfValidIDFile: file });
+        setBackOfValidIDPreview(URL.createObjectURL(file));
+      }
       setError("");
     }
   };
 
-  const removeFile = () => {
-    setFormData({ ...formData, validIDFile: null });
-    if (validIDPreview) {
-      URL.revokeObjectURL(validIDPreview);
-      setValidIDPreview(null);
+  const removeFile = (fieldName = "validIDFile") => {
+    if (fieldName === "validIDFile") {
+      setFormData({ ...formData, validIDFile: null });
+      if (validIDPreview) {
+        URL.revokeObjectURL(validIDPreview);
+        setValidIDPreview(null);
+      }
+    } else if (fieldName === "backOfValidIDFile") {
+      setFormData({ ...formData, backOfValidIDFile: null });
+      if (backOfValidIDPreview) {
+        URL.revokeObjectURL(backOfValidIDPreview);
+        setBackOfValidIDPreview(null);
+      }
     }
   };
 
@@ -119,6 +415,10 @@ const Register = () => {
         !formData.confirmPassword
       ) {
         setError("Please fill in all account fields");
+        return false;
+      }
+      if (!validateEmail(formData.email)) {
+        setError("Please enter a valid email address (e.g., example@domain.com)");
         return false;
       }
       if (formData.password !== formData.confirmPassword) {
@@ -152,6 +452,11 @@ const Register = () => {
       }
       if (!formData.emergencyName || !formData.emergencyContact) {
         setError("Please provide emergency contact information");
+        return false;
+      }
+      // Validate emergency contact phone format
+      if (formData.emergencyContact && !validatePhone(formData.emergencyContact)) {
+        setError("Please enter a valid emergency contact number (must start with 9 after +63)");
         return false;
       }
     }
@@ -211,19 +516,23 @@ const Register = () => {
         formDataToSend.append("placeOfBirth", formData.placeOfBirth);
       formDataToSend.append("gender", formData.gender);
       formDataToSend.append("civilStatus", formData.civilStatus);
-      if (formData.salutation)
-        formDataToSend.append("salutation", formData.salutation);
+      
+      // Auto-calculated salutation based on sex and civil status
+      const autoSalutation = getSalutation(formData.gender, formData.civilStatus);
+      formDataToSend.append("salutation", autoSalutation);
+      
       formDataToSend.append("nationality", formData.nationality);
       formDataToSend.append("phoneNumber", formData.phoneNumber);
 
       formDataToSend.append("address[houseNumber]", formData.houseNumber || "");
       formDataToSend.append("address[street]", formData.street || "");
       formDataToSend.append("address[subdivision]", formData.subdivision || "");
+      if (formData.area)
+        formDataToSend.append("address[area]", formData.area);
 
-      if (formData.tinNumber)
-        formDataToSend.append("tinNumber", formData.tinNumber);
-      if (formData.sssGsisNumber)
-        formDataToSend.append("sssGsisNumber", formData.sssGsisNumber);
+      // TIN, SSS, GSIS - send "N/A" if empty
+      formDataToSend.append("tinNumber", formData.tinNumber || "N/A");
+      formDataToSend.append("sssGsisNumber", formData.sssGsisNumber || "N/A");
       if (formData.precinctNumber)
         formDataToSend.append("precinctNumber", formData.precinctNumber);
       if (formData.religion)
@@ -275,6 +584,9 @@ const Register = () => {
       );
 
       formDataToSend.append("validID", formData.validIDFile);
+      if (formData.backOfValidIDFile) {
+        formDataToSend.append("backOfValidID", formData.backOfValidIDFile);
+      }
 
       const result = await register(formDataToSend);
 
@@ -369,10 +681,13 @@ const Register = () => {
             value={formData.email}
             onChange={handleChange}
             required
-            className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm"
+            className={`block w-full pl-10 pr-3 py-2.5 bg-slate-50 border-2 ${fieldErrors.email ? 'border-red-400' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm`}
             placeholder="your.email@example.com"
           />
         </div>
+        {fieldErrors.email && (
+          <p className="text-xs text-red-500 mt-1">{fieldErrors.email}</p>
+        )}
       </div>
 
       <div>
@@ -447,23 +762,14 @@ const Register = () => {
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Salutation Field */}
-      <div className="mb-2">
-        <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-          Salutation
-        </label>
-        <select
-          name="salutation"
-          value={formData.salutation}
-          onChange={handleChange}
-          className="block w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
-        >
-          <option value="">Select Salutation</option>
-          <option value="Mr.">Mr.</option>
-          <option value="Mrs.">Mrs.</option>
-          <option value="Ms.">Ms.</option>
-        </select>
-      </div>
+      {/* Salutation is auto-calculated based on sex and civil status */}
+      {formData.salutation && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+          <p className="text-xs text-blue-800">
+            <strong>Salutation:</strong> {formData.salutation} (auto-determined based on sex and civil status)
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -512,16 +818,21 @@ const Register = () => {
         </div>
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-            Suffix (e.g., Jr., Sr., III)
+            Suffix
           </label>
-          <input
-            type="text"
+          <select
             name="suffix"
             value={formData.suffix}
             onChange={handleChange}
-            className="block w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm"
-            placeholder="Jr."
-          />
+            className="block w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+          >
+            <option value="">No Suffix</option>
+            {suffixOptions.filter(s => s).map((suffix) => (
+              <option key={suffix} value={suffix}>
+                {suffix}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -546,7 +857,7 @@ const Register = () => {
         </div>
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-            Gender *
+            Sex *
           </label>
           <select
             name="gender"
@@ -555,7 +866,7 @@ const Register = () => {
             required
             className="block w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
           >
-            <option value="">Select Gender</option>
+            <option value="">Select Sex</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
           </select>
@@ -609,15 +920,18 @@ const Register = () => {
               value={formData.phoneNumber}
               onChange={handleChange}
               required
-              className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm"
-              placeholder="09123456789"
+              className={`block w-full pl-10 pr-3 py-2.5 bg-slate-50 border-2 ${fieldErrors.phoneNumber ? 'border-red-400' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm`}
+              placeholder="+63 9XX XXX XXXX"
             />
           </div>
+          {fieldErrors.phoneNumber && (
+            <p className="text-xs text-red-500 mt-1">{fieldErrors.phoneNumber}</p>
+          )}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div>
+        <div className="relative">
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">
             Occupation
           </label>
@@ -629,24 +943,53 @@ const Register = () => {
               type="text"
               name="occupation"
               value={formData.occupation}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                setOccupationSearch(e.target.value);
+                setShowOccupationDropdown(true);
+              }}
+              onFocus={() => setShowOccupationDropdown(true)}
+              onBlur={() => setTimeout(() => setShowOccupationDropdown(false), 150)}
               className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm"
-              placeholder="Your occupation"
+              placeholder="Search or select occupation"
+              autoComplete="off"
             />
           </div>
+          {showOccupationDropdown && filteredOccupations.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-white border-2 border-slate-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+              {filteredOccupations.map((occ) => (
+                <div
+                  key={occ}
+                  className="px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 cursor-pointer transition-colors"
+                  onMouseDown={() => {
+                    setFormData({ ...formData, occupation: occ });
+                    setOccupationSearch(occ);
+                    setShowOccupationDropdown(false);
+                  }}
+                >
+                  {occ}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">
             Religion
           </label>
-          <input
-            type="text"
+          <select
             name="religion"
             value={formData.religion}
             onChange={handleChange}
-            className="block w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm"
-            placeholder="Your religion"
-          />
+            className="block w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+          >
+            <option value="">Select Religion</option>
+            {religionOptions.map((religion) => (
+              <option key={religion} value={religion}>
+                {religion}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -703,7 +1046,7 @@ const Register = () => {
         <MapPin className="h-4 w-4 text-blue-600" /> Your Address
       </h4>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">
             House No. *
@@ -732,6 +1075,9 @@ const Register = () => {
             placeholder="Main Street"
           />
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">
             Subdivision
@@ -744,6 +1090,24 @@ const Register = () => {
             className="block w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm"
             placeholder="Village"
           />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+            Area / Zone
+          </label>
+          <select
+            name="area"
+            value={formData.area}
+            onChange={handleChange}
+            className="block w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+          >
+            <option value="">Select Area/Zone</option>
+            {areaOptions.map((area) => (
+              <option key={area} value={area}>
+                {area}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -780,15 +1144,20 @@ const Register = () => {
           />
         </div>
 
-        <input
-          type="tel"
-          name="emergencyContact"
-          value={formData.emergencyContact}
-          onChange={handleChange}
-          required
-          className="block w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm mb-3"
-          placeholder="Contact Number"
-        />
+        <div className="mb-3">
+          <input
+            type="tel"
+            name="emergencyContact"
+            value={formData.emergencyContact}
+            onChange={handleChange}
+            required
+            className={`block w-full px-3 py-2.5 bg-slate-50 border-2 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm ${fieldErrors.emergencyContact ? 'border-red-500' : 'border-slate-200'}`}
+            placeholder="Contact Number (e.g., +63 9XX XXX XXXX)"
+          />
+          {fieldErrors.emergencyContact && (
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.emergencyContact}</p>
+          )}
+        </div>
 
         <div className="grid grid-cols-3 gap-3">
           <input
@@ -860,10 +1229,10 @@ const Register = () => {
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
           <IdCard className="h-4 w-4 text-blue-600" />
-          Upload Valid ID *
+          Upload Valid ID (Front) *
         </label>
         <p className="text-xs text-slate-500 mb-3">
-          Upload a clear photo of your valid ID (Government ID, Driver's
+          Upload a clear photo of the front of your valid ID (Government ID, Driver's
           License, Passport, etc.)
         </p>
 
@@ -871,14 +1240,14 @@ const Register = () => {
           <label className="flex flex-col items-center px-6 py-8 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-blue-400 transition-all">
             <Upload className="w-12 h-12 mb-3 text-slate-400" />
             <span className="text-sm font-medium">
-              Click to upload Valid ID
+              Click to upload Valid ID (Front)
             </span>
             <span className="text-xs mt-1">JPG, JPEG, PNG (Max 5MB)</span>
             <input
               type="file"
               className="hidden"
               accept="image/jpeg,image/jpg,image/png"
-              onChange={handleFileChange}
+              onChange={(e) => handleFileChange(e, "validIDFile")}
               required
             />
           </label>
@@ -890,12 +1259,57 @@ const Register = () => {
           >
             <img
               src={validIDPreview}
-              alt="Valid ID Preview"
-              className="w-full h-64 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
+              alt="Valid ID Front Preview"
+              className="w-full h-48 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
             />
             <button
               type="button"
-              onClick={removeFile}
+              onClick={() => removeFile("validIDFile")}
+              className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </motion.div>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+          <IdCard className="h-4 w-4 text-blue-600" />
+          Upload Valid ID (Back)
+        </label>
+        <p className="text-xs text-slate-500 mb-3">
+          Upload a clear photo of the back of your valid ID (optional but recommended)
+        </p>
+
+        {!backOfValidIDPreview ? (
+          <label className="flex flex-col items-center px-6 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-blue-400 transition-all">
+            <Upload className="w-10 h-10 mb-2 text-slate-400" />
+            <span className="text-sm font-medium">
+              Click to upload Valid ID (Back)
+            </span>
+            <span className="text-xs mt-1">JPG, JPEG, PNG (Max 5MB)</span>
+            <input
+              type="file"
+              className="hidden"
+              accept="image/jpeg,image/jpg,image/png"
+              onChange={(e) => handleFileChange(e, "backOfValidIDFile")}
+            />
+          </label>
+        ) : (
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <img
+              src={backOfValidIDPreview}
+              alt="Valid ID Back Preview"
+              className="w-full h-48 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
+            />
+            <button
+              type="button"
+              onClick={() => removeFile("backOfValidIDFile")}
               className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
             >
               <X className="h-4 w-4" />
@@ -910,8 +1324,8 @@ const Register = () => {
         </h4>
         <div className="text-xs text-blue-800 space-y-1">
           <p>
-            <strong>Name:</strong> {formData.firstName} {formData.middleName}{" "}
-            {formData.lastName}
+            <strong>Name:</strong> {formData.salutation} {formData.firstName} {formData.middleName}{" "}
+            {formData.lastName} {formData.suffix}
           </p>
           <p>
             <strong>Email:</strong> {formData.email}
@@ -919,9 +1333,14 @@ const Register = () => {
           <p>
             <strong>Phone:</strong> {formData.phoneNumber}
           </p>
+          {formData.dateOfBirth && (
+            <p>
+              <strong>Age:</strong> {calculateAge(formData.dateOfBirth)} years old
+            </p>
+          )}
           <p>
             <strong>Address:</strong> {formData.houseNumber} {formData.street}{" "}
-            {formData.subdivision}, Brgy. Culiat
+            {formData.subdivision}{formData.area ? `, ${formData.area}` : ""}, Brgy. Culiat
           </p>
         </div>
       </div>

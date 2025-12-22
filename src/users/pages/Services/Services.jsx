@@ -12,11 +12,10 @@ import { motion, AnimatePresence } from "framer-motion";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const tabs = [
-  { id: "personal", label: "Personal Information" },
-  { id: "emergency", label: "Emergency Contact" },
-  { id: "files", label: "Upload Documents" },
-  { id: "request", label: "Document Request" },
-  { id: "my-requests", label: "My Requests" },
+  { id: "request", label: "1. Select Document", step: 1 },
+  { id: "personal", label: "2. Review Info", step: 2 },
+  { id: "files", label: "3. Upload ID", step: 3 },
+  { id: "my-requests", label: "My Requests", step: 0 },
 ];
 
 const initialForm = {
@@ -78,7 +77,6 @@ const initialForm = {
   documentType: "",
   requestFor: "",
   purposeOfRequest: "",
-  preferredPickupDate: "",
   remarks: "",
   // Beneficiary Info (for rehab certificates)
   beneficiaryFullName: "",
@@ -97,7 +95,7 @@ const initialForm = {
 };
 
 export default function Services() {
-  const [active, setActive] = useState("personal");
+  const [active, setActive] = useState("request");
   const [formData, setFormData] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [showSuccess, setShowSuccess] = useState(false);
@@ -111,14 +109,11 @@ export default function Services() {
 
   // Load form data from localStorage on mount
   useEffect(() => {
-    console.log("💾 Checking localStorage for saved form data...");
     const savedFormData = localStorage.getItem("documentRequestForm");
 
     if (savedFormData) {
-      console.log("📦 Found saved form data in localStorage");
       try {
         const parsedData = JSON.parse(savedFormData);
-        console.log("📄 Parsed saved data:", parsedData);
 
         // Check if saved data has meaningful content (not just empty strings)
         const hasContent =
@@ -134,58 +129,40 @@ export default function Services() {
           setAutoFilling(false); // Skip auto-fill if we have saved data
           setHasLoadedData(true);
           setShowLoadingToast(false); // Hide loading immediately
-          console.log("✅ Restored form data from localStorage");
         } else {
-          console.log("📭 Saved data is empty, will auto-fill from user");
           localStorage.removeItem("documentRequestForm"); // Clear empty data
           setShowLoadingToast(true);
         }
       } catch (error) {
-        console.error("❌ Error loading saved form data:", error);
         setShowLoadingToast(true); // Keep showing loading on error
       }
     } else {
-      console.log("📭 No saved form data in localStorage");
       // Keep loading visible until user data arrives
       setShowLoadingToast(true);
-      console.log("⏳ Waiting for user data to load...");
     }
   }, []);
 
   // Auto-fill form from user data (only if no saved data and haven't auto-filled yet)
   useEffect(() => {
-    console.log("🔄 Auto-fill useEffect triggered");
-    console.log("📊 User object:", user);
-    console.log("🔐 Auth loading:", authLoading);
-    console.log("🎯 AutoFilling state:", autoFilling);
-    console.log("📍 Has loaded data:", hasLoadedData);
-
     // If we already have loaded data, hide loading and exit
     if (hasLoadedData) {
-      console.log(
-        "✓ Data already loaded from localStorage or previous auto-fill"
-      );
       setShowLoadingToast(false);
       return;
     }
 
     // Wait for auth to finish loading
     if (authLoading) {
-      console.log("⏳ Auth still loading, keeping loading overlay visible...");
       setShowLoadingToast(true);
       return;
     }
 
     // If auth finished but no user, something went wrong - hide loading
     if (!authLoading && !user) {
-      console.log("❌ Auth finished but no user available");
       setShowLoadingToast(false);
       return;
     }
 
     if (user && autoFilling) {
-      console.log("✅ Starting auto-fill process...");
-      console.log("🔍 Full user object:", JSON.stringify(user, null, 2));
       setShowLoadingToast(true);
 
       // Format date of birth to YYYY-MM-DD for HTML date input
@@ -196,26 +173,11 @@ export default function Services() {
           if (isNaN(date.getTime())) return "";
           return date.toISOString().split("T")[0];
         } catch (error) {
-          console.error("Error formatting date:", error);
           return "";
         }
       };
 
       const formattedDate = formatDate(user.dateOfBirth);
-      console.log(
-        "📅 Date of Birth:",
-        user.dateOfBirth,
-        "→ Formatted:",
-        formattedDate
-      );
-      console.log("👤 Name fields:", {
-        firstName: user.firstName,
-        middleName: user.middleName,
-        lastName: user.lastName,
-        suffix: user.suffix,
-      });
-      console.log("🏠 Address:", user.address);
-      console.log("🆘 Emergency Contact:", user.emergencyContact);
 
       const newFormData = {
         ...formData,
@@ -256,21 +218,14 @@ export default function Services() {
         emergencyHouseNumber: user.emergencyContact?.address?.houseNumber || "",
       };
 
-      console.log("📝 New form data being set:", newFormData);
       setFormData(newFormData);
       setAutoFilling(false);
       setHasLoadedData(true);
 
-      console.log("✅ Auto-fill completed!");
-      console.log("📊 Form data after auto-fill:", newFormData);
-
       // Hide loading toast after a short delay to show completion
       setTimeout(() => {
         setShowLoadingToast(false);
-        console.log("🎉 Loading overlay hidden");
       }, 800);
-    } else {
-      console.log("⏭️ Auto-fill condition not met");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, autoFilling, hasLoadedData, authLoading]);
@@ -536,11 +491,6 @@ export default function Services() {
       formDataToSend.append("purposeOfRequest", formData.purposeOfRequest);
       // Use purposeOfRequest for requestFor as well (merged fields)
       formDataToSend.append("requestFor", formData.purposeOfRequest);
-      if (formData.preferredPickupDate)
-        formDataToSend.append(
-          "preferredPickupDate",
-          formData.preferredPickupDate
-        );
       if (formData.remarks) formDataToSend.append("remarks", formData.remarks);
 
       // Beneficiary info (for rehab certificates)
@@ -639,8 +589,6 @@ export default function Services() {
           },
         }
       );
-
-      console.log("✅ Document request submitted successfully!", response.data);
 
       // Show success message
       setShowSuccess(true);
@@ -851,39 +799,73 @@ export default function Services() {
             </div>
           )}
 
-          {/* Tabs */}
-          <div className="px-2 md:px-6 py-4 border-b border-[var(--color-neutral-active)] flex ">
+          {/* Step Progress Indicator */}
+          <div className="px-4 md:px-6 py-4 border-b border-[var(--color-neutral-active)] bg-gradient-to-r from-gray-50 to-white">
+            {/* Step Indicators for Request Flow */}
+            {active !== "my-requests" && (
+              <div className="flex items-center justify-center mb-4">
+                {tabs.filter(t => t.step > 0).map((t, index, arr) => {
+                  const currentStep = tabs.find(tab => tab.id === active)?.step || 1;
+                  const isCompleted = t.step < currentStep;
+                  const isCurrent = t.step === currentStep;
+                  
+                  return (
+                    <React.Fragment key={t.id}>
+                      <div className="flex flex-col items-center">
+                        <div 
+                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                            isCompleted 
+                              ? "bg-green-500 text-white" 
+                              : isCurrent 
+                                ? "bg-[var(--color-secondary)] text-white ring-4 ring-[var(--color-secondary)]/20" 
+                                : "bg-gray-200 text-gray-500"
+                          }`}
+                        >
+                          {isCompleted ? "✓" : t.step}
+                        </div>
+                        <span className={`text-xs mt-1 font-medium ${isCurrent ? "text-[var(--color-secondary)]" : "text-gray-500"}`}>
+                          {t.label.replace(/^\d+\.\s*/, "")}
+                        </span>
+                      </div>
+                      {index < arr.length - 1 && (
+                        <div className={`w-16 md:w-24 h-1 mx-2 rounded ${
+                          t.step < currentStep ? "bg-green-500" : "bg-gray-200"
+                        }`} />
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            )}
+            
+            {/* Tab Buttons */}
             <nav
-              className="flex gap-2 w-full"
+              className="flex gap-2 justify-center flex-wrap"
               role="tablist"
               aria-label="Form tabs"
             >
               {tabs.map((t) => {
-                const activeStyle =
-                  active === t.id
-                    ? {
-                        background: "var(--color-accent)",
-                        color: "var(--color-text-color)",
-                      }
-                    : {};
+                const isActive = active === t.id;
+                const isMyRequests = t.id === "my-requests";
+                
                 return (
                   <motion.button
                     key={t.id}
                     onClick={() => setActive(t.id)}
-                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.2 }}
-                    className={`md:px-4 md:py-2 px-2 py-1 grow md:grow-0 rounded-md md:font-medium font-semibold whitespace-nowrap text-ellipsis overflow-hidden cursor-pointer transition-all`}
-                    title={t.label}
-                    style={{
-                      border:
-                        active === t.id
-                          ? "2px solid var(--color-secondary)"
-                          : "1px solid transparent",
-                      ...activeStyle,
-                    }}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                      isActive
+                        ? isMyRequests
+                          ? "bg-blue-600 text-white shadow-md"
+                          : "bg-[var(--color-secondary)] text-white shadow-md"
+                        : isMyRequests
+                          ? "bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200"
+                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
                     role="tab"
-                    aria-selected={active === t.id}
+                    aria-selected={isActive}
                   >
                     {t.label}
                   </motion.button>
@@ -896,6 +878,25 @@ export default function Services() {
           <form onSubmit={handleSubmit}>
             <div className="p-6">
               <AnimatePresence mode="wait">
+                {/* Step 1: Select Document */}
+                {active === "request" && (
+                  <motion.div
+                    key="request"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <DocumentRequestTab
+                      formData={formData}
+                      setField={setField}
+                      errors={errors}
+                      isBusinessDocument={isBusinessDocument()}
+                    />
+                  </motion.div>
+                )}
+
+                {/* Step 2: Review Personal Info */}
                 {active === "personal" && (
                   <motion.div
                     key="personal"
@@ -910,25 +911,18 @@ export default function Services() {
                       errors={errors}
                       setErrors={setErrors}
                     />
+                    {/* Include Emergency Contact info in this step */}
+                    <div className="mt-6 pt-6 border-t">
+                      <EmergencyContactTab
+                        formData={formData}
+                        setField={setField}
+                        errors={errors}
+                      />
+                    </div>
                   </motion.div>
                 )}
 
-                {active === "emergency" && (
-                  <motion.div
-                    key="emergency"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <EmergencyContactTab
-                      formData={formData}
-                      setField={setField}
-                      errors={errors}
-                    />
-                  </motion.div>
-                )}
-
+                {/* Step 3: Upload Documents */}
                 {active === "files" && (
                   <motion.div
                     key="files"
@@ -950,23 +944,7 @@ export default function Services() {
                   </motion.div>
                 )}
 
-                {active === "request" && (
-                  <motion.div
-                    key="request"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <DocumentRequestTab
-                      formData={formData}
-                      setField={setField}
-                      errors={errors}
-                      isBusinessDocument={isBusinessDocument()}
-                    />
-                  </motion.div>
-                )}
-
+                {/* My Requests Tab */}
                 {active === "my-requests" && (
                   <motion.div
                     key="my-requests"
@@ -982,58 +960,69 @@ export default function Services() {
             </div>
 
             {/* Navigation Buttons */}
-            <div className="px-6 py-4 border-t border-[var(--color-neutral-active)] flex justify-between items-center">
+            <div className="px-6 py-4 border-t border-[var(--color-neutral-active)] flex justify-between items-center bg-gray-50">
               <div>
-                {active !== "personal" && active !== "my-requests" && (
+                {active !== "request" && active !== "my-requests" && (
                   <button
                     type="button"
                     onClick={() => {
-                      if (active === "emergency") setActive("personal");
-                      else if (active === "files") setActive("emergency");
-                      else if (active === "request") setActive("files");
+                      if (active === "personal") setActive("request");
+                      else if (active === "files") setActive("personal");
                     }}
-                    className="px-4 py-2 rounded-md font-medium border"
-                    style={{
-                      borderColor: "var(--color-neutral-active)",
-                      color: "var(--color-text-color)",
-                    }}
+                    className="px-5 py-2.5 rounded-lg font-medium border-2 border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
                   >
-                    Back
+                    <span>←</span> Back
                   </button>
                 )}
               </div>
 
               <div className="flex items-center gap-3">
-                {active !== "request" && active !== "my-requests" && (
+                {active === "request" && (
                   <button
                     type="button"
                     onClick={() => {
-                      if (active === "personal") setActive("emergency");
-                      else if (active === "emergency") setActive("files");
-                      else if (active === "files") setActive("request");
+                      if (!formData.documentType) {
+                        setErrors({ documentType: "Please select a document type first" });
+                        return;
+                      }
+                      if (!formData.purposeOfRequest) {
+                        setErrors({ purposeOfRequest: "Please enter the purpose of your request" });
+                        return;
+                      }
+                      setActive("personal");
                     }}
-                    className="px-4 py-2 rounded-md font-medium"
-                    style={{
-                      backgroundColor: "var(--color-secondary)",
-                      color: "var(--color-text-color-light)",
-                    }}
+                    className="px-5 py-2.5 rounded-lg font-semibold bg-[var(--color-secondary)] text-white hover:opacity-90 transition-opacity flex items-center gap-2"
                   >
-                    Next
+                    Next Step <span>→</span>
                   </button>
                 )}
 
-                {active === "request" && (
+                {active === "personal" && (
+                  <button
+                    type="button"
+                    onClick={() => setActive("files")}
+                    className="px-5 py-2.5 rounded-lg font-semibold bg-[var(--color-secondary)] text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+                  >
+                    Next Step <span>→</span>
+                  </button>
+                )}
+
+                {active === "files" && (
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-5 py-2 rounded-md font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{
-                      backgroundColor: "var(--color-secondary)",
-                      color: "var(--color-light)",
-                      boxShadow: `0 6px 18px -6px ${"var(--color-secondary-glow)"}`,
-                    }}
+                    className="px-6 py-2.5 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    {loading ? "Submitting..." : "Submit Request"}
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        ✓ Submit Request
+                      </>
+                    )}
                   </button>
                 )}
               </div>

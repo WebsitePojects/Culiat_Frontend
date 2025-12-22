@@ -8,6 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const CMSAboutUs = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isNewRecord, setIsNewRecord] = useState(false);
   const [formData, setFormData] = useState({
     barangayName: "",
     description: "",
@@ -86,7 +87,12 @@ const CMSAboutUs = () => {
       }
     } catch (error) {
       if (error.response?.status === 404) {
-        toast.error("Barangay information not found. Please create it first.");
+        // No existing data - show form for initial creation
+        setIsNewRecord(true);
+        toast("No existing barangay information. Fill in the form to create.", {
+          icon: "ℹ️",
+          duration: 4000,
+        });
       } else {
         toast.error("Failed to fetch barangay information");
       }
@@ -106,13 +112,24 @@ const CMSAboutUs = () => {
         headers: { Authorization: `Bearer ${token}` },
       };
 
-      const response = await axios.put(
-        `${API_URL}/api/barangay-info`,
-        formData,
-        config
-      );
-
-      if (response.data.success) {
+      let response;
+      
+      if (isNewRecord) {
+        // Create new barangay info
+        response = await axios.post(
+          `${API_URL}/api/barangay-info`,
+          formData,
+          config
+        );
+        setIsNewRecord(false);
+        toast.success("Barangay information created successfully");
+      } else {
+        // Update existing
+        response = await axios.put(
+          `${API_URL}/api/barangay-info`,
+          formData,
+          config
+        );
         toast.success("About Us section updated successfully");
       }
     } catch (error) {
@@ -123,6 +140,7 @@ const CMSAboutUs = () => {
             headers: { Authorization: `Bearer ${token}` },
           };
           await axios.post(`${API_URL}/api/barangay-info`, formData, config);
+          setIsNewRecord(false);
           toast.success("About Us section created successfully");
         } catch (createError) {
           toast.error("Failed to create barangay information");
@@ -155,14 +173,14 @@ const CMSAboutUs = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">About Us</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">About Us</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Manage all About Us page content dynamically
           </p>
         </div>
         <button
           onClick={handleReset}
-          className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+          className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
         >
           <RefreshCw size={20} />
           Reset
@@ -171,15 +189,15 @@ const CMSAboutUs = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-blue-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             Basic Information
           </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Barangay Name *
               </label>
               <input
@@ -188,14 +206,14 @@ const CMSAboutUs = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, barangayName: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="e.g., Barangay Culiat"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Description
               </label>
               <textarea
@@ -204,7 +222,7 @@ const CMSAboutUs = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Brief description shown in the hero section"
               />
             </div>
@@ -212,14 +230,14 @@ const CMSAboutUs = () => {
         </div>
 
         {/* Mission & Vision */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Mission & Vision
           </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Vision Statement
               </label>
               <textarea
@@ -228,13 +246,13 @@ const CMSAboutUs = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, vision: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter the barangay's vision statement"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Mission Statement
               </label>
               <textarea
@@ -243,7 +261,7 @@ const CMSAboutUs = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, mission: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter the barangay's mission statement"
               />
             </div>
@@ -251,13 +269,13 @@ const CMSAboutUs = () => {
         </div>
 
         {/* History Section */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             History Section
           </h2>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               History Content
             </label>
             <textarea
@@ -266,129 +284,26 @@ const CMSAboutUs = () => {
               onChange={(e) =>
                 setFormData({ ...formData, history: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter the complete history of the barangay. Use double line breaks to separate paragraphs."
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Tip: Use double line breaks to separate paragraphs. The content
               will be automatically formatted on the page.
             </p>
           </div>
         </div>
 
-        {/* Address */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-green-600" />
-            Address Information
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Street Address
-              </label>
-              <input
-                type="text"
-                value={formData.address.street}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    address: { ...formData.address, street: e.target.value },
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Street address"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Municipality/City
-              </label>
-              <input
-                type="text"
-                value={formData.address.municipality}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    address: {
-                      ...formData.address,
-                      municipality: e.target.value,
-                    },
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., Quezon City"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Province
-              </label>
-              <input
-                type="text"
-                value={formData.address.province}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    address: { ...formData.address, province: e.target.value },
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., Metro Manila"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Region
-              </label>
-              <input
-                type="text"
-                value={formData.address.region}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    address: { ...formData.address, region: e.target.value },
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., NCR"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Zip Code
-              </label>
-              <input
-                type="text"
-                value={formData.address.zipCode}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    address: { ...formData.address, zipCode: e.target.value },
-                  })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., 1100"
-              />
-            </div>
-          </div>
-        </div>
-
         {/* Contact Information */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Phone className="w-5 h-5 text-purple-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <Phone className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             Contact Information
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Phone Number
               </label>
               <input
@@ -403,13 +318,13 @@ const CMSAboutUs = () => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="+63 XXX XXX XXXX"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email Address
               </label>
               <input
@@ -424,7 +339,7 @@ const CMSAboutUs = () => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="barangay@example.com"
               />
             </div>
@@ -432,15 +347,15 @@ const CMSAboutUs = () => {
         </div>
 
         {/* Demographics */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5 text-orange-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <Users className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             Demographics
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Total Population
               </label>
               <input
@@ -455,13 +370,13 @@ const CMSAboutUs = () => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Total Households
               </label>
               <input
@@ -476,13 +391,13 @@ const CMSAboutUs = () => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Ongoing Public Projects
               </label>
               <input
@@ -497,13 +412,13 @@ const CMSAboutUs = () => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Barangay Area (hectares)
               </label>
               <input
@@ -519,7 +434,7 @@ const CMSAboutUs = () => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="0.00"
               />
             </div>
@@ -527,15 +442,15 @@ const CMSAboutUs = () => {
         </div>
 
         {/* Social Media */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Globe className="w-5 h-5 text-indigo-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <Globe className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             Social Media Links
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Facebook
               </label>
               <input
@@ -550,13 +465,13 @@ const CMSAboutUs = () => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="https://facebook.com/..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Twitter
               </label>
               <input
@@ -571,13 +486,13 @@ const CMSAboutUs = () => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="https://twitter.com/..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Instagram
               </label>
               <input
@@ -592,13 +507,13 @@ const CMSAboutUs = () => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="https://instagram.com/..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 YouTube
               </label>
               <input
@@ -613,54 +528,9 @@ const CMSAboutUs = () => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="https://youtube.com/..."
               />
-            </div>
-          </div>
-        </div>
-
-        {/* Media Assets */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Media Assets
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Logo URL
-              </label>
-              <input
-                type="url"
-                value={formData.logo}
-                onChange={(e) =>
-                  setFormData({ ...formData, logo: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="/images/BarangayLogo.jpg"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Enter the URL of the barangay logo
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cover Photo URL
-              </label>
-              <input
-                type="url"
-                value={formData.coverPhoto}
-                onChange={(e) =>
-                  setFormData({ ...formData, coverPhoto: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="/images/CoverPhoto.jpg"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Enter the URL of the cover photo
-              </p>
             </div>
           </div>
         </div>
@@ -688,8 +558,8 @@ const CMSAboutUs = () => {
       </form>
 
       {/* Preview Note */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
+      <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <p className="text-sm text-blue-800 dark:text-blue-300">
           <strong>Note:</strong> All changes will be reflected immediately on
           the About Us page after saving. Visit the page to see your updates.
         </p>

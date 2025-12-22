@@ -12,7 +12,7 @@ import {
 
 const DOCUMENT_TYPES = [
   { value: "indigency", label: "Certificate of Indigency" },
-  { value: "residency", label: "Certificate of Residency" },
+  { value: "residency", label: "Certificate of Residency (for City Hall requirement)" },
   { value: "clearance", label: "Barangay Clearance" },
   { value: "business_permit", label: "Certificate for Business Permit" },
   { value: "business_clearance", label: "Certificate for Business Closure" },
@@ -20,6 +20,21 @@ const DOCUMENT_TYPES = [
   { value: "liquor_permit", label: "Liquor Permit" },
   { value: "missionary", label: "Missionary Certificate" },
   { value: "rehab", label: "Rehabilitation Certificate" },
+];
+
+// Common purposes for document requests
+const PURPOSE_OPTIONS = [
+  { value: "Employment", label: "Employment" },
+  { value: "City Hall Requirements", label: "City Hall Requirements" },
+  { value: "Bank Requirements", label: "Bank Requirements" },
+  { value: "Legal Purposes", label: "Legal Purposes" },
+  { value: "School Requirements", label: "School Requirements" },
+  { value: "Travel/Visa", label: "Travel/Visa" },
+  { value: "Business Permit", label: "Business Permit" },
+  { value: "Medical Purposes", label: "Medical Purposes" },
+  { value: "Government Transaction", label: "Government Transaction" },
+  { value: "Personal Use", label: "Personal Use" },
+  { value: "Other", label: "Other (Please specify)" },
 ];
 
 const RELATIONSHIP_OPTIONS = [
@@ -46,6 +61,20 @@ export default function DocumentRequestTab({
   isBusinessDocument,
 }) {
   const onChange = (e) => setField(e.target.name, e.target.value);
+  
+  // State for custom purpose input
+  const [showCustomPurpose, setShowCustomPurpose] = React.useState(false);
+  
+  const handlePurposeChange = (e) => {
+    const value = e.target.value;
+    if (value === "Other") {
+      setShowCustomPurpose(true);
+      setField("purposeOfRequest", "");
+    } else {
+      setShowCustomPurpose(false);
+      setField("purposeOfRequest", value);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -215,15 +244,49 @@ export default function DocumentRequestTab({
                 <span className="text-red-500">*</span>
               </label>
               <input
+                type="month"
                 name="residencySince"
-                value={formData.residencySince || ""}
-                onChange={onChange}
+                value={
+                  formData.residencySince 
+                    ? (() => {
+                        // Convert "Month YYYY" format back to "YYYY-MM" for the input
+                        const monthNames = [
+                          'January', 'February', 'March', 'April', 'May', 'June',
+                          'July', 'August', 'September', 'October', 'November', 'December'
+                        ];
+                        const parts = formData.residencySince.split(' ');
+                        if (parts.length === 2) {
+                          const monthIndex = monthNames.indexOf(parts[0]);
+                          if (monthIndex !== -1) {
+                            const month = String(monthIndex + 1).padStart(2, '0');
+                            return `${parts[1]}-${month}`;
+                          }
+                        }
+                        return '';
+                      })()
+                    : ""
+                }
+                onChange={(e) => {
+                  // Convert YYYY-MM format to "Month YYYY" format for storage
+                  const value = e.target.value;
+                  if (value) {
+                    const [year, month] = value.split('-');
+                    const monthNames = [
+                      'January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December'
+                    ];
+                    const monthName = monthNames[parseInt(month) - 1];
+                    const formattedValue = `${monthName} ${year}`;
+                    onChange({ target: { name: 'residencySince', value: formattedValue } });
+                  } else {
+                    onChange({ target: { name: 'residencySince', value: '' } });
+                  }
+                }}
                 className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
                   errors.residencySince
                     ? "border-red-500"
                     : "border-[var(--color-neutral-active)]"
                 }`}
-                placeholder="e.g., January 2008"
               />
               {errors.residencySince && (
                 <p className="text-xs text-red-500 mt-1">
@@ -231,8 +294,7 @@ export default function DocumentRequestTab({
                 </p>
               )}
               <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                Reference No., Document File No., and Prepared By are
-                automatically generated.
+                Select the month and year when you started residing in the barangay. Reference No., Document File No., and Prepared By are automatically generated.
               </p>
             </div>
           </div>
@@ -613,22 +675,44 @@ export default function DocumentRequestTab({
       <div className="border-t pt-4">
         <h2 className="text-lg font-medium mb-3">Request Details</h2>
 
+        {/* Purpose of Request - Dropdown with Custom Option */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-[var(--color-text-color)]">
             Purpose of Request <span className="text-red-500">*</span>
           </label>
-          <textarea
-            name="purposeOfRequest"
-            value={formData.purposeOfRequest}
-            onChange={onChange}
-            rows={4}
+          <select
+            name="purposeDropdown"
+            value={showCustomPurpose ? "Other" : (PURPOSE_OPTIONS.find(p => p.value === formData.purposeOfRequest)?.value || "")}
+            onChange={handlePurposeChange}
             className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
-              errors.purposeOfRequest
+              errors.purposeOfRequest && !formData.purposeOfRequest
                 ? "border-red-500"
                 : "border-[var(--color-neutral-active)]"
             }`}
-            placeholder="Please specify the purpose of your request..."
-          />
+          >
+            <option value="">Select purpose...</option>
+            {PURPOSE_OPTIONS.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+          
+          {/* Custom Purpose Input - shows when "Other" is selected */}
+          {showCustomPurpose && (
+            <textarea
+              name="purposeOfRequest"
+              value={formData.purposeOfRequest}
+              onChange={onChange}
+              rows={3}
+              className={`mt-2 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                errors.purposeOfRequest
+                  ? "border-red-500"
+                  : "border-[var(--color-neutral-active)]"
+              }`}
+              placeholder="Please specify your purpose..."
+            />
+          )}
           {errors.purposeOfRequest && (
             <p className="text-xs text-red-500 mt-1">
               {errors.purposeOfRequest}
@@ -636,38 +720,19 @@ export default function DocumentRequestTab({
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-              Preferred Date of Pickup
-            </label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Calendar className="h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
-              </div>
-              <input
-                type="date"
-                id="preferredPickupDate"
-                name="preferredPickupDate"
-                value={formData.preferredPickupDate}
-                onChange={onChange}
-                className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-color)]">
-              Remarks (optional)
-            </label>
-            <input
-              name="remarks"
-              value={formData.remarks}
-              onChange={onChange}
-              className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
-              placeholder="Any additional notes..."
-            />
-          </div>
+        {/* Remarks Field */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-[var(--color-text-color)]">
+            Remarks (optional)
+          </label>
+          <textarea
+            name="remarks"
+            value={formData.remarks}
+            onChange={onChange}
+            rows={3}
+            className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+            placeholder="Any additional notes or special requests..."
+          />
         </div>
       </div>
 

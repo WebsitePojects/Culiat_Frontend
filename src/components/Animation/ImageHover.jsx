@@ -1,29 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 // eslint-disable-next-line no-unused-vars
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion } from "framer-motion";
 
 const ImageHover = () => {
-  const [isHovering, setIsHovering] = useState(false);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  // Smooth follow using spring physics
-  const smoothX = useSpring(x, { stiffness: 120, damping: 15 });
-  const smoothY = useSpring(y, { stiffness: 120, damping: 15 });
-
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    x.set(e.clientX - rect.left);
-    y.set(e.clientY - rect.top);
-  };
-
   return (
-    <div
-      className="relative inline-block cursor-pointer "
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-      onMouseMove={handleMouseMove}
-    >
+    <div className="relative inline-block cursor-default">
       {/* Base Image */}
       <motion.div
         initial={{ opacity: 0.5, x: 100 }}
@@ -40,24 +21,6 @@ const ImageHover = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
         </div>
       </motion.div>
-
-      {/* Floating image that follows cursor */}
-      {isHovering && (
-        <motion.img
-          src="/images/brgy/captain-hover.jpg"
-          alt="Captain cursor"
-          className="absolute w-54 h-54 rounded-md shadow-xl pointer-events-none"
-          style={{
-            x: smoothX,
-            y: smoothY,
-            translateY: "-240%",
-          }}
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.5 }}
-          transition={{ type: "spring", stiffness: 200, damping: 18 }}
-        />
-      )}
     </div>
   );
 };

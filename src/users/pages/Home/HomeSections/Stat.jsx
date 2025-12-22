@@ -1,17 +1,40 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { CountingNumber } from "../../../../components/ui/shadcn-io/counting-number/index";
 import { Users, MapIcon, House, Hammer } from "lucide-react";
+import axios from "axios";
 
-const stats = [
-  { number: 45892, label: "Total Population", suffix: null, icon: Users },
-  { number: 2.8, label: "Barangay Area", suffix: "km²", icon: MapIcon },
-  { number: 12456, label: "Number of Households", suffix: null, icon: House },
-  { number: 8, label: "Public Projects Ongoing", suffix: null, icon: Hammer },
-];
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const Stat = () => {
+  const [stats, setStats] = useState([
+    { number: 0, label: "Total Population", suffix: null, icon: Users },
+    { number: 0, label: "Barangay Area", suffix: "km²", icon: MapIcon },
+    { number: 0, label: "Number of Households", suffix: null, icon: House },
+    { number: 0, label: "Public Projects Ongoing", suffix: null, icon: Hammer },
+  ]);
+
+  useEffect(() => {
+    const fetchDemographics = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/barangay-info`);
+        if (response.data.success && response.data.data.demographics) {
+          const demo = response.data.data.demographics;
+          setStats([
+            { number: demo.totalPopulation || 0, label: "Total Population", suffix: null, icon: Users },
+            { number: demo.barangayArea || 0, label: "Barangay Area", suffix: "km²", icon: MapIcon },
+            { number: demo.totalHouseholds || 0, label: "Number of Households", suffix: null, icon: House },
+            { number: demo.ongoingPublicProjects || 0, label: "Public Projects Ongoing", suffix: null, icon: Hammer },
+          ]);
+        }
+      } catch (error) {
+        console.error("Error fetching demographics:", error);
+      }
+    };
+    fetchDemographics();
+  }, []);
+
   return (
     <section
       className="lg:absolute lg:-bottom-[50px] lg:left-1/2 lg:-translate-x-1/2 lg:py-0 py-6 w-full px-4 z-10"
