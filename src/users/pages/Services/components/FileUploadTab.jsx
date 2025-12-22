@@ -1,7 +1,41 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Upload, File, X, AlertCircle, CheckCircle } from "lucide-react";
+import { Upload, File, X, AlertCircle, CheckCircle, Eye, RefreshCw } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+// Image Preview Modal Component
+const ImagePreviewModal = ({ isOpen, onClose, imageUrl, title }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="relative max-w-4xl max-h-[90vh] bg-white rounded-lg overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-3 border-b bg-gray-50">
+          <h3 className="font-medium text-gray-900">{title}</h3>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-200 rounded-full transition"
+          >
+            <X size={20} className="text-gray-600" />
+          </button>
+        </div>
+        <div className="p-4 flex items-center justify-center bg-gray-100">
+          <img
+            src={imageUrl}
+            alt={title}
+            className="max-w-full max-h-[70vh] object-contain rounded"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function FileUploadTab({
   formData,
@@ -17,6 +51,17 @@ export default function FileUploadTab({
   const [validIDPreview, setValidIDPreview] = useState(null);
   const [usingStoredPhoto, setUsingStoredPhoto] = useState(false);
   const [usingStoredValidID, setUsingStoredValidID] = useState(false);
+  
+  // Modal state for image preview
+  const [previewModal, setPreviewModal] = useState({ isOpen: false, imageUrl: "", title: "" });
+  
+  const openImagePreview = (imageUrl, title) => {
+    setPreviewModal({ isOpen: true, imageUrl, title });
+  };
+  
+  const closeImagePreview = () => {
+    setPreviewModal({ isOpen: false, imageUrl: "", title: "" });
+  };
 
   // Auto-use stored documents on mount if available
   useEffect(() => {
@@ -168,42 +213,80 @@ export default function FileUploadTab({
             />
           </div>
         ) : (
-          <div className="border rounded-lg p-4 flex items-center justify-between bg-[var(--color-neutral)]">
-            <div className="flex items-center gap-3">
-              {photo1x1Preview ? (
-                <img
-                  src={photo1x1Preview}
-                  alt="1x1 Photo Preview"
-                  className="w-16 h-16 object-cover rounded"
-                />
-              ) : (
-                <File className="text-[var(--color-secondary)]" size={32} />
-              )}
-              <div>
-                <p className="text-sm font-medium text-[var(--color-text-color)]">
-                  {formData.photo1x1File.name}
-                </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-[var(--color-text-secondary)]">
-                    {formData.photo1x1File.size
-                      ? `${(formData.photo1x1File.size / 1024).toFixed(2)} KB`
-                      : "Previously uploaded"}
+          <div className="border rounded-lg p-4 bg-[var(--color-neutral)]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {photo1x1Preview ? (
+                  <div 
+                    className="relative group cursor-pointer"
+                    onClick={() => openImagePreview(photo1x1Preview, "1x1 Photo Preview")}
+                  >
+                    <img
+                      src={photo1x1Preview}
+                      alt="1x1 Photo Preview"
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded">
+                      <Eye size={20} className="text-white" />
+                    </div>
+                  </div>
+                ) : (
+                  <File className="text-[var(--color-secondary)]" size={32} />
+                )}
+                <div>
+                  <p className="text-sm font-medium text-[var(--color-text-color)]">
+                    {formData.photo1x1File.name}
                   </p>
-                  {usingStoredPhoto && (
-                    <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                      <CheckCircle size={10} /> Saved from account
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      {formData.photo1x1File.size
+                        ? `${(formData.photo1x1File.size / 1024).toFixed(2)} KB`
+                        : "Previously uploaded"}
+                    </p>
+                    {usingStoredPhoto && (
+                      <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                        <CheckCircle size={10} /> Saved from account
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
+              <div className="flex items-center gap-2">
+                {photo1x1Preview && (
+                  <button
+                    type="button"
+                    onClick={() => openImagePreview(photo1x1Preview, "1x1 Photo Preview")}
+                    className="p-2 hover:bg-blue-50 rounded-full transition"
+                    title="View image"
+                  >
+                    <Eye size={18} className="text-blue-500" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => photo1x1Ref.current?.click()}
+                  className="p-2 hover:bg-gray-100 rounded-full transition"
+                  title="Change image"
+                >
+                  <RefreshCw size={18} className="text-gray-500" />
+                </button>
+                <button
+                  type="button"
+                  onClick={removePhoto1x1}
+                  className="p-2 hover:bg-red-50 rounded-full transition"
+                  title="Remove"
+                >
+                  <X size={18} className="text-red-500" />
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={removePhoto1x1}
-              className="p-2 hover:bg-red-50 rounded-full transition"
-            >
-              <X size={18} className="text-red-500" />
-            </button>
+            <input
+              ref={photo1x1Ref}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png"
+              onChange={handlePhoto1x1}
+              className="hidden"
+            />
           </div>
         )}
         {errors.photo1x1File && (
@@ -252,42 +335,80 @@ export default function FileUploadTab({
             />
           </div>
         ) : (
-          <div className="border rounded-lg p-4 flex items-center justify-between bg-[var(--color-neutral)]">
-            <div className="flex items-center gap-3">
-              {validIDPreview ? (
-                <img
-                  src={validIDPreview}
-                  alt="Valid ID Preview"
-                  className="w-16 h-16 object-cover rounded"
-                />
-              ) : (
-                <File className="text-[var(--color-secondary)]" size={32} />
-              )}
-              <div>
-                <p className="text-sm font-medium text-[var(--color-text-color)]">
-                  {formData.validIDFile.name}
-                </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs text-[var(--color-text-secondary)]">
-                    {formData.validIDFile.size
-                      ? `${(formData.validIDFile.size / 1024).toFixed(2)} KB`
-                      : "Previously uploaded"}
+          <div className="border rounded-lg p-4 bg-[var(--color-neutral)]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {validIDPreview ? (
+                  <div 
+                    className="relative group cursor-pointer"
+                    onClick={() => openImagePreview(validIDPreview, "Valid ID Preview")}
+                  >
+                    <img
+                      src={validIDPreview}
+                      alt="Valid ID Preview"
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded">
+                      <Eye size={20} className="text-white" />
+                    </div>
+                  </div>
+                ) : (
+                  <File className="text-[var(--color-secondary)]" size={32} />
+                )}
+                <div>
+                  <p className="text-sm font-medium text-[var(--color-text-color)]">
+                    {formData.validIDFile.name}
                   </p>
-                  {usingStoredValidID && (
-                    <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">
-                      <CheckCircle size={10} /> Saved from account
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      {formData.validIDFile.size
+                        ? `${(formData.validIDFile.size / 1024).toFixed(2)} KB`
+                        : "Previously uploaded"}
+                    </p>
+                    {usingStoredValidID && (
+                      <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">
+                        <CheckCircle size={10} /> Saved from account
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
+              <div className="flex items-center gap-2">
+                {validIDPreview && (
+                  <button
+                    type="button"
+                    onClick={() => openImagePreview(validIDPreview, "Valid ID Preview")}
+                    className="p-2 hover:bg-blue-50 rounded-full transition"
+                    title="View image"
+                  >
+                    <Eye size={18} className="text-blue-500" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => validIDRef.current?.click()}
+                  className="p-2 hover:bg-gray-100 rounded-full transition"
+                  title="Change image"
+                >
+                  <RefreshCw size={18} className="text-gray-500" />
+                </button>
+                <button
+                  type="button"
+                  onClick={removeValidID}
+                  className="p-2 hover:bg-red-50 rounded-full transition"
+                  title="Remove"
+                >
+                  <X size={18} className="text-red-500" />
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={removeValidID}
-              className="p-2 hover:bg-red-50 rounded-full transition"
-            >
-              <X size={18} className="text-red-500" />
-            </button>
+            <input
+              ref={validIDRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png"
+              onChange={handleValidID}
+              className="hidden"
+            />
           </div>
         )}
         {errors.validIDFile && (
@@ -307,6 +428,9 @@ export default function FileUploadTab({
             <li>Photos should be in color and not edited</li>
             <li>File names should not contain special characters</li>
             <li>Maximum file size is 5MB per document</li>
+            <li className="text-amber-600">
+              <strong>Privacy Notice:</strong> Uploaded ID images will be automatically deleted from our servers after your request is approved or rejected
+            </li>
             {(storedDocuments.photo1x1?.url ||
               storedDocuments.validID?.url) && (
               <li className="text-green-600">
@@ -319,6 +443,14 @@ export default function FileUploadTab({
           </ul>
         </div>
       </div>
+      
+      {/* Image Preview Modal */}
+      <ImagePreviewModal
+        isOpen={previewModal.isOpen}
+        onClose={closeImagePreview}
+        imageUrl={previewModal.imageUrl}
+        title={previewModal.title}
+      />
     </div>
   );
 }

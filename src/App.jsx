@@ -36,6 +36,9 @@ import AdminOfficials from "./admin/pages/Officials/AdminOfficials";
 import CMSServices from "./admin/pages/CMS/CMSServices";
 import CMSAboutUs from "./admin/pages/CMS/CMSAboutUs";
 import AdminProfile from "./admin/pages/Profile/AdminProfile";
+import DocumentRequestHistory from "./admin/pages/ActivityLogs/DocumentRequestHistory";
+import DocumentPayments from "./admin/pages/Transparency/DocumentPayments";
+import WebsiteFeedback from "./admin/pages/Feedback/WebsiteFeedback";
 
 // Resident Auth
 import ResidentAuth from "./users/pages/Auth/ResidentAuth";
@@ -167,6 +170,9 @@ function App() {
             <Route path="officials" element={<AdminOfficials />} />
             <Route path="cms/services" element={<CMSServices />} />
             <Route path="cms/about-us" element={<CMSAboutUs />} />
+            <Route path="document-history" element={<DocumentRequestHistory />} />
+            <Route path="document-payments" element={<DocumentPayments />} />
+            <Route path="feedback" element={<WebsiteFeedback />} />
           </Route>
 
           {/* User Routes with MainLayout */}

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Bell, Search, Menu, Sun, Moon, LogOut, User } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Bell, Menu, Sun, Moon, LogOut, User } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import TabSearch from "./TabSearch";
 
 const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -13,6 +14,10 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
   const [loading, setLoading] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  
+  // Refs for click outside detection
+  const profileDropdownRef = useRef(null);
+  const notificationsDropdownRef = useRef(null);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -21,6 +26,21 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
     // Poll for new notifications every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Handle click outside for profile dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
+        setShowProfile(false);
+      }
+      if (notificationsDropdownRef.current && !notificationsDropdownRef.current.contains(e.target)) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const fetchNotifications = async () => {
@@ -53,11 +73,37 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
     navigate("/login");
   };
 
-  const handleNotificationClick = (notification) => {
+  const handleNotificationClick = async (notification) => {
+    try {
+      // Mark notification as read
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        `${API_URL}/api/notifications/${notification.id}/read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Remove from local state
+      setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+
+    // Navigate to the relevant page
     if (notification.link) {
       navigate(notification.link);
-      setShowNotifications(false);
+    } else if (notification.type === "registration") {
+      navigate("/admin/pending-registrations");
+    } else if (notification.type === "document") {
+      navigate("/admin/documents");
+    } else if (notification.type === "feedback") {
+      navigate("/admin/feedback");
+    } else if (notification.type === "report") {
+      navigate("/admin/reports");
     }
+    
+    setShowNotifications(false);
   };
 
   return (
@@ -80,14 +126,9 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
           <Menu className="w-6 h-6" />
         </button>
 
-        {/* Search Bar */}
-        <div className="relative hidden md:block">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-64 py-2 pl-10 pr-4 text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400"
-          />
-          <Search className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
+        {/* Tab Search */}
+        <div className="hidden md:block">
+          <TabSearch />
         </div>
       </div>
 
@@ -107,7 +148,7 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
         </button>
 
         {/* Notifications */}
-        <div className="relative">
+        <div className="relative" ref={notificationsDropdownRef}>
           <button
             onClick={() => {
               setShowNotifications(!showNotifications);
@@ -198,7 +239,7 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
         </div>
 
         {/* Profile Dropdown */}
-        <div className="relative">
+        <div className="relative" ref={profileDropdownRef}>
           <button
             onClick={() => setShowProfile(!showProfile)}
             className="flex items-center space-x-2"

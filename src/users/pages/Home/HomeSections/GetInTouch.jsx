@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-import { MapPin, Clock, FileText } from "lucide-react";
+import { MapPin, Clock, FileText, Star, CheckCircle, AlertCircle, Loader } from "lucide-react";
 import Button from "../../../../tailadminsrc/components/ui/button/Button";
 import axios from "axios";
 
@@ -36,6 +36,20 @@ const GetInTouch = () => {
     }
   });
 
+  // Form state
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    subject: "",
+    message: "",
+    rating: 0,
+    privacyAccepted: false,
+  });
+  const [hoveredStar, setHoveredStar] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState({ type: "", message: "" });
+
   useEffect(() => {
     const fetchBarangayInfo = async () => {
       try {
@@ -49,6 +63,85 @@ const GetInTouch = () => {
     };
     fetchBarangayInfo();
   }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleRatingClick = (rating) => {
+    setFormData((prev) => ({ ...prev, rating }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitStatus({ type: "", message: "" });
+
+    // Validation
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.subject || !formData.message) {
+      setSubmitStatus({ type: "error", message: "Please fill in all required fields." });
+      return;
+    }
+
+    if (!formData.privacyAccepted) {
+      setSubmitStatus({ type: "error", message: "Please accept the privacy policy to continue." });
+      return;
+    }
+
+    if (formData.rating === 0) {
+      setSubmitStatus({ type: "error", message: "Please provide a star rating for your experience." });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const response = await axios.post(`${API_URL}/api/contact-messages`, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        rating: formData.rating,
+        category: "feedback",
+      });
+
+      if (response.data.success) {
+        setSubmitStatus({ type: "success", message: response.data.message || "Thank you for your feedback! We'll get back to you soon." });
+        // Reset form
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          subject: "",
+          message: "",
+          rating: 0,
+          privacyAccepted: false,
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      setSubmitStatus({ 
+        type: "error", 
+        message: error.response?.data?.message || "Failed to submit feedback. Please try again." 
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const getRatingLabel = (rating) => {
+    switch (rating) {
+      case 1: return "Very Poor";
+      case 2: return "Poor";
+      case 3: return "Average";
+      case 4: return "Good";
+      case 5: return "Excellent";
+      default: return "Rate your experience";
+    }
+  };
 
   return (
     <section className="py-16 px-4 bg-background text-foreground">
@@ -220,21 +313,53 @@ const GetInTouch = () => {
           >
             <h3 className="text-xl font-bold mb-6">Send us a Message</h3>
 
-            <form className="space-y-4">
+            {/* Status Messages */}
+            {submitStatus.message && (
+              <div
+                className={`mb-4 p-4 rounded-lg flex items-center gap-2 ${
+                  submitStatus.type === "success"
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                    : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                }`}
+              >
+                {submitStatus.type === "success" ? (
+                  <CheckCircle className="w-5 h-5" />
+                ) : (
+                  <AlertCircle className="w-5 h-5" />
+                )}
+                <span>{submitStatus.message}</span>
+              </div>
+            )}
+
+            <form className="space-y-4" onSubmit={handleSubmit}>
               {/* First & Last Name */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {["First Name", "Last Name"].map((label, i) => (
-                  <div key={i}>
-                    <label className="block text-sm font-medium mb-2">
-                      {label} <span className="text-secondary">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder={`Enter your ${label.toLowerCase()}`}
-                      className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary outline-none transition-all bg-background"
-                    />
-                  </div>
-                ))}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    First Name <span className="text-secondary">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    placeholder="Enter your first name"
+                    className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary outline-none transition-all bg-background"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Last Name <span className="text-secondary">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    placeholder="Enter your last name"
+                    className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary outline-none transition-all bg-background"
+                  />
+                </div>
               </div>
 
               {/* Email */}
@@ -244,6 +369,9 @@ const GetInTouch = () => {
                 </label>
                 <input
                   type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
                   placeholder="Enter your email address"
                   className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary outline-none transition-all bg-background"
                 />
@@ -254,14 +382,52 @@ const GetInTouch = () => {
                 <label className="block text-sm font-medium mb-2">
                   Subject <span className="text-secondary">*</span>
                 </label>
-                <select className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary bg-background outline-none transition-all">
-                  <option>Select a subject</option>
-                  <option>Document Request</option>
-                  <option>General Inquiry</option>
-                  <option>Complaint</option>
-                  <option>Feedback</option>
-                  <option>Other</option>
+                <select
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary bg-background outline-none transition-all"
+                >
+                  <option value="">Select a subject</option>
+                  <option value="Document Request">Document Request</option>
+                  <option value="General Inquiry">General Inquiry</option>
+                  <option value="Complaint">Complaint</option>
+                  <option value="Feedback">Feedback</option>
+                  <option value="Suggestion">Suggestion</option>
+                  <option value="Other">Other</option>
                 </select>
+              </div>
+
+              {/* Star Rating */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Rate Your Experience <span className="text-secondary">*</span>
+                </label>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => handleRatingClick(star)}
+                        onMouseEnter={() => setHoveredStar(star)}
+                        onMouseLeave={() => setHoveredStar(0)}
+                        className="p-1 transition-transform hover:scale-110"
+                      >
+                        <Star
+                          className={`w-8 h-8 transition-colors ${
+                            star <= (hoveredStar || formData.rating)
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-gray-300 dark:text-gray-600"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    {getRatingLabel(hoveredStar || formData.rating)}
+                  </span>
+                </div>
               </div>
 
               {/* Message */}
@@ -270,6 +436,9 @@ const GetInTouch = () => {
                   Message <span className="text-secondary">*</span>
                 </label>
                 <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleInputChange}
                   rows={5}
                   placeholder="Write your message here..."
                   className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary outline-none transition-all bg-background resize-none"
@@ -281,6 +450,9 @@ const GetInTouch = () => {
                 <input
                   type="checkbox"
                   id="privacy"
+                  name="privacyAccepted"
+                  checked={formData.privacyAccepted}
+                  onChange={handleInputChange}
                   className="mt-1 w-4 h-4 text-secondary border-border rounded focus:ring-secondary"
                 />
                 <label
@@ -303,24 +475,29 @@ const GetInTouch = () => {
                 type="submit"
                 variant="secondary"
                 size="sm"
+                disabled={submitting}
                 className="w-full font-medium transition-all duration-200"
                 startIcon={
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                    />
-                  </svg>
+                  submitting ? (
+                    <Loader className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                      />
+                    </svg>
+                  )
                 }
               >
-                Send Message
+                {submitting ? "Sending..." : "Send Message"}
               </Button>
             </form>
           </motion.div>
