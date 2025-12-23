@@ -46,18 +46,18 @@ const AdminDocuments = () => {
 
   // Document prices
   const DOCUMENT_PRICES = {
-    'indigency': 0,
-    'residency': 50,
-    'clearance': 100,
-    'business_permit': 500,
-    'business_clearance': 200,
-    'good_moral': 75,
-    'barangay_id': 150,
-    'liquor_permit': 300,
-    'missionary': 50,
-    'rehab': 50,
-    'ctc': 50,
-    'building_permit': 500,
+    indigency: 0,
+    residency: 50,
+    clearance: 100,
+    business_permit: 500,
+    business_clearance: 200,
+    good_moral: 75,
+    barangay_id: 150,
+    liquor_permit: 300,
+    missionary: 50,
+    rehab: 50,
+    ctc: 50,
+    building_permit: 500,
   };
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -165,12 +165,10 @@ const AdminDocuments = () => {
     const colors = {
       pending:
         "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-      approved:
-        "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+      approved: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
       pending_payment:
         "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-      paid:
-        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
+      paid: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
       completed:
         "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
       rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
@@ -228,29 +226,31 @@ const AdminDocuments = () => {
       const response = await axios.post(
         `${API_URL}/api/documents/generate/${requestId}`,
         {},
-        { 
+        {
           headers: { Authorization: `Bearer ${token}` },
-          responseType: 'blob'
+          responseType: "blob",
         }
       );
 
       // Create download link for the blob
       const blob = new Blob([response.data], {
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      
+
       // Extract filename from Content-Disposition header or use default
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = `${documentType}_${request?.lastName || 'certificate'}.docx`;
+      const contentDisposition = response.headers["content-disposition"];
+      let filename = `${documentType}_${
+        request?.lastName || "certificate"
+      }.docx`;
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="(.+)"/);
         if (match) filename = match[1];
       }
-      
-      link.setAttribute('download', filename);
+
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -295,7 +295,10 @@ const AdminDocuments = () => {
   };
 
   // Handle payment waiver
-  const handleWaivePayment = async (requestId, reason = "Fee waived by admin") => {
+  const handleWaivePayment = async (
+    requestId,
+    reason = "Fee waived by admin"
+  ) => {
     try {
       setProcessingPayment(requestId);
       setError("");
@@ -321,7 +324,8 @@ const AdminDocuments = () => {
   // Get payment status badge color
   const getPaymentStatusColor = (paymentStatus) => {
     const colors = {
-      unpaid: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+      unpaid:
+        "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
       paid: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
       waived: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
     };
@@ -486,9 +490,11 @@ const AdminDocuments = () => {
                               )}`}
                             >
                               <CreditCard className="w-3 h-3 mr-1" />
-                              {request.paymentStatus === "waived" 
-                                ? "Fee Waived" 
-                                : request.paymentStatus?.charAt(0).toUpperCase() + 
+                              {request.paymentStatus === "waived"
+                                ? "Fee Waived"
+                                : request.paymentStatus
+                                    ?.charAt(0)
+                                    .toUpperCase() +
                                   request.paymentStatus?.slice(1)}
                             </span>
                           )}
@@ -530,8 +536,9 @@ const AdminDocuments = () => {
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <DollarSign className="w-4 h-4" />
                         <span>
-                          Fee: {DOCUMENT_PRICES[request.documentType] === 0 
-                            ? "FREE" 
+                          Fee:{" "}
+                          {DOCUMENT_PRICES[request.documentType] === 0
+                            ? "FREE"
                             : `₱${DOCUMENT_PRICES[request.documentType] || 0}`}
                         </span>
                       </div>
@@ -585,51 +592,56 @@ const AdminDocuments = () => {
                     )}
 
                     {/* Approved but unpaid: Show payment management buttons */}
-                    {request.status === "approved" && request.paymentStatus === "unpaid" && DOCUMENT_PRICES[request.documentType] > 0 && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleConfirmPayment(request._id)}
-                          disabled={processingPayment === request._id}
-                          className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
-                          title="Confirm walk-in payment"
-                        >
-                          {processingPayment === request._id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <>
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Confirm Paid
-                            </>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleWaivePayment(request._id)}
-                          disabled={processingPayment === request._id}
-                          className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50"
-                          title="Waive payment fee"
-                        >
-                          <Ban className="w-4 h-4 mr-1" />
-                          Waive Fee
-                        </button>
-                      </div>
-                    )}
+                    {request.status === "approved" &&
+                      request.paymentStatus === "unpaid" &&
+                      DOCUMENT_PRICES[request.documentType] > 0 && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleConfirmPayment(request._id)}
+                            disabled={processingPayment === request._id}
+                            className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+                            title="Confirm walk-in payment"
+                          >
+                            {processingPayment === request._id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Confirm Paid
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleWaivePayment(request._id)}
+                            disabled={processingPayment === request._id}
+                            className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50"
+                            title="Waive payment fee"
+                          >
+                            <Ban className="w-4 h-4 mr-1" />
+                            Waive Fee
+                          </button>
+                        </div>
+                      )}
 
                     {/* Approved/Completed and paid/waived: Show Generate Document */}
-                    {(request.status === "approved" || request.status === "completed") && 
-                     (request.paymentStatus === "paid" || request.paymentStatus === "waived" || DOCUMENT_PRICES[request.documentType] === 0) && (
-                      <button
-                        onClick={() => handleGenerateDocument(request._id)}
-                        disabled={generating}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        {generating ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <Download className="w-4 h-4 mr-2" />
-                        )}
-                        Generate Document
-                      </button>
-                    )}
+                    {(request.status === "approved" ||
+                      request.status === "completed") &&
+                      (request.paymentStatus === "paid" ||
+                        request.paymentStatus === "waived" ||
+                        DOCUMENT_PRICES[request.documentType] === 0) && (
+                        <button
+                          onClick={() => handleGenerateDocument(request._id)}
+                          disabled={generating}
+                          className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {generating ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Download className="w-4 h-4 mr-2" />
+                          )}
+                          Generate Document
+                        </button>
+                      )}
                   </div>
                 </div>
               </div>
@@ -701,9 +713,11 @@ const AdminDocuments = () => {
                       Document Fee
                     </label>
                     <p className="mt-1 text-gray-900 dark:text-white font-semibold">
-                      {DOCUMENT_PRICES[selectedRequest.documentType] === 0 
-                        ? "FREE" 
-                        : `₱${DOCUMENT_PRICES[selectedRequest.documentType] || 0}`}
+                      {DOCUMENT_PRICES[selectedRequest.documentType] === 0
+                        ? "FREE"
+                        : `₱${
+                            DOCUMENT_PRICES[selectedRequest.documentType] || 0
+                          }`}
                     </p>
                   </div>
                   {selectedRequest.purposeOfRequest && (
@@ -737,9 +751,11 @@ const AdminDocuments = () => {
                             selectedRequest.paymentStatus
                           )}`}
                         >
-                          {selectedRequest.paymentStatus === "waived" 
-                            ? "Fee Waived" 
-                            : selectedRequest.paymentStatus?.charAt(0).toUpperCase() + 
+                          {selectedRequest.paymentStatus === "waived"
+                            ? "Fee Waived"
+                            : selectedRequest.paymentStatus
+                                ?.charAt(0)
+                                .toUpperCase() +
                               selectedRequest.paymentStatus?.slice(1)}
                         </span>
                       </p>
@@ -775,32 +791,37 @@ const AdminDocuments = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Payment Actions */}
-                  {selectedRequest.paymentStatus === "unpaid" && DOCUMENT_PRICES[selectedRequest.documentType] > 0 && (
-                    <div className="mt-4 pt-4 border-t border-yellow-200 dark:border-yellow-800 flex gap-3">
-                      <button
-                        onClick={() => handleConfirmPayment(selectedRequest._id)}
-                        disabled={processingPayment === selectedRequest._id}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        {processingPayment === selectedRequest._id ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                        )}
-                        Confirm Walk-in Payment
-                      </button>
-                      <button
-                        onClick={() => handleWaivePayment(selectedRequest._id)}
-                        disabled={processingPayment === selectedRequest._id}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50"
-                      >
-                        <Ban className="w-4 h-4 mr-2" />
-                        Waive Fee
-                      </button>
-                    </div>
-                  )}
+                  {selectedRequest.paymentStatus === "unpaid" &&
+                    DOCUMENT_PRICES[selectedRequest.documentType] > 0 && (
+                      <div className="mt-4 pt-4 border-t border-yellow-200 dark:border-yellow-800 flex gap-3">
+                        <button
+                          onClick={() =>
+                            handleConfirmPayment(selectedRequest._id)
+                          }
+                          disabled={processingPayment === selectedRequest._id}
+                          className="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {processingPayment === selectedRequest._id ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                          )}
+                          Confirm Walk-in Payment
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleWaivePayment(selectedRequest._id)
+                          }
+                          disabled={processingPayment === selectedRequest._id}
+                          className="flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          <Ban className="w-4 h-4 mr-2" />
+                          Waive Fee
+                        </button>
+                      </div>
+                    )}
                 </div>
               )}
 
@@ -1038,7 +1059,9 @@ const AdminDocuments = () => {
                     Reject Request
                   </button>
                   <button
-                    onClick={() => handleAction(selectedRequest._id, "approved")}
+                    onClick={() =>
+                      handleAction(selectedRequest._id, "approved")
+                    }
                     disabled={updating}
                     className="flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
                   >
@@ -1046,7 +1069,8 @@ const AdminDocuments = () => {
                     Approve Request
                   </button>
                 </>
-              ) : (selectedRequest.status === "approved" || selectedRequest.status === "completed") ? (
+              ) : selectedRequest.status === "approved" ||
+                selectedRequest.status === "completed" ? (
                 <>
                   <button
                     onClick={() => {

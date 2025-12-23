@@ -12,7 +12,10 @@ import {
 
 const DOCUMENT_TYPES = [
   { value: "indigency", label: "Certificate of Indigency" },
-  { value: "residency", label: "Certificate of Residency (for City Hall requirement)" },
+  {
+    value: "residency",
+    label: "Certificate of Residency (for City Hall requirement)",
+  },
   { value: "clearance", label: "Barangay Clearance" },
   { value: "business_permit", label: "Certificate for Business Permit" },
   { value: "business_clearance", label: "Certificate for Business Closure" },
@@ -61,10 +64,10 @@ export default function DocumentRequestTab({
   isBusinessDocument,
 }) {
   const onChange = (e) => setField(e.target.name, e.target.value);
-  
+
   // State for custom purpose input
   const [showCustomPurpose, setShowCustomPurpose] = React.useState(false);
-  
+
   const handlePurposeChange = (e) => {
     const value = e.target.value;
     if (value === "Other") {
@@ -247,22 +250,35 @@ export default function DocumentRequestTab({
                 type="month"
                 name="residencySince"
                 value={
-                  formData.residencySince 
+                  formData.residencySince
                     ? (() => {
                         // Convert "Month YYYY" format back to "YYYY-MM" for the input
                         const monthNames = [
-                          'January', 'February', 'March', 'April', 'May', 'June',
-                          'July', 'August', 'September', 'October', 'November', 'December'
+                          "January",
+                          "February",
+                          "March",
+                          "April",
+                          "May",
+                          "June",
+                          "July",
+                          "August",
+                          "September",
+                          "October",
+                          "November",
+                          "December",
                         ];
-                        const parts = formData.residencySince.split(' ');
+                        const parts = formData.residencySince.split(" ");
                         if (parts.length === 2) {
                           const monthIndex = monthNames.indexOf(parts[0]);
                           if (monthIndex !== -1) {
-                            const month = String(monthIndex + 1).padStart(2, '0');
+                            const month = String(monthIndex + 1).padStart(
+                              2,
+                              "0"
+                            );
                             return `${parts[1]}-${month}`;
                           }
                         }
-                        return '';
+                        return "";
                       })()
                     : ""
                 }
@@ -270,16 +286,28 @@ export default function DocumentRequestTab({
                   // Convert YYYY-MM format to "Month YYYY" format for storage
                   const value = e.target.value;
                   if (value) {
-                    const [year, month] = value.split('-');
+                    const [year, month] = value.split("-");
                     const monthNames = [
-                      'January', 'February', 'March', 'April', 'May', 'June',
-                      'July', 'August', 'September', 'October', 'November', 'December'
+                      "January",
+                      "February",
+                      "March",
+                      "April",
+                      "May",
+                      "June",
+                      "July",
+                      "August",
+                      "September",
+                      "October",
+                      "November",
+                      "December",
                     ];
                     const monthName = monthNames[parseInt(month) - 1];
                     const formattedValue = `${monthName} ${year}`;
-                    onChange({ target: { name: 'residencySince', value: formattedValue } });
+                    onChange({
+                      target: { name: "residencySince", value: formattedValue },
+                    });
                   } else {
-                    onChange({ target: { name: 'residencySince', value: '' } });
+                    onChange({ target: { name: "residencySince", value: "" } });
                   }
                 }}
                 className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
@@ -294,7 +322,9 @@ export default function DocumentRequestTab({
                 </p>
               )}
               <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                Select the month and year when you started residing in the barangay. Reference No., Document File No., and Prepared By are automatically generated.
+                Select the month and year when you started residing in the
+                barangay. Reference No., Document File No., and Prepared By are
+                automatically generated.
               </p>
             </div>
           </div>
@@ -395,7 +425,7 @@ export default function DocumentRequestTab({
             </h2>
           </div>
           <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-            Required for missionary visa applications.
+            Required for missionary visa applications. All fields are required.
           </p>
 
           <div className="space-y-4">
@@ -408,12 +438,14 @@ export default function DocumentRequestTab({
                   name="nationality"
                   value={formData.nationality || ""}
                   onChange={onChange}
+                  pattern="[A-Za-z\s\-]+"
                   className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
                     errors.nationality
                       ? "border-red-500"
                       : "border-[var(--color-neutral-active)]"
                   }`}
                   placeholder="e.g., Vietnamese"
+                  title="Alphabetic characters only"
                 />
                 {errors.nationality && (
                   <p className="text-xs text-red-500 mt-1">
@@ -424,17 +456,29 @@ export default function DocumentRequestTab({
 
               <div>
                 <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  ACR Number
+                  ACR Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="acrNumber"
                   value={formData.acrNumber || ""}
                   onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  pattern="[A-Z]\d{10}"
+                  maxLength={11}
+                  className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                    errors.acrNumber
+                      ? "border-red-500"
+                      : "border-[var(--color-neutral-active)]"
+                  }`}
                   placeholder="e.g., G0000156451"
+                  title="1 uppercase letter followed by 10 digits"
                 />
+                {errors.acrNumber && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.acrNumber}
+                  </p>
+                )}
                 <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                  Alien Certificate of Registration
+                  Format: 1 letter + 10 digits (e.g., G0000156451)
                 </p>
               </div>
             </div>
@@ -442,28 +486,52 @@ export default function DocumentRequestTab({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  ACR Valid Until
+                  ACR Valid Until <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   name="acrValidUntil"
                   value={formData.acrValidUntil || ""}
                   onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                    errors.acrValidUntil
+                      ? "border-red-500"
+                      : "border-[var(--color-neutral-active)]"
+                  }`}
                 />
+                {errors.acrValidUntil && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.acrValidUntil}
+                  </p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-[var(--color-text-color)]">
-                  Passport Number
+                  Passport Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="passportNumber"
                   value={formData.passportNumber || ""}
                   onChange={onChange}
-                  className="mt-1 block w-full rounded-md border px-3 py-2 outline-none transition border-[var(--color-neutral-active)]"
+                  pattern="[A-Z0-9]{6,9}"
+                  maxLength={9}
+                  className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
+                    errors.passportNumber
+                      ? "border-red-500"
+                      : "border-[var(--color-neutral-active)]"
+                  }`}
                   placeholder="e.g., C4366706"
+                  title="6-9 alphanumeric characters"
                 />
+                {errors.passportNumber && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors.passportNumber}
+                  </p>
+                )}
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                  Format: 6-9 letters/numbers (e.g., C4366706)
+                </p>
               </div>
             </div>
           </div>
@@ -682,7 +750,13 @@ export default function DocumentRequestTab({
           </label>
           <select
             name="purposeDropdown"
-            value={showCustomPurpose ? "Other" : (PURPOSE_OPTIONS.find(p => p.value === formData.purposeOfRequest)?.value || "")}
+            value={
+              showCustomPurpose
+                ? "Other"
+                : PURPOSE_OPTIONS.find(
+                    (p) => p.value === formData.purposeOfRequest
+                  )?.value || ""
+            }
             onChange={handlePurposeChange}
             className={`mt-1 block w-full rounded-md border px-3 py-2 outline-none transition ${
               errors.purposeOfRequest && !formData.purposeOfRequest
@@ -697,7 +771,7 @@ export default function DocumentRequestTab({
               </option>
             ))}
           </select>
-          
+
           {/* Custom Purpose Input - shows when "Other" is selected */}
           {showCustomPurpose && (
             <textarea

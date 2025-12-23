@@ -321,6 +321,45 @@ export default function Services() {
         e.residencyType = "Residency type is required for Barangay ID";
     }
 
+    // Missionary certificate validation - all fields required with format validation
+    if (formData.documentType === "missionary") {
+      // Nationality is required (already checked in general validation above)
+
+      // ACR Number - required and must match format
+      if (!formData.acrNumber?.trim()) {
+        e.acrNumber = "ACR Number is required";
+      } else {
+        const acrPattern = /^[A-Z]\d{10}$/;
+        if (!acrPattern.test(formData.acrNumber.trim())) {
+          e.acrNumber =
+            "ACR Number must be 1 uppercase letter followed by 10 digits (e.g., G0000156451)";
+        }
+      }
+
+      // ACR Valid Until - required and must be future date
+      if (!formData.acrValidUntil) {
+        e.acrValidUntil = "ACR expiration date is required";
+      } else {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const validUntil = new Date(formData.acrValidUntil);
+        if (validUntil < today) {
+          e.acrValidUntil = "ACR expiration date must be in the future";
+        }
+      }
+
+      // Passport Number - required and must match format
+      if (!formData.passportNumber?.trim()) {
+        e.passportNumber = "Passport Number is required";
+      } else {
+        const passportPattern = /^[A-Z0-9]{6,9}$/i;
+        if (!passportPattern.test(formData.passportNumber.trim())) {
+          e.passportNumber =
+            "Passport Number must be 6-9 alphanumeric characters (e.g., C4366706)";
+        }
+      }
+    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -674,11 +713,10 @@ export default function Services() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed mx-auto"
           >
-            Request your official barangay documents online quickly and securely.
-            Fill out the form below and track your request status.
+            Request your official barangay documents online quickly and
+            securely. Fill out the form below and track your request status.
           </motion.p>
         </div>
-
 
         {/* Wave Divider */}
         <div
@@ -804,40 +842,53 @@ export default function Services() {
             {/* Step Indicators for Request Flow */}
             {active !== "my-requests" && (
               <div className="flex items-center justify-center mb-4">
-                {tabs.filter(t => t.step > 0).map((t, index, arr) => {
-                  const currentStep = tabs.find(tab => tab.id === active)?.step || 1;
-                  const isCompleted = t.step < currentStep;
-                  const isCurrent = t.step === currentStep;
-                  
-                  return (
-                    <React.Fragment key={t.id}>
-                      <div className="flex flex-col items-center">
-                        <div 
-                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                            isCompleted 
-                              ? "bg-green-500 text-white" 
-                              : isCurrent 
-                                ? "bg-[var(--color-secondary)] text-white ring-4 ring-[var(--color-secondary)]/20" 
+                {tabs
+                  .filter((t) => t.step > 0)
+                  .map((t, index, arr) => {
+                    const currentStep =
+                      tabs.find((tab) => tab.id === active)?.step || 1;
+                    const isCompleted = t.step < currentStep;
+                    const isCurrent = t.step === currentStep;
+
+                    return (
+                      <React.Fragment key={t.id}>
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                              isCompleted
+                                ? "bg-green-500 text-white"
+                                : isCurrent
+                                ? "bg-[var(--color-secondary)] text-white ring-4 ring-[var(--color-secondary)]/20"
                                 : "bg-gray-200 text-gray-500"
-                          }`}
-                        >
-                          {isCompleted ? "✓" : t.step}
+                            }`}
+                          >
+                            {isCompleted ? "✓" : t.step}
+                          </div>
+                          <span
+                            className={`text-xs mt-1 font-medium ${
+                              isCurrent
+                                ? "text-[var(--color-secondary)]"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            {t.label.replace(/^\d+\.\s*/, "")}
+                          </span>
                         </div>
-                        <span className={`text-xs mt-1 font-medium ${isCurrent ? "text-[var(--color-secondary)]" : "text-gray-500"}`}>
-                          {t.label.replace(/^\d+\.\s*/, "")}
-                        </span>
-                      </div>
-                      {index < arr.length - 1 && (
-                        <div className={`w-16 md:w-24 h-1 mx-2 rounded ${
-                          t.step < currentStep ? "bg-green-500" : "bg-gray-200"
-                        }`} />
-                      )}
-                    </React.Fragment>
-                  );
-                })}
+                        {index < arr.length - 1 && (
+                          <div
+                            className={`w-16 md:w-24 h-1 mx-2 rounded ${
+                              t.step < currentStep
+                                ? "bg-green-500"
+                                : "bg-gray-200"
+                            }`}
+                          />
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
               </div>
             )}
-            
+
             {/* Tab Buttons */}
             <nav
               className="flex gap-2 justify-center flex-wrap"
@@ -847,7 +898,7 @@ export default function Services() {
               {tabs.map((t) => {
                 const isActive = active === t.id;
                 const isMyRequests = t.id === "my-requests";
-                
+
                 return (
                   <motion.button
                     key={t.id}
@@ -861,8 +912,8 @@ export default function Services() {
                           ? "bg-blue-600 text-white shadow-md"
                           : "bg-[var(--color-secondary)] text-white shadow-md"
                         : isMyRequests
-                          ? "bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? "bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                     role="tab"
                     aria-selected={isActive}
@@ -982,11 +1033,16 @@ export default function Services() {
                     type="button"
                     onClick={() => {
                       if (!formData.documentType) {
-                        setErrors({ documentType: "Please select a document type first" });
+                        setErrors({
+                          documentType: "Please select a document type first",
+                        });
                         return;
                       }
                       if (!formData.purposeOfRequest) {
-                        setErrors({ purposeOfRequest: "Please enter the purpose of your request" });
+                        setErrors({
+                          purposeOfRequest:
+                            "Please enter the purpose of your request",
+                        });
                         return;
                       }
                       setActive("personal");
@@ -1019,9 +1075,7 @@ export default function Services() {
                         Submitting...
                       </>
                     ) : (
-                      <>
-                        ✓ Submit Request
-                      </>
+                      <>✓ Submit Request</>
                     )}
                   </button>
                 )}
