@@ -59,12 +59,42 @@ const DocumentRequestHistory = () => {
 
   const statuses = [
     { value: "all", label: "All Status" },
-    { value: "pending", label: "Pending", color: "text-yellow-600 bg-yellow-100", icon: Clock },
-    { value: "processing", label: "Processing", color: "text-blue-600 bg-blue-100", icon: AlertCircle },
-    { value: "approved", label: "Approved", color: "text-green-600 bg-green-100", icon: CheckCircle },
-    { value: "ready", label: "Ready for Pickup", color: "text-purple-600 bg-purple-100", icon: Printer },
-    { value: "released", label: "Released", color: "text-teal-600 bg-teal-100", icon: Receipt },
-    { value: "rejected", label: "Rejected", color: "text-red-600 bg-red-100", icon: XCircle },
+    {
+      value: "pending",
+      label: "Pending",
+      color: "text-yellow-600 bg-yellow-100",
+      icon: Clock,
+    },
+    {
+      value: "processing",
+      label: "Processing",
+      color: "text-blue-600 bg-blue-100",
+      icon: AlertCircle,
+    },
+    {
+      value: "approved",
+      label: "Approved",
+      color: "text-green-600 bg-green-100",
+      icon: CheckCircle,
+    },
+    {
+      value: "ready",
+      label: "Ready for Pickup",
+      color: "text-purple-600 bg-purple-100",
+      icon: Printer,
+    },
+    {
+      value: "released",
+      label: "Released",
+      color: "text-teal-600 bg-teal-100",
+      icon: Receipt,
+    },
+    {
+      value: "rejected",
+      label: "Rejected",
+      color: "text-red-600 bg-red-100",
+      icon: XCircle,
+    },
   ];
 
   useEffect(() => {
@@ -81,7 +111,8 @@ const DocumentRequestHistory = () => {
       });
 
       if (selectedStatus !== "all") params.append("status", selectedStatus);
-      if (selectedDocType !== "all") params.append("documentType", selectedDocType);
+      if (selectedDocType !== "all")
+        params.append("documentType", selectedDocType);
       if (dateFrom) params.append("dateFrom", dateFrom);
       if (dateTo) params.append("dateTo", dateTo);
       if (searchQuery) params.append("search", searchQuery);
@@ -92,36 +123,42 @@ const DocumentRequestHistory = () => {
           `${API_URL}/api/document-requests/history?${params.toString()}`,
           { headers: { Authorization: `Bearer ${token}` } }
         ),
-        axios.get(
-          `${API_URL}/api/document-requests/stats`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        ),
+        axios.get(`${API_URL}/api/document-requests/stats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       if (historyResponse.data.success) {
         // Transform backend data to match frontend expected format
-        const transformedRequests = (historyResponse.data.data.requests || []).map(req => ({
+        const transformedRequests = (
+          historyResponse.data.data.requests || []
+        ).map((req) => ({
           _id: req._id,
           referenceNumber: req.referenceNumber,
           documentType: req.documentType,
           documentName: req.documentName,
           requester: {
-            name: req.applicant?.name || `${req.applicant?.firstName || ''} ${req.applicant?.lastName || ''}`.trim() || 'Unknown',
-            email: req.applicant?.email || '',
-            phone: req.applicant?.phone || '',
+            name:
+              req.applicant?.name ||
+              `${req.applicant?.firstName || ""} ${
+                req.applicant?.lastName || ""
+              }`.trim() ||
+              "Unknown",
+            email: req.applicant?.email || "",
+            phone: req.applicant?.phone || "",
           },
-          purpose: req.purpose || 'General Purpose',
+          purpose: req.purpose || "General Purpose",
           status: req.status,
           fee: req.fees || 0,
-          isPaid: req.paymentStatus === 'paid',
+          isPaid: req.paymentStatus === "paid",
           paymentDate: req.paidAt || null,
           processedBy: req.processedBy,
           processedAt: req.processedAt,
-          remarks: req.remarks || '',
+          remarks: req.remarks || "",
           createdAt: req.createdAt,
           updatedAt: req.updatedAt,
         }));
-        
+
         setRequests(transformedRequests);
         setTotalPages(historyResponse.data.data.totalPages || 1);
         setTotalRequests(historyResponse.data.data.total || 0);
@@ -130,7 +167,9 @@ const DocumentRequestHistory = () => {
       if (statsResponse.data.success) {
         setStats({
           total: statsResponse.data.data.total || 0,
-          approved: (statsResponse.data.data.approved || 0) + (statsResponse.data.data.completed || 0),
+          approved:
+            (statsResponse.data.data.approved || 0) +
+            (statsResponse.data.data.completed || 0),
           pending: statsResponse.data.data.pending || 0,
           rejected: statsResponse.data.data.rejected || 0,
         });
@@ -165,7 +204,8 @@ const DocumentRequestHistory = () => {
       if (dateFrom) params.append("dateFrom", dateFrom);
       if (dateTo) params.append("dateTo", dateTo);
       if (selectedStatus !== "all") params.append("status", selectedStatus);
-      if (selectedDocType !== "all") params.append("documentType", selectedDocType);
+      if (selectedDocType !== "all")
+        params.append("documentType", selectedDocType);
 
       const response = await axios.get(
         `${API_URL}/api/documents/history/export?${params.toString()}`,
@@ -178,7 +218,10 @@ const DocumentRequestHistory = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `document-request-history-${new Date().toISOString().split("T")[0]}.csv`);
+      link.setAttribute(
+        "download",
+        `document-request-history-${new Date().toISOString().split("T")[0]}.csv`
+      );
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -255,8 +298,12 @@ const DocumentRequestHistory = () => {
               <FileText className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Total Requests</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {stats.total}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Total Requests
+              </p>
             </div>
           </div>
         </div>
@@ -267,8 +314,12 @@ const DocumentRequestHistory = () => {
               <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.approved}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Approved</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {stats.approved}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Approved
+              </p>
             </div>
           </div>
         </div>
@@ -279,8 +330,12 @@ const DocumentRequestHistory = () => {
               <Clock className="w-5 h-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.pending}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Pending</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {stats.pending}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Pending
+              </p>
             </div>
           </div>
         </div>
@@ -291,8 +346,12 @@ const DocumentRequestHistory = () => {
               <XCircle className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.rejected}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Rejected</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {stats.rejected}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Rejected
+              </p>
             </div>
           </div>
         </div>
@@ -448,7 +507,9 @@ const DocumentRequestHistory = () => {
                               {formatCurrency(request.fee)}
                             </span>
                             {request.isPaid && (
-                              <span className="text-xs text-green-600">Paid</span>
+                              <span className="text-xs text-green-600">
+                                Paid
+                              </span>
                             )}
                           </div>
                         </td>
@@ -475,11 +536,14 @@ const DocumentRequestHistory = () => {
             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Showing {(currentPage - 1) * requestsPerPage + 1} to{" "}
-                {Math.min(currentPage * requestsPerPage, totalRequests)} of {totalRequests} requests
+                {Math.min(currentPage * requestsPerPage, totalRequests)} of{" "}
+                {totalRequests} requests
               </p>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
                   disabled={currentPage === 1}
                   className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -489,7 +553,9 @@ const DocumentRequestHistory = () => {
                   Page {currentPage} of {totalPages}
                 </span>
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -504,10 +570,15 @@ const DocumentRequestHistory = () => {
       {/* Detail Modal */}
       {showDetailModal && selectedRequest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowDetailModal(false)} />
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowDetailModal(false)}
+          />
           <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Request Details</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Request Details
+              </h2>
               <button
                 onClick={() => setShowDetailModal(false)}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-500"
@@ -519,7 +590,9 @@ const DocumentRequestHistory = () => {
             <div className="space-y-4">
               {/* Reference Number */}
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Reference Number</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Reference Number
+                </p>
                 <p className="text-xl font-bold font-mono text-blue-600 dark:text-blue-400">
                   {selectedRequest.referenceNumber}
                 </p>
@@ -528,26 +601,44 @@ const DocumentRequestHistory = () => {
               {/* Document Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Document Type</p>
-                  <p className="font-medium text-gray-900 dark:text-white">{selectedRequest.documentName}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Document Type
+                  </p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {selectedRequest.documentName}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Purpose</p>
-                  <p className="font-medium text-gray-900 dark:text-white">{selectedRequest.purpose}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Purpose
+                  </p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {selectedRequest.purpose}
+                  </p>
                 </div>
               </div>
 
               {/* Requester Info */}
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Requester Information</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                  Requester Information
+                </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Name</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{selectedRequest.requester?.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Name
+                    </p>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {selectedRequest.requester?.name}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Contact</p>
-                    <p className="font-medium text-gray-900 dark:text-white">{selectedRequest.requester?.phone}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Contact
+                    </p>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      {selectedRequest.requester?.phone}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -556,17 +647,27 @@ const DocumentRequestHistory = () => {
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusConfig(selectedRequest.status).color}`}>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Status
+                    </p>
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                        getStatusConfig(selectedRequest.status).color
+                      }`}
+                    >
                       {getStatusConfig(selectedRequest.status).label}
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Fee</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Fee
+                    </p>
                     <p className="font-medium text-gray-900 dark:text-white">
                       {formatCurrency(selectedRequest.fee)}
                       {selectedRequest.isPaid && (
-                        <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded">Paid</span>
+                        <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded">
+                          Paid
+                        </span>
                       )}
                     </p>
                   </div>
@@ -575,22 +676,30 @@ const DocumentRequestHistory = () => {
 
               {/* Timeline */}
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Timeline</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                  Timeline
+                </p>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Requested:</span>
-                    <span className="text-gray-900 dark:text-white">{formatDate(selectedRequest.createdAt)}</span>
+                    <span className="text-gray-900 dark:text-white">
+                      {formatDate(selectedRequest.createdAt)}
+                    </span>
                   </div>
                   {selectedRequest.processedAt && (
                     <div className="flex justify-between">
                       <span className="text-gray-500">Processed:</span>
-                      <span className="text-gray-900 dark:text-white">{formatDate(selectedRequest.processedAt)}</span>
+                      <span className="text-gray-900 dark:text-white">
+                        {formatDate(selectedRequest.processedAt)}
+                      </span>
                     </div>
                   )}
                   {selectedRequest.paymentDate && (
                     <div className="flex justify-between">
                       <span className="text-gray-500">Payment:</span>
-                      <span className="text-gray-900 dark:text-white">{formatDate(selectedRequest.paymentDate)}</span>
+                      <span className="text-gray-900 dark:text-white">
+                        {formatDate(selectedRequest.paymentDate)}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -599,16 +708,24 @@ const DocumentRequestHistory = () => {
               {/* Processed By */}
               {selectedRequest.processedBy && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Processed By</p>
-                  <p className="font-medium text-gray-900 dark:text-white">{selectedRequest.processedBy.name}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Processed By
+                  </p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {selectedRequest.processedBy.name}
+                  </p>
                 </div>
               )}
 
               {/* Remarks */}
               {selectedRequest.remarks && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Remarks</p>
-                  <p className="font-medium text-gray-900 dark:text-white">{selectedRequest.remarks}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Remarks
+                  </p>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {selectedRequest.remarks}
+                  </p>
                 </div>
               )}
             </div>

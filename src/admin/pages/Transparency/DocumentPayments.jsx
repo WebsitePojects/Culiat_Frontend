@@ -67,7 +67,8 @@ const DocumentPayments = () => {
         limit: recordsPerPage,
       });
 
-      if (selectedDocType !== "all") params.append("documentType", selectedDocType);
+      if (selectedDocType !== "all")
+        params.append("documentType", selectedDocType);
       if (dateFrom) params.append("dateFrom", dateFrom);
       if (dateTo) params.append("dateTo", dateTo);
       if (searchQuery) params.append("search", searchQuery);
@@ -81,12 +82,14 @@ const DocumentPayments = () => {
         setPayments(response.data.data.payments || []);
         setTotalPages(response.data.data.totalPages || 1);
         setTotalRecords(response.data.data.total || 0);
-        setSummary(response.data.data.summary || {
-          totalRevenue: 0,
-          totalTransactions: 0,
-          averageTransaction: 0,
-          topDocument: '',
-        });
+        setSummary(
+          response.data.data.summary || {
+            totalRevenue: 0,
+            totalTransactions: 0,
+            averageTransaction: 0,
+            topDocument: "",
+          }
+        );
         setDocumentBreakdown(response.data.data.breakdown || []);
       }
     } catch (error) {
@@ -124,7 +127,8 @@ const DocumentPayments = () => {
       const params = new URLSearchParams();
       if (dateFrom) params.append("dateFrom", dateFrom);
       if (dateTo) params.append("dateTo", dateTo);
-      if (selectedDocType !== "all") params.append("documentType", selectedDocType);
+      if (selectedDocType !== "all")
+        params.append("documentType", selectedDocType);
 
       const response = await axios.get(
         `${API_URL}/api/documents/payments/export?${params.toString()}`,
@@ -137,7 +141,10 @@ const DocumentPayments = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `document-payments-report-${new Date().toISOString().split("T")[0]}.pdf`);
+      link.setAttribute(
+        "download",
+        `document-payments-report-${new Date().toISOString().split("T")[0]}.pdf`
+      );
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -206,7 +213,9 @@ const DocumentPayments = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Revenue</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Total Revenue
+              </p>
               <p className="text-2xl font-bold text-green-600 mt-1">
                 {formatCurrency(summary.totalRevenue)}
               </p>
@@ -220,7 +229,9 @@ const DocumentPayments = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Transactions</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Total Transactions
+              </p>
               <p className="text-2xl font-bold text-blue-600 mt-1">
                 {summary.totalTransactions}
               </p>
@@ -234,7 +245,9 @@ const DocumentPayments = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Average per Transaction</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Average per Transaction
+              </p>
               <p className="text-2xl font-bold text-purple-600 mt-1">
                 {formatCurrency(summary.averageTransaction)}
               </p>
@@ -248,7 +261,9 @@ const DocumentPayments = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Top Document</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Top Document
+              </p>
               <p className="text-lg font-bold text-orange-600 mt-1 truncate">
                 {summary.topDocument || "N/A"}
               </p>
@@ -268,8 +283,13 @@ const DocumentPayments = () => {
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {documentBreakdown.map((item, index) => (
-            <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{item.type}</p>
+            <div
+              key={index}
+              className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-center"
+            >
+              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                {item.type}
+              </p>
               <p className="text-lg font-bold text-gray-900 dark:text-white mt-1">
                 {formatCurrency(item.revenue)}
               </p>
@@ -438,11 +458,14 @@ const DocumentPayments = () => {
             <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Showing {(currentPage - 1) * recordsPerPage + 1} to{" "}
-                {Math.min(currentPage * recordsPerPage, totalRecords)} of {totalRecords} records
+                {Math.min(currentPage * recordsPerPage, totalRecords)} of{" "}
+                {totalRecords} records
               </p>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
                   disabled={currentPage === 1}
                   className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -452,7 +475,9 @@ const DocumentPayments = () => {
                   Page {currentPage} of {totalPages}
                 </span>
                 <button
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -467,16 +492,23 @@ const DocumentPayments = () => {
       {/* Receipt Detail Modal */}
       {showDetailModal && selectedPayment && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowDetailModal(false)} />
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowDetailModal(false)}
+          />
           <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
             <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Official Receipt</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Official Receipt
+              </h2>
               <p className="text-sm text-gray-500">Barangay Culiat</p>
             </div>
 
             <div className="space-y-4">
               <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Receipt Number</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Receipt Number
+                </p>
                 <p className="text-xl font-bold font-mono text-green-600">
                   {selectedPayment.receiptNumber}
                 </p>
@@ -484,13 +516,17 @@ const DocumentPayments = () => {
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Document Reference</p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Document Reference
+                  </p>
                   <p className="font-medium font-mono text-gray-900 dark:text-white">
                     {selectedPayment.referenceNumber}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Document Type</p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Document Type
+                  </p>
                   <p className="font-medium text-gray-900 dark:text-white">
                     {selectedPayment.documentName}
                   </p>
@@ -502,19 +538,25 @@ const DocumentPayments = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Payment Method</p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Payment Method
+                  </p>
                   <p className="font-medium text-gray-900 dark:text-white">
                     {selectedPayment.paymentMethod}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Payment Date</p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Payment Date
+                  </p>
                   <p className="font-medium text-gray-900 dark:text-white">
                     {formatDate(selectedPayment.paymentDate)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-500 dark:text-gray-400">Received By</p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Received By
+                  </p>
                   <p className="font-medium text-gray-900 dark:text-white">
                     {selectedPayment.receivedBy?.name}
                   </p>
@@ -523,7 +565,9 @@ const DocumentPayments = () => {
 
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-medium text-gray-700 dark:text-gray-300">Amount Paid</span>
+                  <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
+                    Amount Paid
+                  </span>
                   <span className="text-2xl font-bold text-green-600">
                     {formatCurrency(selectedPayment.amount)}
                   </span>
