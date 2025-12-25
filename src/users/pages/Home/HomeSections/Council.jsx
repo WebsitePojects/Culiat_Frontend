@@ -178,7 +178,7 @@ const Council = () => {
 
                   {/* Name */}
                   <h4 className="font-bold text-secondary text-sm mb-1">
-                    Hon. {getFullName(official)}
+                    {getFullName(official)}
                   </h4>
 
                   {/* Position */}
