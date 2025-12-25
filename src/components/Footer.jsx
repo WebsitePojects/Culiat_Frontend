@@ -44,9 +44,7 @@ const Footer = () => {
   };
 
   const contactInfo = {
-    officeAddress: barangayInfo?.address
-      ? `${barangayInfo.address.street}, ${barangayInfo.address.municipality}, ${barangayInfo.address.province}`
-      : settings?.contactInfo?.officeAddress || "467 Tandang Sora Ave, Quezon City, 1128 Metro Manila",
+    officeAddress: "467 Tandang Sora Ave, Quezon City, 1128 Metro Manila",
     phoneNumber: barangayInfo?.contactInfo?.phoneNumber || settings?.contactInfo?.phoneNumber || "+63 962-582-1531",
     mobileNumber: settings?.contactInfo?.mobileNumber || "856-722-60",
     emailAddress: barangayInfo?.contactInfo?.email || settings?.contactInfo?.emailAddress || "brgy.culiat@yahoo.com",
