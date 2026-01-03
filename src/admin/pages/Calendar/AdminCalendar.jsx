@@ -196,50 +196,50 @@ const AdminCalendar = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-2.5 sm:p-4 md:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
             Calendar & Events
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Manage appointments, meetings, and barangay events
           </p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           Add Event
         </button>
       </div>
 
       {/* Legend */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-500 rounded"></div>
-            <span className="text-sm text-gray-700 dark:text-gray-300">
+      <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow border border-gray-100 dark:border-gray-700 p-2.5 sm:p-4">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-blue-500 rounded"></div>
+            <span className="text-[10px] sm:text-xs md:text-sm text-gray-700 dark:text-gray-300">
               Document Pickup
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-500 rounded"></div>
-            <span className="text-sm text-gray-700 dark:text-gray-300">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded"></div>
+            <span className="text-[10px] sm:text-xs md:text-sm text-gray-700 dark:text-gray-300">
               Meeting
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-purple-500 rounded"></div>
-            <span className="text-sm text-gray-700 dark:text-gray-300">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-purple-500 rounded"></div>
+            <span className="text-[10px] sm:text-xs md:text-sm text-gray-700 dark:text-gray-300">
               Barangay Event
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-            <span className="text-sm text-gray-700 dark:text-gray-300">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-yellow-500 rounded"></div>
+            <span className="text-[10px] sm:text-xs md:text-sm text-gray-700 dark:text-gray-300">
               Assembly
             </span>
           </div>
@@ -247,7 +247,7 @@ const AdminCalendar = () => {
       </div>
 
       {/* Calendar */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow border border-gray-100 dark:border-gray-700 p-2.5 sm:p-4 md:p-6">
         <style>{`
           /* Dark theme styles for FullCalendar */
           .dark .fc {
@@ -323,7 +323,7 @@ const AdminCalendar = () => {
           
           .dark .fc .fc-toolbar-title {
             color: #F3F4F6;
-            font-size: 1.5rem;
+            font-size: 1rem;
             font-weight: 700;
           }
           
@@ -355,23 +355,102 @@ const AdminCalendar = () => {
           
           /* Light theme enhancements */
           .fc .fc-toolbar-title {
-            font-size: 1.5rem;
+            font-size: 0.875rem;
             font-weight: 700;
           }
           
+          @media (min-width: 640px) {
+            .fc .fc-toolbar-title {
+              font-size: 1rem;
+            }
+            .dark .fc .fc-toolbar-title {
+              font-size: 1rem;
+            }
+          }
+          
+          @media (min-width: 768px) {
+            .fc .fc-toolbar-title {
+              font-size: 1.25rem;
+            }
+            .dark .fc .fc-toolbar-title {
+              font-size: 1.25rem;
+            }
+          }
+          
           .fc .fc-button {
-            padding: 0.5rem 1rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
             font-weight: 500;
+          }
+          
+          @media (min-width: 640px) {
+            .fc .fc-button {
+              padding: 0.375rem 0.75rem;
+              font-size: 0.875rem;
+            }
+          }
+          
+          @media (min-width: 768px) {
+            .fc .fc-button {
+              padding: 0.5rem 1rem;
+            }
           }
           
           .fc .fc-col-header-cell {
-            padding: 0.75rem;
+            padding: 0.375rem;
+            font-size: 0.625rem;
             font-weight: 600;
           }
           
+          @media (min-width: 640px) {
+            .fc .fc-col-header-cell {
+              padding: 0.5rem;
+              font-size: 0.75rem;
+            }
+          }
+          
+          @media (min-width: 768px) {
+            .fc .fc-col-header-cell {
+              padding: 0.75rem;
+              font-size: 0.875rem;
+            }
+          }
+          
           .fc .fc-daygrid-day-number {
-            padding: 0.5rem;
+            padding: 0.25rem;
+            font-size: 0.75rem;
             font-weight: 500;
+          }
+          
+          @media (min-width: 640px) {
+            .fc .fc-daygrid-day-number {
+              padding: 0.375rem;
+              font-size: 0.875rem;
+            }
+          }
+          
+          @media (min-width: 768px) {
+            .fc .fc-daygrid-day-number {
+              padding: 0.5rem;
+            }
+          }
+          
+          /* Mobile calendar toolbar */
+          .fc .fc-toolbar {
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+          
+          @media (min-width: 640px) {
+            .fc .fc-toolbar {
+              flex-direction: row;
+              gap: 0.75rem;
+            }
+          }
+          
+          .fc .fc-toolbar-chunk {
+            display: flex;
+            justify-content: center;
           }
         `}</style>
         
@@ -417,27 +496,27 @@ const AdminCalendar = () => {
 
       {/* Event Details Modal */}
       {showEventModal && selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                 Event Details
               </h2>
               <button
                 onClick={() => setShowEventModal(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
 
-            <div className="px-6 py-4 space-y-4">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   {selectedEvent.title}
                 </h3>
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                  className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 rounded-full text-[10px] sm:text-xs font-medium ${getStatusColor(
                     selectedEvent.extendedProps?.status
                   )}`}
                 >
@@ -445,14 +524,14 @@ const AdminCalendar = () => {
                 </span>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div className="space-y-2.5 sm:space-y-3">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                       Date & Time
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       {selectedEvent.start?.toLocaleString()}
                       {selectedEvent.end && ` - ${selectedEvent.end.toLocaleString()}`}
                     </p>
@@ -460,13 +539,13 @@ const AdminCalendar = () => {
                 </div>
 
                 {selectedEvent.extendedProps?.location && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                         Location
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         {selectedEvent.extendedProps.location}
                       </p>
                     </div>
@@ -474,13 +553,13 @@ const AdminCalendar = () => {
                 )}
 
                 {selectedEvent.extendedProps?.resident && (
-                  <div className="flex items-start gap-3">
-                    <User className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                         Resident
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         {selectedEvent.extendedProps.resident}
                       </p>
                     </div>
@@ -488,13 +567,13 @@ const AdminCalendar = () => {
                 )}
 
                 {selectedEvent.extendedProps?.document && (
-                  <div className="flex items-start gap-3">
-                    <FileText className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                         Document Type
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         {selectedEvent.extendedProps.document}
                       </p>
                     </div>
@@ -502,13 +581,13 @@ const AdminCalendar = () => {
                 )}
 
                 {selectedEvent.extendedProps?.description && (
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                         Description
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         {selectedEvent.extendedProps.description}
                       </p>
                     </div>
@@ -516,13 +595,13 @@ const AdminCalendar = () => {
                 )}
 
                 {selectedEvent.extendedProps?.attendees && (
-                  <div className="flex items-start gap-3">
-                    <User className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                         Expected Attendees
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         {selectedEvent.extendedProps.attendees} people
                       </p>
                     </div>
@@ -531,16 +610,16 @@ const AdminCalendar = () => {
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-end gap-3">
+            <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4 flex justify-end gap-2 sm:gap-3">
               <button
                 onClick={() => handleDeleteEvent(selectedEvent.id)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
                 Delete Event
               </button>
               <button
                 onClick={() => setShowEventModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
               >
                 Close
               </button>
@@ -551,23 +630,23 @@ const AdminCalendar = () => {
 
       {/* Add Event Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                 Add New Event
               </h2>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
 
-            <div className="px-6 py-4 space-y-4">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Event Title
                 </label>
                 <input
@@ -576,13 +655,13 @@ const AdminCalendar = () => {
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, title: e.target.value })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter event title"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Event Type
                 </label>
                 <select
@@ -590,7 +669,7 @@ const AdminCalendar = () => {
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, type: e.target.value })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="pickup">Document Pickup</option>
                   <option value="meeting">Meeting</option>
@@ -599,9 +678,9 @@ const AdminCalendar = () => {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                     Start Date & Time
                   </label>
                   <input
@@ -610,11 +689,11 @@ const AdminCalendar = () => {
                     onChange={(e) =>
                       setNewEvent({ ...newEvent, start: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                     End Date & Time
                   </label>
                   <input
@@ -623,13 +702,13 @@ const AdminCalendar = () => {
                     onChange={(e) =>
                       setNewEvent({ ...newEvent, end: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Location
                 </label>
                 <input
@@ -638,13 +717,13 @@ const AdminCalendar = () => {
                   onChange={(e) =>
                     setNewEvent({ ...newEvent, location: e.target.value })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter location"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Description
                 </label>
                 <textarea
@@ -653,23 +732,23 @@ const AdminCalendar = () => {
                     setNewEvent({ ...newEvent, description: e.target.value })
                   }
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter description (optional)"
                 />
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-end gap-3">
+            <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 sm:py-4 flex justify-end gap-2 sm:gap-3">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddEvent}
                 disabled={!newEvent.title || !newEvent.start || !newEvent.end}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Add Event
               </button>

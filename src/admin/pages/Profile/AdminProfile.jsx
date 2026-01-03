@@ -179,28 +179,28 @@ const AdminProfile = () => {
   };
 
   const VerificationModal = () => (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-md w-full p-4 sm:p-6 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h3 className="text-base sm:text-xl font-semibold text-gray-900 dark:text-white">
             Email Verification Required
           </h3>
           <button
             onClick={() => setShowVerificationModal(false)}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="space-y-3 sm:space-y-4">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             A 6-digit verification code has been sent to your email. Please
             enter it below to confirm the change.
           </p>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
               Verification Code
             </label>
             <input
@@ -211,18 +211,18 @@ const AdminProfile = () => {
                 setVerificationCode(e.target.value.replace(/\D/g, ""))
               }
               placeholder="000000"
-              className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-center text-xl sm:text-2xl font-mono tracking-widest border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
 
           {countdown > 0 && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center">
               Code expires in {Math.floor(countdown / 60)}:
               {(countdown % 60).toString().padStart(2, "0")}
             </p>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <button
               onClick={() =>
                 requestVerificationCode(
@@ -231,23 +231,23 @@ const AdminProfile = () => {
                 )
               }
               disabled={verificationLoading || countdown > 540}
-              className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+              className="flex-1 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg sm:rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
             >
               {verificationLoading ? (
                 <Loader className="w-4 h-4 animate-spin mx-auto" />
               ) : (
-                "Resend Code"
+                "Resend"
               )}
             </button>
             <button
               onClick={handleVerifyAndUpdate}
               disabled={verificationLoading || verificationCode.length !== 6}
-              className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="flex-1 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg sm:rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg shadow-blue-600/25"
             >
               {verificationLoading ? (
                 <Loader className="w-4 h-4 animate-spin mx-auto" />
               ) : (
-                "Verify & Update"
+                "Verify"
               )}
             </button>
           </div>
@@ -258,10 +258,10 @@ const AdminProfile = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
-          <Loader className="w-12 h-12 animate-spin text-blue-600 mx-auto" />
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
+          <Loader className="w-8 h-8 sm:w-12 sm:h-12 animate-spin text-blue-600 mx-auto" />
+          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             Loading profile...
           </p>
         </div>
@@ -271,10 +271,10 @@ const AdminProfile = () => {
 
   if (!profile) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-600 mx-auto" />
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
+          <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-red-600 mx-auto" />
+          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             Failed to load profile
           </p>
         </div>
@@ -283,36 +283,34 @@ const AdminProfile = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <User className="w-8 h-8 text-blue-600" />
-            Admin Profile
-          </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Manage your account settings and preferences
-          </p>
-        </div>
+      <div>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
+          <User className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-blue-600" />
+          Admin Profile
+        </h1>
+        <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+          Manage your account settings and preferences
+        </p>
       </div>
 
       {/* Profile Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700">
         {/* Profile Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-8">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
-              <User className="w-10 h-10 text-blue-600" />
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-5 sm:py-8">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center">
+              <User className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-blue-600" />
             </div>
-            <div className="text-white">
-              <h2 className="text-2xl font-bold">
+            <div className="text-white min-w-0">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold truncate">
                 {profile.firstName} {profile.lastName}
               </h2>
-              <p className="text-blue-100">@{profile.username}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <Shield className="w-4 h-4" />
-                <span className="text-sm">
+              <p className="text-blue-100 text-xs sm:text-sm">@{profile.username}</p>
+              <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2">
+                <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="text-xs sm:text-sm">
                   {profile.roleCode === 74932 ? "Super Admin" : "Admin"}
                 </span>
               </div>
@@ -321,33 +319,33 @@ const AdminProfile = () => {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="flex px-6">
+        <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+          <nav className="flex px-3 sm:px-6 min-w-max">
             <button
               onClick={() => setActiveTab("personal")}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === "personal"
                   ? "border-blue-600 text-blue-600 dark:text-blue-400"
                   : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
               }`}
             >
-              Personal Information
+              Personal Info
             </button>
             <button
               onClick={() => setActiveTab("security")}
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === "security"
                   ? "border-blue-600 text-blue-600 dark:text-blue-400"
                   : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
               }`}
             >
-              Security Settings
+              Security
             </button>
           </nav>
         </div>
 
         {/* Tab Content */}
-        <div className="p-6">
+        <div className="p-3 sm:p-4 md:p-6">
           {activeTab === "personal" && (
             <div className="space-y-6">
               {/* Name */}
@@ -403,21 +401,21 @@ const AdminProfile = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleSaveWithVerification("name")}
-                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                         >
-                          <Save className="w-4 h-4 inline mr-1" /> Save
+                          <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" /> Save
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300"
                         >
-                          <X className="w-4 h-4 inline mr-1" /> Cancel
+                          <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" /> Cancel
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between">
-                      <p className="text-gray-900 dark:text-white">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs sm:text-sm text-gray-900 dark:text-white truncate">
                         {profile.firstName} {profile.middleName || ""}{" "}
                         {profile.lastName}
                       </p>
@@ -429,9 +427,9 @@ const AdminProfile = () => {
                             lastName: profile.lastName,
                           })
                         }
-                        className="text-blue-600 hover:text-blue-700"
+                        className="text-blue-600 hover:text-blue-700 flex-shrink-0"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
                     </div>
                   )}
@@ -439,10 +437,10 @@ const AdminProfile = () => {
               </div>
 
               {/* Username */}
-              <div className="flex items-start justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <div className="flex items-start justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <User className="w-4 h-4 inline mr-1" />
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                    <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
                     Username
                   </label>
                   {editingField === "username" ? (
@@ -458,30 +456,30 @@ const AdminProfile = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleSaveWithVerification("username")}
-                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                         >
-                          <Save className="w-4 h-4 inline mr-1" /> Save
+                          <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" /> Save
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300"
                         >
-                          <X className="w-4 h-4 inline mr-1" /> Cancel
+                          <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" /> Cancel
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between">
-                      <p className="text-gray-900 dark:text-white">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs sm:text-sm text-gray-900 dark:text-white truncate">
                         {profile.username}
                       </p>
                       <button
                         onClick={() =>
                           handleEditClick("username", profile.username)
                         }
-                        className="text-blue-600 hover:text-blue-700"
+                        className="text-blue-600 hover:text-blue-700 flex-shrink-0"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
                     </div>
                   )}
@@ -489,10 +487,10 @@ const AdminProfile = () => {
               </div>
 
               {/* Email */}
-              <div className="flex items-start justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <div className="flex items-start justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <Mail className="w-4 h-4 inline mr-1" />
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                    <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
                     Email Address
                   </label>
                   {editingField === "email" ? (
@@ -508,28 +506,28 @@ const AdminProfile = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleSaveWithVerification("email")}
-                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                         >
-                          <Save className="w-4 h-4 inline mr-1" /> Save
+                          <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" /> Save
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300"
                         >
-                          <X className="w-4 h-4 inline mr-1" /> Cancel
+                          <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" /> Cancel
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between">
-                      <p className="text-gray-900 dark:text-white">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs sm:text-sm text-gray-900 dark:text-white truncate">
                         {profile.email}
                       </p>
                       <button
                         onClick={() => handleEditClick("email", profile.email)}
-                        className="text-blue-600 hover:text-blue-700"
+                        className="text-blue-600 hover:text-blue-700 flex-shrink-0"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
                     </div>
                   )}
@@ -537,10 +535,10 @@ const AdminProfile = () => {
               </div>
 
               {/* Phone */}
-              <div className="flex items-start justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <div className="flex items-start justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    <Phone className="w-4 h-4 inline mr-1" />
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                    <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
                     Phone Number
                   </label>
                   {editingField === "phone" ? (
@@ -556,30 +554,30 @@ const AdminProfile = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleSaveWithVerification("phone")}
-                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                         >
-                          <Save className="w-4 h-4 inline mr-1" /> Save
+                          <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" /> Save
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300"
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300"
                         >
-                          <X className="w-4 h-4 inline mr-1" /> Cancel
+                          <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" /> Cancel
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between">
-                      <p className="text-gray-900 dark:text-white">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs sm:text-sm text-gray-900 dark:text-white">
                         {profile.phoneNumber || "Not set"}
                       </p>
                       <button
                         onClick={() =>
                           handleEditClick("phone", profile.phoneNumber || "")
                         }
-                        className="text-blue-600 hover:text-blue-700"
+                        className="text-blue-600 hover:text-blue-700 flex-shrink-0"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </button>
                     </div>
                   )}
@@ -587,12 +585,12 @@ const AdminProfile = () => {
               </div>
 
               {/* Address */}
-              <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <MapPin className="w-4 h-4 inline mr-1" />
+              <div className="p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
                   Address
                 </label>
-                <p className="text-gray-900 dark:text-white">
+                <p className="text-xs sm:text-sm text-gray-900 dark:text-white">
                   {profile.address?.houseNumber &&
                     `${profile.address.houseNumber}, `}
                   {profile.address?.street && `${profile.address.street}, `}
@@ -603,12 +601,12 @@ const AdminProfile = () => {
               </div>
 
               {/* Account Created */}
-              <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Calendar className="w-4 h-4 inline mr-1" />
+              <div className="p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                  <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
                   Account Created
                 </label>
-                <p className="text-gray-900 dark:text-white">
+                <p className="text-xs sm:text-sm text-gray-900 dark:text-white">
                   {new Date(profile.createdAt).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
@@ -620,25 +618,25 @@ const AdminProfile = () => {
           )}
 
           {activeTab === "security" && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Change Password */}
-              <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div className="flex items-center justify-between mb-4">
+              <div className="p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                      <Lock className="w-5 h-5" />
+                    <h3 className="text-sm sm:text-base md:text-lg font-medium text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
+                      <Lock className="w-4 h-4 sm:w-5 sm:h-5" />
                       Change Password
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1">
                       Update your password to keep your account secure
                     </p>
                   </div>
                 </div>
 
                 {editingField === "password" ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5 sm:space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                         Current Password
                       </label>
                       <input
@@ -650,11 +648,11 @@ const AdminProfile = () => {
                             currentPassword: e.target.value,
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        className="w-full px-2.5 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                         New Password
                       </label>
                       <input
@@ -666,11 +664,11 @@ const AdminProfile = () => {
                             password: e.target.value,
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        className="w-full px-2.5 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                         Confirm New Password
                       </label>
                       <input
@@ -682,17 +680,17 @@ const AdminProfile = () => {
                             confirmPassword: e.target.value,
                           })
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        className="w-full px-2.5 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       />
                     </div>
                     {editValues.password &&
                       editValues.confirmPassword &&
                       editValues.password !== editValues.confirmPassword && (
-                        <p className="text-sm text-red-600">
+                        <p className="text-xs sm:text-sm text-red-600">
                           Passwords do not match
                         </p>
                       )}
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <button
                         onClick={() => handleSaveWithVerification("password")}
                         disabled={
@@ -700,37 +698,37 @@ const AdminProfile = () => {
                           !editValues.password ||
                           editValues.password !== editValues.confirmPassword
                         }
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                        className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
                       >
-                        <Save className="w-4 h-4 inline mr-1" /> Change Password
+                        <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" /> Change Password
                       </button>
                       <button
                         onClick={handleCancelEdit}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300"
+                        className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-300"
                       >
-                        <X className="w-4 h-4 inline mr-1" /> Cancel
+                        <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" /> Cancel
                       </button>
                     </div>
                   </div>
                 ) : (
                   <button
                     onClick={() => setEditingField("password")}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
                   >
-                    <Lock className="w-4 h-4 inline mr-1" /> Change Password
+                    <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" /> Change Password
                   </button>
                 )}
               </div>
 
               {/* Security Info */}
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <div className="flex items-start gap-3">
-                  <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <div className="p-2.5 sm:p-3 md:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h4 className="font-medium text-blue-900 dark:text-blue-300 mb-1">
+                    <h4 className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-300 mb-0.5 sm:mb-1">
                       Security Notice
                     </h4>
-                    <p className="text-sm text-blue-800 dark:text-blue-300">
+                    <p className="text-[10px] sm:text-xs md:text-sm text-blue-800 dark:text-blue-300">
                       All account changes require email verification to ensure
                       security. A verification code will be sent to your email
                       address when you attempt to update sensitive information.

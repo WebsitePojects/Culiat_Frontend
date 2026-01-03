@@ -258,314 +258,409 @@ const AdminUsers = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
             Manage Users
           </h1>
-          <div className="flex items-center gap-2 mt-1 text-sm text-gray-600 dark:text-gray-400">
-            <Users className="w-4 h-4" />
+          <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+            <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>{filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''}</span>
           </div>
         </div>
         <button
           onClick={handleCreateClick}
-          className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg sm:rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4 mr-1.5 sm:mr-2" />
           Create User
         </button>
       </div>
 
       {/* Success/Error Messages */}
       {success && (
-        <div className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-lg border border-green-200 dark:border-green-800">
-          <CheckCircle className="w-5 h-5" />
+        <div className="flex items-center gap-2 p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-lg sm:rounded-xl border border-green-200 dark:border-green-800 text-xs sm:text-sm">
+          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
           <span>{success}</span>
         </div>
       )}
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg border border-red-200 dark:border-red-800">
-          <AlertCircle className="w-5 h-5" />
+        <div className="flex items-center gap-2 p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg sm:rounded-xl border border-red-200 dark:border-red-800 text-xs sm:text-sm">
+          <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5 sm:gap-2">
         <button
           onClick={() => setFilter("all")}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+          className={`flex items-center px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-medium transition-colors ${
             filter === "all"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+              : "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
           }`}
         >
-          <Filter className="w-4 h-4 inline mr-1" />
-          All Users ({users.length})
+          <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
+          All ({users.length})
         </button>
         <button
           onClick={() => setFilter("admin")}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+          className={`flex items-center px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-medium transition-colors ${
             filter === "admin"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+              : "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
           }`}
         >
-          <Shield className="w-4 h-4 inline mr-1" />
+          <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
           Admins ({adminCount})
         </button>
         <button
           onClick={() => setFilter("resident")}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+          className={`flex items-center px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-medium transition-colors ${
             filter === "resident"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+              : "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
           }`}
         >
-          <User className="w-4 h-4 inline mr-1" />
+          <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
           Residents ({residentCount})
         </button>
       </div>
 
       {/* Loading State */}
       {loading && (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Loading users...</p>
+        <div className="text-center py-8 sm:py-12 bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg">
+          <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">Loading users...</p>
         </div>
       )}
 
       {/* Empty State */}
       {!loading && filteredUsers.length === 0 && (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">
+        <div className="text-center py-8 sm:py-12 bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-700 rounded-full mb-3 sm:mb-4">
+            <Users className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+          </div>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             {filter === "all" ? "No users found" : `No ${filter}s found`}
           </p>
         </div>
       )}
 
-      {/* Users Table */}
+      {/* Users Grid/Table */}
       {!loading && filteredUsers.length > 0 && (
-        <div className="overflow-hidden bg-white rounded-lg shadow dark:bg-gray-800">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                    User
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                    Contact
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                    Registered
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                {filteredUsers.map((user) => {
-                  const StatusIcon = getStatusIcon(user.registrationStatus);
-                  const isCurrentUser = currentUser && currentUser._id === user._id;
-                  return (
-                    <tr 
-                      key={user._id} 
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                        isCurrentUser ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                      }`}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold">
-                              {user.firstName?.[0]}{user.lastName?.[0]}
+        <>
+          {/* Mobile Card Layout */}
+          <div className="md:hidden grid gap-3">
+            {filteredUsers.map((user) => {
+              const StatusIcon = getStatusIcon(user.registrationStatus);
+              const isCurrentUser = currentUser && currentUser._id === user._id;
+              return (
+                <div
+                  key={user._id}
+                  className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden ${
+                    isCurrentUser ? 'ring-2 ring-blue-500' : ''
+                  }`}
+                >
+                  <div className="p-4">
+                    {/* User Info Header */}
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">
+                          {user.firstName?.[0]}{user.lastName?.[0]}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                            {user.firstName} {user.lastName}
+                          </span>
+                          {isCurrentUser && (
+                            <span className="px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 rounded-full font-medium">
+                              You
                             </span>
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                              {user.firstName} {user.lastName}
-                              {isCurrentUser && (
-                                <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 rounded-full">
-                                  You
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              @{user.username}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center text-sm text-gray-900 dark:text-white">
-                            <Mail className="w-4 h-4 text-gray-400 mr-2" />
-                            {user.email}
-                          </div>
-                          {user.phoneNumber && (
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {user.phoneNumber}
-                            </div>
                           )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(
-                            user.roleName
-                          )}`}
+                        <p className="text-xs text-gray-500 dark:text-gray-400">@{user.username}</p>
+                      </div>
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleEditClick(user)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                         >
-                          <Shield className="w-3 h-3 mr-1" />
-                          {formatRoleName(user.roleName)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                            user.registrationStatus
-                          )}`}
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(user)}
+                          disabled={isCurrentUser}
+                          className={`p-2 rounded-lg transition-colors ${
+                            isCurrentUser
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                          }`}
                         >
-                          <StatusIcon className="w-3 h-3 mr-1" />
-                          {getStatusName(user.registrationStatus)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                          <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                          {new Date(user.createdAt).toLocaleDateString()}
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Tags Row */}
+                    <div className="flex items-center gap-2 flex-wrap mb-3">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${getRoleColor(user.roleName)}`}>
+                        <Shield className="w-2.5 h-2.5 mr-1" />
+                        {formatRoleName(user.roleName)}
+                      </span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusColor(user.registrationStatus)}`}>
+                        <StatusIcon className="w-2.5 h-2.5 mr-1" />
+                        {getStatusName(user.registrationStatus)}
+                      </span>
+                    </div>
+
+                    {/* Contact Info */}
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                        <Mail className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <span className="truncate">{user.email}</span>
+                      </div>
+                      {user.phoneNumber && (
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                          <User className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                          <span>{user.phoneNumber}</span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleEditClick(user)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                            title="Edit user"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClick(user)}
-                            disabled={isCurrentUser}
-                            className={`p-2 rounded-lg transition-colors ${
-                              isCurrentUser
-                                ? "text-gray-400 cursor-not-allowed"
-                                : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                            }`}
-                            title={isCurrentUser ? "Cannot delete yourself" : "Delete user"}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      )}
+                      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                        <Calendar className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                        <span>Joined {new Date(user.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
+
+          {/* Desktop Table Layout */}
+          <div className="hidden md:block overflow-hidden bg-white rounded-xl shadow-lg dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-900">
+                  <tr>
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+                      User
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+                      Contact
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+                      Role
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+                      Registered
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+                  {filteredUsers.map((user) => {
+                    const StatusIcon = getStatusIcon(user.registrationStatus);
+                    const isCurrentUser = currentUser && currentUser._id === user._id;
+                    return (
+                      <tr 
+                        key={user._id} 
+                        className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                          isCurrentUser ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                        }`}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                              <span className="text-white font-bold">
+                                {user.firstName?.[0]}{user.lastName?.[0]}
+                              </span>
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                                {user.firstName} {user.lastName}
+                                {isCurrentUser && (
+                                  <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 rounded-full">
+                                    You
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                @{user.username}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center text-sm text-gray-900 dark:text-white">
+                              <Mail className="w-4 h-4 text-gray-400 mr-2" />
+                              {user.email}
+                            </div>
+                            {user.phoneNumber && (
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {user.phoneNumber}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(
+                              user.roleName
+                            )}`}
+                          >
+                            <Shield className="w-3 h-3 mr-1" />
+                            {formatRoleName(user.roleName)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                              user.registrationStatus
+                            )}`}
+                          >
+                            <StatusIcon className="w-3 h-3 mr-1" />
+                            {getStatusName(user.registrationStatus)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <Calendar className="w-4 h-4 text-gray-400 mr-2" />
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleEditClick(user)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                              title="Edit user"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(user)}
+                              disabled={isCurrentUser}
+                              className={`p-2 rounded-lg transition-colors ${
+                                isCurrentUser
+                                  ? "text-gray-400 cursor-not-allowed"
+                                  : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                              }`}
+                              title={isCurrentUser ? "Cannot delete yourself" : "Delete user"}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Edit User Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full sm:max-w-md bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-base sm:text-xl font-semibold text-gray-900 dark:text-white">
                 Edit User
               </h3>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto max-h-[60vh]">
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg text-sm">
-                  <AlertCircle className="w-4 h-4" />
+                <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg text-xs sm:text-sm">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     First Name
                   </label>
                   <input
                     type="text"
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Last Name
                   </label>
                   <input
                     type="text"
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Email
                 </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Username
                 </label>
                 <input
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Phone Number
                 </label>
                 <input
                   type="text"
                   value={formData.phoneNumber}
                   onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Role
                 </label>
                 <select
                   value={formData.roleName}
                   onChange={(e) => setFormData({ ...formData, roleName: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="Resident">Resident</option>
                   <option value="Admin">Admin</option>
@@ -573,19 +668,19 @@ const AdminUsers = () => {
                 </select>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
               <button
                 onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg sm:rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleUpdateUser}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg sm:rounded-xl transition-colors shadow-lg shadow-blue-600/25"
               >
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
+                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
+                Save
               </button>
             </div>
           </div>
@@ -594,38 +689,38 @@ const AdminUsers = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl">
-            <div className="p-6">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full">
-                <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full sm:max-w-md bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+            <div className="p-5 sm:p-6">
+              <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full">
+                <AlertCircle className="w-6 h-6 sm:w-7 sm:h-7 text-red-600 dark:text-red-400" />
               </div>
-              <h3 className="mt-4 text-xl font-semibold text-center text-gray-900 dark:text-white">
+              <h3 className="mt-3 sm:mt-4 text-lg sm:text-xl font-semibold text-center text-gray-900 dark:text-white">
                 Delete User
               </h3>
-              <p className="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">
+              <p className="mt-2 text-xs sm:text-sm text-center text-gray-500 dark:text-gray-400">
                 Are you sure you want to delete <strong>{selectedUser?.firstName} {selectedUser?.lastName}</strong>? This action cannot be undone.
               </p>
               {error && (
-                <div className="flex items-center gap-2 p-3 mt-4 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg text-sm">
-                  <AlertCircle className="w-4 h-4" />
+                <div className="flex items-center gap-2 p-2.5 sm:p-3 mt-3 sm:mt-4 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg text-xs sm:text-sm">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
             </div>
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg sm:rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteUser}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                className="flex-1 flex items-center justify-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg sm:rounded-xl transition-colors shadow-lg shadow-red-600/25"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete User
+                <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
+                Delete
               </button>
             </div>
           </div>
@@ -634,95 +729,95 @@ const AdminUsers = () => {
 
       {/* Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full sm:max-w-md bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-base sm:text-xl font-semibold text-gray-900 dark:text-white">
                 Create New User
               </h3>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto max-h-[60vh]">
               {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg text-sm">
-                  <AlertCircle className="w-4 h-4" />
+                <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg text-xs sm:text-sm">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-lg text-sm">
-                <p>Default password will be: <strong>TempPassword123!</strong></p>
-                <p className="text-xs mt-1">User should change this on first login.</p>
+              <div className="p-2.5 sm:p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-lg sm:rounded-xl text-xs sm:text-sm">
+                <p>Default password: <strong>TempPassword123!</strong></p>
+                <p className="text-[10px] sm:text-xs mt-0.5 sm:mt-1 opacity-80">User should change this on first login.</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     First Name *
                   </label>
                   <input
                     type="text"
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Last Name *
                   </label>
                   <input
                     type="text"
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Email *
                 </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Username *
                 </label>
                 <input
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Phone Number
                 </label>
                 <input
                   type="text"
                   value={formData.phoneNumber}
                   onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Role
                 </label>
                 <select
                   value={formData.roleName}
                   onChange={(e) => setFormData({ ...formData, roleName: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="Resident">Resident</option>
                   <option value="Admin">Admin</option>
@@ -730,19 +825,19 @@ const AdminUsers = () => {
                 </select>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg sm:rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateUser}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg sm:rounded-xl transition-colors shadow-lg shadow-blue-600/25"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Create User
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
+                Create
               </button>
             </div>
           </div>

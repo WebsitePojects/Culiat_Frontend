@@ -333,33 +333,33 @@ const AdminDocuments = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
           Document Requests
         </h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Review and process document requests with full resident information
+        <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+          Review and process document requests
         </p>
       </div>
 
       {/* Success/Error Messages */}
       {success && (
-        <div className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-lg border border-green-200 dark:border-green-800">
-          <CheckCircle className="w-5 h-5" />
+        <div className="flex items-center gap-2 p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-lg sm:rounded-xl border border-green-200 dark:border-green-800 text-xs sm:text-sm">
+          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
           <span>{success}</span>
         </div>
       )}
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg border border-red-200 dark:border-red-800">
-          <AlertCircle className="w-5 h-5" />
+        <div className="flex items-center gap-2 p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg sm:rounded-xl border border-red-200 dark:border-red-800 text-xs sm:text-sm">
+          <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
         {[
           { label: "All Requests", count: statusCounts.all, color: "blue" },
           { label: "Pending", count: statusCounts.pending, color: "yellow" },
@@ -368,13 +368,13 @@ const AdminDocuments = () => {
         ].map((stat, idx) => (
           <div
             key={idx}
-            className="p-6 bg-white rounded-lg shadow dark:bg-gray-800"
+            className="p-3 sm:p-4 md:p-6 bg-white rounded-lg sm:rounded-xl shadow-lg dark:bg-gray-800 border border-gray-100 dark:border-gray-700"
           >
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            <p className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
               {stat.label}
             </p>
             <p
-              className={`mt-2 text-3xl font-bold text-${stat.color}-600 dark:text-${stat.color}-400`}
+              className={`mt-1 sm:mt-2 text-lg sm:text-2xl md:text-3xl font-bold text-${stat.color}-600 dark:text-${stat.color}-400`}
             >
               {stat.count}
             </p>
@@ -383,32 +383,32 @@ const AdminDocuments = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow dark:bg-gray-800 p-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="bg-white rounded-lg sm:rounded-xl shadow-lg dark:bg-gray-800 p-3 sm:p-4 md:p-6 border border-gray-100 dark:border-gray-700">
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
               Search
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by document type or resident..."
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                placeholder="Search..."
+                className="w-full pl-8 sm:pl-10 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
               Status Filter
             </label>
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2.5 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             >
               <option value="pending">Pending ({statusCounts.pending})</option>
               <option value="approved">
@@ -425,16 +425,16 @@ const AdminDocuments = () => {
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
           Showing {filteredRequests.length} of {requests.length} requests
         </div>
       </div>
 
       {/* Loading State */}
       {loading && (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <div className="text-center py-8 sm:py-12 bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg">
+          <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             Loading requests...
           </p>
         </div>
@@ -442,9 +442,11 @@ const AdminDocuments = () => {
 
       {/* Empty State */}
       {!loading && filteredRequests.length === 0 && (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">
+        <div className="text-center py-8 sm:py-12 bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-700 rounded-full mb-3 sm:mb-4">
+            <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+          </div>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             {requests.length === 0
               ? "No requests found"
               : "No requests match your filters"}
@@ -454,44 +456,44 @@ const AdminDocuments = () => {
 
       {/* Requests List */}
       {!loading && filteredRequests.length > 0 && (
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {filteredRequests.map((request) => {
             const StatusIcon = getStatusIcon(request.status);
             return (
               <div
                 key={request._id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow p-6"
+                className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-shadow p-3 sm:p-4 md:p-6 border border-gray-100 dark:border-gray-700"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="flex-shrink-0 w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                        <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                      <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-600 dark:text-blue-400" />
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white truncate">
                           {request.documentType}
                         </h3>
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                            className={`inline-flex items-center px-1.5 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${getStatusColor(
                               request.status
                             )}`}
                           >
-                            <StatusIcon className="w-3 h-3 mr-1" />
+                            <StatusIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
                             {request.status.charAt(0).toUpperCase() +
                               request.status.slice(1)}
                           </span>
                           {/* Payment Status Badge - show for approved requests */}
                           {request.status === "approved" && (
                             <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusColor(
+                              className={`inline-flex items-center px-1.5 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${getPaymentStatusColor(
                                 request.paymentStatus
                               )}`}
                             >
-                              <CreditCard className="w-3 h-3 mr-1" />
+                              <CreditCard className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
                               {request.paymentStatus === "waived"
-                                ? "Fee Waived"
+                                ? "Waived"
                                 : request.paymentStatus
                                     ?.charAt(0)
                                     .toUpperCase() +
@@ -502,49 +504,48 @@ const AdminDocuments = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <User className="w-4 h-4" />
-                        <span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 text-xs sm:text-sm">
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-gray-600 dark:text-gray-400">
+                        <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="truncate">
                           {request.firstName} {request.lastName}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <Mail className="w-4 h-4" />
-                        <span>
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-gray-600 dark:text-gray-400">
+                        <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="truncate">
                           {request.applicant?.email ||
                             request.emailAddress ||
                             "N/A"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <Phone className="w-4 h-4" />
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-gray-600 dark:text-gray-400">
+                        <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                         <span>{request.contactNumber || "N/A"}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <MapPin className="w-4 h-4" />
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-gray-600 dark:text-gray-400 hidden sm:flex">
+                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                         <span className="truncate">
                           {formatAddress(request.address)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <Calendar className="w-4 h-4" />
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-gray-600 dark:text-gray-400">
+                        <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                         <span>
                           {new Date(request.createdAt).toLocaleDateString()}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <DollarSign className="w-4 h-4" />
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-gray-600 dark:text-gray-400">
+                        <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                         <span>
-                          Fee:{" "}
                           {DOCUMENT_PRICES[request.documentType] === 0
                             ? "FREE"
                             : `₱${DOCUMENT_PRICES[request.documentType] || 0}`}
                         </span>
                       </div>
                       {request.dateOfBirth && (
-                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                          <IdCard className="w-4 h-4" />
+                        <div className="flex items-center gap-1.5 sm:gap-2 text-gray-600 dark:text-gray-400 hidden sm:flex">
+                          <IdCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                           <span>
                             Born:{" "}
                             {new Date(request.dateOfBirth).toLocaleDateString()}
@@ -554,39 +555,40 @@ const AdminDocuments = () => {
                     </div>
 
                     {request.purposeOfRequest && (
-                      <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                         <strong>Purpose:</strong> {request.purposeOfRequest}
                       </div>
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-2 ml-4">
+                  <div className="flex flex-row sm:flex-col gap-2 mt-3 sm:mt-0 sm:ml-4">
                     <button
                       onClick={() => viewDetails(request)}
-                      className="flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                      className="flex-1 sm:flex-none flex items-center justify-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-lg sm:rounded-xl transition-colors"
                     >
-                      <Eye className="w-4 h-4 mr-2" />
-                      View Details
+                      <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">View Details</span>
+                      <span className="sm:hidden">View</span>
                     </button>
 
                     {/* Pending: Show Approve/Reject */}
                     {request.status === "pending" && (
-                      <div className="flex gap-2">
+                      <div className="flex gap-1.5 sm:gap-2">
                         <button
                           onClick={() => handleAction(request._id, "approved")}
                           disabled={updating}
-                          className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+                          className="flex-1 flex items-center justify-center px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg sm:rounded-xl transition-colors disabled:opacity-50"
                         >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Approve
+                          <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
+                          <span className="hidden sm:inline">Approve</span>
                         </button>
                         <button
                           onClick={() => viewDetails(request)}
                           disabled={updating}
-                          className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
+                          className="flex-1 flex items-center justify-center px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg sm:rounded-xl transition-colors disabled:opacity-50"
                         >
-                          <XCircle className="w-4 h-4 mr-1" />
-                          Reject
+                          <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
+                          <span className="hidden sm:inline">Reject</span>
                         </button>
                       </div>
                     )}
@@ -595,7 +597,7 @@ const AdminDocuments = () => {
                     {request.status === "approved" &&
                       request.paymentStatus === "unpaid" &&
                       DOCUMENT_PRICES[request.documentType] > 0 && (
-                        <div className="flex gap-2">
+                        <div className="flex gap-1.5 sm:gap-2">
                           <button
                             onClick={() => handleConfirmPayment(request._id)}
                             disabled={processingPayment === request._id}
@@ -603,22 +605,24 @@ const AdminDocuments = () => {
                             title="Confirm walk-in payment"
                           >
                             {processingPayment === request._id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
                             ) : (
                               <>
-                                <CheckCircle className="w-4 h-4 mr-1" />
-                                Confirm Paid
+                                <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
+                                <span className="hidden sm:inline">Confirm Paid</span>
+                                <span className="sm:hidden">Paid</span>
                               </>
                             )}
                           </button>
                           <button
                             onClick={() => handleWaivePayment(request._id)}
                             disabled={processingPayment === request._id}
-                            className="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50"
+                            className="flex-1 flex items-center justify-center px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg sm:rounded-xl transition-colors disabled:opacity-50"
                             title="Waive payment fee"
                           >
-                            <Ban className="w-4 h-4 mr-1" />
-                            Waive Fee
+                            <Ban className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
+                            <span className="hidden sm:inline">Waive Fee</span>
+                            <span className="sm:hidden">Waive</span>
                           </button>
                         </div>
                       )}
@@ -632,14 +636,15 @@ const AdminDocuments = () => {
                         <button
                           onClick={() => handleGenerateDocument(request._id)}
                           disabled={generating}
-                          className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50"
+                          className="flex items-center justify-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg sm:rounded-xl transition-colors disabled:opacity-50"
                         >
                           {generating ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
                           ) : (
-                            <Download className="w-4 h-4 mr-2" />
+                            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                           )}
-                          Generate Document
+                          <span className="hidden sm:inline">Generate Document</span>
+                          <span className="sm:hidden">Generate</span>
                         </button>
                       )}
                   </div>
@@ -652,11 +657,11 @@ const AdminDocuments = () => {
 
       {/* Details Modal */}
       {showModal && selectedRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Request Details - Full Resident Information
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full sm:max-w-4xl bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-base sm:text-xl font-semibold text-gray-900 dark:text-white">
+                Request Details
               </h2>
               <button
                 onClick={() => {
@@ -664,35 +669,35 @@ const AdminDocuments = () => {
                   setSelectedRequest(null);
                   setActionReason("");
                 }}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto max-h-[calc(90vh-5rem)]">
               {/* Document Information */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg sm:rounded-xl">
+                <h3 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 flex items-center gap-2">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                   Document Information
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                       Document Type
                     </label>
-                    <p className="mt-1 text-gray-900 dark:text-white">
+                    <p className="mt-0.5 sm:mt-1 text-sm sm:text-base text-gray-900 dark:text-white">
                       {selectedRequest.documentType}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                       Status
                     </label>
-                    <p className="mt-1">
+                    <p className="mt-0.5 sm:mt-1">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                        className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${getStatusColor(
                           selectedRequest.status
                         )}`}
                       >

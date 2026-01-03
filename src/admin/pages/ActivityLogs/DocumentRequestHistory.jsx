@@ -260,96 +260,96 @@ const DocumentRequestHistory = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 p-2.5 sm:p-4 md:p-6">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <FileText className="w-7 h-7 text-blue-600" />
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <FileText className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-blue-600" />
             Document Request History
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Track all document request approvals and service transactions
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </button>
           <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Export
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <FileText className="w-5 h-5 text-blue-600" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                 {stats.total}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                 Total Requests
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                 {stats.approved}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                 Approved
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-              <Clock className="w-5 h-5 text-yellow-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                 {stats.pending}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                 Pending
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-              <XCircle className="w-5 h-5 text-red-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+              <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                 {stats.rejected}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                 Rejected
               </p>
             </div>
@@ -358,18 +358,18 @@ const DocumentRequestHistory = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-4">
           {/* Search */}
-          <form onSubmit={handleSearch} className="lg:col-span-2">
+          <form onSubmit={handleSearch} className="sm:col-span-2 lg:col-span-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by reference #, name..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
             </div>
           </form>
@@ -381,7 +381,7 @@ const DocumentRequestHistory = () => {
               setSelectedDocType(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white appearance-none"
+            className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white appearance-none"
           >
             {documentTypes.map((doc) => (
               <option key={doc.value} value={doc.value}>
@@ -397,7 +397,7 @@ const DocumentRequestHistory = () => {
               setSelectedStatus(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white appearance-none"
+            className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white appearance-none"
           >
             {statuses.map((s) => (
               <option key={s.value} value={s.value}>
@@ -415,49 +415,105 @@ const DocumentRequestHistory = () => {
                 setDateFrom(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+              className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
         </div>
       </div>
 
       {/* Requests Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="flex items-center justify-center h-48 sm:h-64">
+            <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : requests.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-gray-400">
-            <FileText className="w-16 h-16 mb-4 opacity-50" />
-            <p className="text-lg font-medium">No document requests found</p>
-            <p className="text-sm">Try adjusting your filters</p>
+          <div className="flex flex-col items-center justify-center h-48 sm:h-64 text-gray-500 dark:text-gray-400">
+            <FileText className="w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 opacity-50" />
+            <p className="text-base sm:text-lg font-medium">No document requests found</p>
+            <p className="text-xs sm:text-sm">Try adjusting your filters</p>
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            {/* Mobile Card View */}
+            <div className="block md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+              {requests.map((request) => {
+                const statusConfig = getStatusConfig(request.status);
+                const StatusIcon = statusConfig.icon || Clock;
+                return (
+                  <div key={request._id} className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <p className="text-xs sm:text-sm font-mono font-medium text-blue-600 dark:text-blue-400">
+                          {request.referenceNumber}
+                        </p>
+                        <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white mt-0.5">
+                          {request.documentName}
+                        </p>
+                      </div>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${statusConfig.color}`}>
+                        <StatusIcon className="w-3 h-3" />
+                        {statusConfig.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-500" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+                        {request.requester?.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+                      <div>
+                        <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {formatCurrency(request.fee)}
+                        </span>
+                        {request.isPaid && (
+                          <span className="ml-1.5 text-[10px] text-green-600">Paid</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                          {formatDate(request.createdAt)}
+                        </span>
+                        <button
+                          onClick={() => handleViewDetail(request)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Reference #
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Document Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Requester
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Fee
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Date Requested
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -471,17 +527,17 @@ const DocumentRequestHistory = () => {
                         key={request._id}
                         className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-mono font-medium text-blue-600 dark:text-blue-400">
                             {request.referenceNumber}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                           <span className="text-sm text-gray-900 dark:text-white">
                             {request.documentName}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                               <User className="w-4 h-4 text-gray-500" />
@@ -493,7 +549,7 @@ const DocumentRequestHistory = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                           <span
                             className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}
                           >
@@ -501,7 +557,7 @@ const DocumentRequestHistory = () => {
                             {statusConfig.label}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col">
                             <span className="text-sm font-medium text-gray-900 dark:text-white">
                               {formatCurrency(request.fee)}
@@ -513,10 +569,10 @@ const DocumentRequestHistory = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                           {formatDate(request.createdAt)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right">
                           <button
                             onClick={() => handleViewDetail(request)}
                             className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
@@ -533,8 +589,8 @@ const DocumentRequestHistory = () => {
             </div>
 
             {/* Pagination */}
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="px-3 sm:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
+              <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
                 Showing {(currentPage - 1) * requestsPerPage + 1} to{" "}
                 {Math.min(currentPage * requestsPerPage, totalRequests)} of{" "}
                 {totalRequests} requests
@@ -545,11 +601,11 @@ const DocumentRequestHistory = () => {
                     setCurrentPage((prev) => Math.max(1, prev - 1))
                   }
                   disabled={currentPage === 1}
-                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-1.5 sm:p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
-                <span className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span className="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                   Page {currentPage} of {totalPages}
                 </span>
                 <button
@@ -557,9 +613,9 @@ const DocumentRequestHistory = () => {
                     setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                   }
                   disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-1.5 sm:p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </div>
@@ -569,74 +625,74 @@ const DocumentRequestHistory = () => {
 
       {/* Detail Modal */}
       {showDetailModal && selectedRequest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowDetailModal(false)}
           />
-          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          <div className="relative bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-lg sm:mx-4 p-4 sm:p-6 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                 Request Details
               </h2>
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-500"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-500"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* Reference Number */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 sm:p-4 text-center">
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                   Reference Number
                 </p>
-                <p className="text-xl font-bold font-mono text-blue-600 dark:text-blue-400">
+                <p className="text-lg sm:text-xl font-bold font-mono text-blue-600 dark:text-blue-400">
                   {selectedRequest.referenceNumber}
                 </p>
               </div>
 
               {/* Document Info */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                     Document Type
                   </p>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     {selectedRequest.documentName}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                     Purpose
                   </p>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     {selectedRequest.purpose}
                   </p>
                 </div>
               </div>
 
               {/* Requester Info */}
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3 sm:pt-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
                   Requester Information
                 </p>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                       Name
                     </p>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                       {selectedRequest.requester?.name}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                       Contact
                     </p>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                       {selectedRequest.requester?.phone}
                     </p>
                   </div>
@@ -644,14 +700,14 @@ const DocumentRequestHistory = () => {
               </div>
 
               {/* Status & Payment */}
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3 sm:pt-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                       Status
                     </p>
                     <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${
                         getStatusConfig(selectedRequest.status).color
                       }`}
                     >
@@ -659,13 +715,13 @@ const DocumentRequestHistory = () => {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                       Fee
                     </p>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                       {formatCurrency(selectedRequest.fee)}
                       {selectedRequest.isPaid && (
-                        <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded">
+                        <span className="ml-2 text-[10px] sm:text-xs text-green-600 bg-green-100 px-1.5 sm:px-2 py-0.5 rounded">
                           Paid
                         </span>
                       )}
@@ -675,11 +731,11 @@ const DocumentRequestHistory = () => {
               </div>
 
               {/* Timeline */}
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3 sm:pt-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
                   Timeline
                 </p>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-xs sm:text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Requested:</span>
                     <span className="text-gray-900 dark:text-white">
@@ -707,11 +763,11 @@ const DocumentRequestHistory = () => {
 
               {/* Processed By */}
               {selectedRequest.processedBy && (
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3 sm:pt-4">
+                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                     Processed By
                   </p>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     {selectedRequest.processedBy.name}
                   </p>
                 </div>
@@ -719,11 +775,11 @@ const DocumentRequestHistory = () => {
 
               {/* Remarks */}
               {selectedRequest.remarks && (
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3 sm:pt-4">
+                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                     Remarks
                   </p>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     {selectedRequest.remarks}
                   </p>
                 </div>

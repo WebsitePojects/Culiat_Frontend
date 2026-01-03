@@ -107,15 +107,15 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
   };
 
   return (
-    <header className="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+    <header className="flex items-center justify-between h-14 sm:h-16 px-3 sm:px-4 md:px-6 bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
       {/* Left Section */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         {/* Mobile Menu Button */}
         <button
           onClick={toggleMobileMenu}
-          className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
+          className="p-1.5 sm:p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
         </button>
 
         {/* Desktop Sidebar Toggle */}
@@ -133,17 +133,17 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
       </div>
 
       {/* Right Section */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
-          className="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="p-1.5 sm:p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
           title="Toggle theme"
         >
           {isDarkMode ? (
-            <Sun className="w-5 h-5" />
+            <Sun className="w-4 h-4 sm:w-5 sm:h-5" />
           ) : (
-            <Moon className="w-5 h-5" />
+            <Moon className="w-4 h-4 sm:w-5 sm:h-5" />
           )}
         </button>
 
@@ -156,9 +156,9 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
                 fetchNotifications();
               }
             }}
-            className="relative p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="relative p-1.5 sm:p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            <Bell className="w-5 h-5" />
+            <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
             {unreadCount > 0 && (
               <span className="absolute top-1 right-1 flex h-2 w-2">
                 <span className="absolute inline-flex w-full h-full bg-red-400 rounded-full opacity-75 animate-ping"></span>
@@ -169,9 +169,9 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
 
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div className="absolute right-0 z-50 w-96 mt-2 bg-white rounded-lg shadow-lg dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+            <div className="absolute right-0 z-50 w-[calc(100vw-24px)] sm:w-80 md:w-96 mt-2 bg-white rounded-lg shadow-lg dark:bg-gray-800 border border-gray-200 dark:border-gray-700 max-h-[80vh] overflow-hidden">
+              <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
                   Notifications
                 </h3>
                 {unreadCount > 0 && (
@@ -242,17 +242,17 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
         <div className="relative" ref={profileDropdownRef}>
           <button
             onClick={() => setShowProfile(!showProfile)}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-1 sm:space-x-2"
           >
             <img
               src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
                 user ? `${user.firstName} ${user.lastName}` : "Admin"
               )}&background=3b82f6&color=fff`}
               alt="Profile"
-              className="w-8 h-8 rounded-full"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full"
             />
-            <span className="hidden text-sm font-medium text-gray-700 dark:text-gray-200 md:block">
-              {user ? `${user.firstName} ${user.lastName}` : "Admin"}
+            <span className="hidden text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 md:block max-w-[100px] truncate">
+              {user ? `${user.firstName}` : "Admin"}
             </span>
           </button>
 

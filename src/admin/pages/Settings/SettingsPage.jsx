@@ -172,10 +172,10 @@ const SettingsPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             Loading settings...
           </p>
         </div>
@@ -184,57 +184,58 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <SettingsIcon className="w-8 h-8 text-blue-600" />
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
+            <SettingsIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-blue-600" />
             System Settings
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Configure your barangay management system
           </p>
         </div>
 
         {hasChanges && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={handleReset}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
+              className="px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
             >
-              <RefreshCw className="w-4 h-4 inline mr-2" />
-              Discard Changes
+              <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+              <span className="hidden xs:inline">Discard</span>
             </button>
             <button
               onClick={() => handleSave()}
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
-              <Save className="w-4 h-4 inline mr-2" />
-              {saving ? "Saving..." : "Save All Changes"}
+              <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+              {saving ? "Saving..." : "Save All"}
             </button>
           </div>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
-        <nav className="flex space-x-4 overflow-x-auto">
+      <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+        <nav className="flex space-x-1 sm:space-x-4 min-w-max px-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                className={`flex items-center px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                   activeTab === tab.id
                     ? "border-blue-600 text-blue-600 dark:text-blue-400"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
                 }`}
               >
-                <Icon className="w-4 h-4 mr-2" />
-                {tab.label}
+                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
               </button>
             );
           })}
@@ -242,20 +243,20 @@ const SettingsPage = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-3 sm:p-4 md:p-6">
         {/* Site Information */}
         {activeTab === "site-info" && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Building className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <Building className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
                 Site Information
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Barangay Name *
                 </label>
                 <input
@@ -273,7 +274,7 @@ const SettingsPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   City *
                 </label>
                 <input
@@ -282,12 +283,12 @@ const SettingsPage = () => {
                   onChange={(e) =>
                     handleInputChange("siteInfo", "city", e.target.value)
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Province *
                 </label>
                 <input
@@ -296,12 +297,12 @@ const SettingsPage = () => {
                   onChange={(e) =>
                     handleInputChange("siteInfo", "province", e.target.value)
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Tagline
                 </label>
                 <input
@@ -310,13 +311,13 @@ const SettingsPage = () => {
                   onChange={(e) =>
                     handleInputChange("siteInfo", "tagline", e.target.value)
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="Your barangay's tagline"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Description
                 </label>
                 <textarea
@@ -325,19 +326,19 @@ const SettingsPage = () => {
                   onChange={(e) =>
                     handleInputChange("siteInfo", "description", e.target.value)
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="Brief description of your barangay"
                 ></textarea>
               </div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t dark:border-gray-700">
+            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
               <button
                 onClick={() => handleSave("site-info")}
                 disabled={saving}
-                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                <Save className="w-4 h-4 inline mr-2" />
+                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
                 Save Site Info
               </button>
             </div>
@@ -346,18 +347,18 @@ const SettingsPage = () => {
 
         {/* Contact Information */}
         {activeTab === "contactInfo" && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Phone className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
                 Contact Information
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <MapPin className="w-4 h-4 inline mr-1" />
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
                   Office Address
                 </label>
                 <textarea
@@ -370,14 +371,14 @@ const SettingsPage = () => {
                       e.target.value
                     )
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="Complete office address"
                 ></textarea>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Phone className="w-4 h-4 inline mr-1" />
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                  <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
                   Phone Number
                 </label>
                 <input
@@ -390,13 +391,13 @@ const SettingsPage = () => {
                       e.target.value
                     )
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="+63 123 456 7890"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Mobile Number
                 </label>
                 <input
@@ -409,14 +410,14 @@ const SettingsPage = () => {
                       e.target.value
                     )
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="+63 987 654 3210"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Mail className="w-4 h-4 inline mr-1" />
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                  <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
                   Email Address
                 </label>
                 <input
@@ -429,13 +430,13 @@ const SettingsPage = () => {
                       e.target.value
                     )
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="contact@barangay.gov.ph"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Office Hours
                 </label>
                 <input
@@ -448,13 +449,13 @@ const SettingsPage = () => {
                       e.target.value
                     )
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="Monday - Friday, 8:00 AM - 5:00 PM"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Google Maps Embed URL
                 </label>
                 <input
@@ -467,13 +468,13 @@ const SettingsPage = () => {
                       e.target.value
                     )
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="https://www.google.com/maps/embed?pb=..."
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Google Maps Directions URL
                 </label>
                 <input
@@ -486,19 +487,19 @@ const SettingsPage = () => {
                       e.target.value
                     )
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="https://www.google.com/maps/place/..."
                 />
               </div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t dark:border-gray-700">
+            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
               <button
                 onClick={() => handleSave("contact-info")}
                 disabled={saving}
-                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                <Save className="w-4 h-4 inline mr-2" />
+                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
                 Save Contact Info
               </button>
             </div>
@@ -507,17 +508,17 @@ const SettingsPage = () => {
 
         {/* Social Media */}
         {activeTab === "socialMedia" && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Globe className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <Globe className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
                 Social Media Links
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   <span className="text-blue-600">📘</span> Facebook
                 </label>
                 <input
@@ -526,13 +527,13 @@ const SettingsPage = () => {
                   onChange={(e) =>
                     handleInputChange("socialMedia", "facebook", e.target.value)
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="https://facebook.com/your-page"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   <span className="text-sky-500">🐦</span> Twitter
                 </label>
                 <input
@@ -541,13 +542,13 @@ const SettingsPage = () => {
                   onChange={(e) =>
                     handleInputChange("socialMedia", "twitter", e.target.value)
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="https://twitter.com/your-handle"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   <span className="text-pink-600">📷</span> Instagram
                 </label>
                 <input
@@ -560,13 +561,13 @@ const SettingsPage = () => {
                       e.target.value
                     )
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="https://instagram.com/your-account"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   <span className="text-red-600">📺</span> YouTube
                 </label>
                 <input
@@ -575,19 +576,19 @@ const SettingsPage = () => {
                   onChange={(e) =>
                     handleInputChange("socialMedia", "youtube", e.target.value)
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="https://youtube.com/your-channel"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t dark:border-gray-700">
+            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
               <button
                 onClick={() => handleSave("social-media")}
                 disabled={saving}
-                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                <Save className="w-4 h-4 inline mr-2" />
+                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
                 Save Social Media
               </button>
             </div>
@@ -596,17 +597,17 @@ const SettingsPage = () => {
 
         {/* Footer Settings */}
         {activeTab === "footer" && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Mail className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
                 Footer Settings
               </h2>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   About Text
                 </label>
                 <textarea
@@ -615,13 +616,13 @@ const SettingsPage = () => {
                   onChange={(e) =>
                     handleInputChange("footer", "aboutText", e.target.value)
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="Brief description about your barangay"
                 ></textarea>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Copyright Text
                 </label>
                 <input
@@ -630,13 +631,13 @@ const SettingsPage = () => {
                   onChange={(e) =>
                     handleInputChange("footer", "copyrightText", e.target.value)
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="© 2025 Barangay Name"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Powered By Text
                 </label>
                 <input
@@ -645,21 +646,21 @@ const SettingsPage = () => {
                   onChange={(e) =>
                     handleInputChange("footer", "poweredByText", e.target.value)
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="Your Company Name"
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">
+              <div className="flex items-center justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     Show Quick Links
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
                     Display quick links section in footer
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                   <input
                     type="checkbox"
                     checked={formData.footer.showQuickLinks || false}
@@ -672,20 +673,20 @@ const SettingsPage = () => {
                     }
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                 </label>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">
+              <div className="flex items-center justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     Show Location Map
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
                     Display map in footer
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                   <input
                     type="checkbox"
                     checked={formData.footer.showMap || false}
@@ -694,33 +695,33 @@ const SettingsPage = () => {
                     }
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                 </label>
               </div>
 
               {/* Quick Links Management */}
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <h3 className="text-sm sm:text-base md:text-lg font-medium text-gray-900 dark:text-white">
                     Quick Links
                   </h3>
                   <button
                     onClick={addQuickLink}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    <Plus className="w-4 h-4" />
-                    Add Link
+                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    Add
                   </button>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {formData.footer.quickLinks?.map((link, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+                      className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
                     >
-                      <GripVertical className="w-5 h-5 text-gray-400 cursor-move" />
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <GripVertical className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 cursor-move hidden sm:block" />
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
                         <input
                           type="text"
                           value={link.title || ""}
@@ -728,7 +729,7 @@ const SettingsPage = () => {
                             updateQuickLink(index, "title", e.target.value)
                           }
                           placeholder="Link Title"
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                          className="px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                         <input
                           type="url"
@@ -736,36 +737,36 @@ const SettingsPage = () => {
                           onChange={(e) =>
                             updateQuickLink(index, "url", e.target.value)
                           }
-                          placeholder="URL (e.g., /services or https://...)"
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                          placeholder="URL"
+                          className="px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         />
                       </div>
                       <button
                         onClick={() => removeQuickLink(index)}
-                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        className="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
                     </div>
                   ))}
                   {(!formData.footer.quickLinks ||
                     formData.footer.quickLinks.length === 0) && (
-                    <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-                      No quick links added yet. Click "Add Link" to get started.
+                    <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 py-6 sm:py-8">
+                      No quick links added yet. Click "Add" to get started.
                     </p>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t dark:border-gray-700">
+            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
               <button
                 onClick={() => handleSave("footer")}
                 disabled={saving}
-                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                <Save className="w-4 h-4 inline mr-2" />
-                Save Footer Settings
+                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                Save Footer
               </button>
             </div>
           </div>
@@ -773,27 +774,27 @@ const SettingsPage = () => {
 
         {/* Theme Settings */}
         {activeTab === "theme" && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Palette className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <Palette className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
                 Theme Settings
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Primary Color
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <input
                     type="color"
                     value={formData.theme.primaryColor || "#3B82F6"}
                     onChange={(e) =>
                       handleInputChange("theme", "primaryColor", e.target.value)
                     }
-                    className="h-10 w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
+                    className="h-8 w-12 sm:h-10 sm:w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
                   />
                   <input
                     type="text"
@@ -801,16 +802,16 @@ const SettingsPage = () => {
                     onChange={(e) =>
                       handleInputChange("theme", "primaryColor", e.target.value)
                     }
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="flex-1 px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Secondary Color
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <input
                     type="color"
                     value={formData.theme.secondaryColor || "#8B5CF6"}
@@ -821,7 +822,7 @@ const SettingsPage = () => {
                         e.target.value
                       )
                     }
-                    className="h-10 w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
+                    className="h-8 w-12 sm:h-10 sm:w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
                   />
                   <input
                     type="text"
@@ -833,23 +834,23 @@ const SettingsPage = () => {
                         e.target.value
                       )
                     }
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="flex-1 px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Accent Color
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <input
                     type="color"
                     value={formData.theme.accentColor || "#10B981"}
                     onChange={(e) =>
                       handleInputChange("theme", "accentColor", e.target.value)
                     }
-                    className="h-10 w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
+                    className="h-8 w-12 sm:h-10 sm:w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
                   />
                   <input
                     type="text"
@@ -857,15 +858,15 @@ const SettingsPage = () => {
                     onChange={(e) =>
                       handleInputChange("theme", "accentColor", e.target.value)
                     }
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="flex-1 px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-sm text-blue-800 dark:text-blue-300 flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+            <div className="p-2.5 sm:p-3 md:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-[10px] sm:text-xs md:text-sm text-blue-800 dark:text-blue-300 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0" />
                 <span>
                   Theme colors will be applied system-wide. Changes may require
                   a page refresh to take full effect.
@@ -873,13 +874,13 @@ const SettingsPage = () => {
               </p>
             </div>
 
-            <div className="flex justify-end pt-4 border-t dark:border-gray-700">
+            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
               <button
                 onClick={() => handleSave("theme")}
                 disabled={saving}
-                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                <Save className="w-4 h-4 inline mr-2" />
+                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
                 Save Theme
               </button>
             </div>
@@ -888,25 +889,25 @@ const SettingsPage = () => {
 
         {/* System Settings */}
         {activeTab === "system" && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Shield className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+              <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
                 System Settings
               </h2>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     User Registration
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
                     Allow new user registrations
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                   <input
                     type="checkbox"
                     checked={formData.system.registrationEnabled || false}
@@ -919,20 +920,20 @@ const SettingsPage = () => {
                     }
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                 </label>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">
+              <div className="flex items-center justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     Document Requests
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
                     Enable document request submissions
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                   <input
                     type="checkbox"
                     checked={formData.system.documentRequestEnabled || false}
@@ -945,20 +946,20 @@ const SettingsPage = () => {
                     }
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                 </label>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">
+              <div className="flex items-center justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     Report Submissions
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
                     Allow residents to submit reports
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                   <input
                     type="checkbox"
                     checked={formData.system.reportingEnabled || false}
@@ -971,19 +972,19 @@ const SettingsPage = () => {
                     }
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                  <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
                 </label>
               </div>
             </div>
 
-            <div className="flex justify-end pt-4 border-t dark:border-gray-700">
+            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
               <button
                 onClick={() => handleSave()}
                 disabled={saving}
-                className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                <Save className="w-4 h-4 inline mr-2" />
-                Save System Settings
+                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                Save System
               </button>
             </div>
           </div>

@@ -230,7 +230,7 @@ const WebsiteFeedback = () => {
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
-            className={`w-4 h-4 ${
+            className={`w-3 h-3 sm:w-4 sm:h-4 ${
               star <= rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
             }`}
           />
@@ -240,102 +240,102 @@ const WebsiteFeedback = () => {
   };
 
   const getSentimentIcon = (rating) => {
-    if (rating >= 4) return <ThumbsUp className="w-4 h-4 text-green-600" />;
-    if (rating <= 2) return <ThumbsDown className="w-4 h-4 text-red-600" />;
-    return <MessageCircle className="w-4 h-4 text-yellow-600" />;
+    if (rating >= 4) return <ThumbsUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />;
+    if (rating <= 2) return <ThumbsDown className="w-3 h-3 sm:w-4 sm:h-4 text-red-600" />;
+    return <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-600" />;
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4 md:space-y-6 p-2.5 sm:p-4 md:p-6">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <MessageSquare className="w-7 h-7 text-purple-600" />
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
+            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-purple-600" />
             Website Feedback
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
             Manage feedback from home page contact form
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => fetchFeedbacks()}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <MessageSquare className="w-5 h-5 text-blue-600" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-md sm:rounded-lg">
+              <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total || totalFeedbacks}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Total Feedback</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{stats.total || totalFeedbacks}</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Total Feedback</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/30 rounded-md sm:rounded-lg">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                 {stats.new}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">New Messages</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">New Messages</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-              <Star className="w-5 h-5 text-yellow-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-md sm:rounded-lg">
+              <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                 {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "0.0"}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Avg. Rating</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Avg. Rating</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-              <Ban className="w-5 h-5 text-red-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 bg-red-100 dark:bg-red-900/30 rounded-md sm:rounded-lg">
+              <Ban className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.blockedIPs}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Blocked IPs</p>
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{stats.blockedIPs}</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Blocked IPs</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3 md:gap-4">
           {/* Search */}
-          <div className="lg:col-span-2 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <div className="sm:col-span-2 lg:col-span-2 relative">
+            <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, email, or message..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
 
@@ -346,7 +346,7 @@ const WebsiteFeedback = () => {
               setSelectedStatus(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           >
             {statuses.map((status) => (
               <option key={status.value} value={status.value}>
@@ -362,7 +362,7 @@ const WebsiteFeedback = () => {
               setSelectedRating(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className="w-full px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           >
             {ratings.map((r) => (
               <option key={r.value} value={r.value}>
@@ -379,26 +379,102 @@ const WebsiteFeedback = () => {
               setDateFrom(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm"
+            className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
         </div>
       </div>
 
       {/* Feedback List */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <div className="flex items-center justify-center h-48 sm:h-64">
+            <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 border-b-2 border-purple-600"></div>
           </div>
         ) : feedbacks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-gray-400">
-            <MessageSquare className="w-16 h-16 mb-4 opacity-50" />
-            <p className="text-lg font-medium">No feedback found</p>
-            <p className="text-sm">Feedback from the contact form will appear here</p>
+          <div className="flex flex-col items-center justify-center h-48 sm:h-64 text-gray-500 dark:text-gray-400 p-4">
+            <MessageSquare className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 mb-3 sm:mb-4 opacity-50" />
+            <p className="text-sm sm:text-base md:text-lg font-medium text-center">No feedback found</p>
+            <p className="text-xs sm:text-sm text-center">Feedback from the contact form will appear here</p>
           </div>
         ) : (
           <>
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            {/* Mobile Card View */}
+            <div className="block md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+              {feedbacks.map((feedback) => (
+                <div
+                  key={feedback._id}
+                  className={`p-3 sm:p-4 ${
+                    feedback.status === "new" ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          feedback.isRegistered
+                            ? "bg-blue-100 dark:bg-blue-900/30"
+                            : "bg-gray-100 dark:bg-gray-700"
+                        }`}
+                      >
+                        <User
+                          className={`w-4 h-4 ${
+                            feedback.isRegistered
+                              ? "text-blue-600 dark:text-blue-400"
+                              : "text-gray-500 dark:text-gray-400"
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+                          {feedback.name || "Anonymous"}
+                        </p>
+                        {feedback.email && (
+                          <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 truncate max-w-[150px]">
+                            {feedback.email}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <span className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-medium rounded-full ${getStatusColor(feedback.status)}`}>
+                      {feedback.status.charAt(0).toUpperCase() + feedback.status.slice(1)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 mb-2">
+                    {renderStars(feedback.rating)}
+                    {getSentimentIcon(feedback.rating)}
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 line-clamp-2 mb-2">
+                    {feedback.message}
+                  </p>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {formatDate(feedback.createdAt)}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleViewDetail(feedback)}
+                        className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(feedback._id)}
+                        className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop List View */}
+            <div className="hidden md:block divide-y divide-gray-200 dark:divide-gray-700">
               {feedbacks.map((feedback) => (
                 <div
                   key={feedback._id}
@@ -508,28 +584,28 @@ const WebsiteFeedback = () => {
             </div>
 
             {/* Pagination */}
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
+              <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">
                 Showing {(currentPage - 1) * feedbacksPerPage + 1} to{" "}
-                {Math.min(currentPage * feedbacksPerPage, totalFeedbacks)} of {totalFeedbacks} messages
+                {Math.min(currentPage * feedbacksPerPage, totalFeedbacks)} of {totalFeedbacks}
               </p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-1.5 sm:p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
-                <span className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Page {currentPage} of {totalPages}
+                <span className="px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 text-[10px] sm:text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {currentPage} / {totalPages}
                 </span>
                 <button
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-1.5 sm:p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </div>
@@ -539,30 +615,30 @@ const WebsiteFeedback = () => {
 
       {/* Detail Modal */}
       {showDetailModal && selectedFeedback && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowDetailModal(false)} />
-          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Feedback Details</h2>
+          <div className="relative bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Feedback Details</h2>
               <button
                 onClick={() => setShowDetailModal(false)}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${
                     selectedFeedback.isRegistered
                       ? "bg-blue-100 dark:bg-blue-900/30"
                       : "bg-gray-100 dark:bg-gray-700"
                   }`}
                 >
                   <User
-                    className={`w-6 h-6 ${
+                    className={`w-5 h-5 sm:w-6 sm:h-6 ${
                       selectedFeedback.isRegistered
                         ? "text-blue-600 dark:text-blue-400"
                         : "text-gray-500 dark:text-gray-400"
@@ -570,10 +646,10 @@ const WebsiteFeedback = () => {
                   />
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">
                     {selectedFeedback.name || "Anonymous"}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                     {selectedFeedback.email || "No email provided"}
                   </p>
                 </div>
@@ -581,53 +657,53 @@ const WebsiteFeedback = () => {
 
               <div className="flex items-center gap-2">
                 {renderStars(selectedFeedback.rating)}
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                   ({selectedFeedback.rating}/5)
                 </span>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                   {selectedFeedback.message}
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                 <div>
                   <p className="text-gray-500 dark:text-gray-400">Submitted</p>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="font-medium text-gray-900 dark:text-white text-[10px] sm:text-xs md:text-sm">
                     {formatDate(selectedFeedback.createdAt)}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-500 dark:text-gray-400">IP Address</p>
-                  <p className="font-medium text-gray-900 dark:text-white font-mono">
+                  <p className="font-medium text-gray-900 dark:text-white font-mono text-[10px] sm:text-xs">
                     {selectedFeedback.ipAddress}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-500 dark:text-gray-400">Status</p>
-                  <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(selectedFeedback.status)}`}>
+                  <span className={`inline-block px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-medium rounded-full ${getStatusColor(selectedFeedback.status)}`}>
                     {selectedFeedback.status.charAt(0).toUpperCase() + selectedFeedback.status.slice(1)}
                   </span>
                 </div>
                 <div>
                   <p className="text-gray-500 dark:text-gray-400">User Type</p>
-                  <p className="font-medium text-gray-900 dark:text-white">
+                  <p className="font-medium text-gray-900 dark:text-white text-[10px] sm:text-xs md:text-sm">
                     {selectedFeedback.isRegistered ? "Registered User" : "Anonymous"}
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex gap-2 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   onClick={() => {
                     handleBlockIP(selectedFeedback.ipAddress);
                     setShowDetailModal(false);
                   }}
-                  className="flex-1 px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
+                  className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/30 flex items-center justify-center gap-1.5 sm:gap-2"
                 >
-                  <Ban className="w-4 h-4" />
+                  <Ban className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Block IP
                 </button>
                 <button
@@ -635,9 +711,9 @@ const WebsiteFeedback = () => {
                     handleDelete(selectedFeedback._id);
                     setShowDetailModal(false);
                   }}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2"
+                  className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-1.5 sm:gap-2"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Delete
                 </button>
               </div>

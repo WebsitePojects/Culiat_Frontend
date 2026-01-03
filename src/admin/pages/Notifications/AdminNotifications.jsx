@@ -161,14 +161,15 @@ const AdminNotifications = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Bell className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-blue-600" />
             Notifications
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Stay updated with system alerts and user activities
           </p>
         </div>
@@ -176,99 +177,99 @@ const AdminNotifications = () => {
           <button
             onClick={markAllAsRead}
             disabled={unreadCount === 0}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            Mark All as Read
+            Mark All Read
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow p-6 text-white">
-          <div className="flex items-center justify-between">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl shadow p-2.5 sm:p-4 md:p-6 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
             <div>
-              <p className="text-sm opacity-90">Total Notifications</p>
-              <p className="text-3xl font-bold mt-1">{notifications.length}</p>
+              <p className="text-[10px] sm:text-xs md:text-sm opacity-90">Total</p>
+              <p className="text-lg sm:text-2xl md:text-3xl font-bold">{notifications.length}</p>
             </div>
-            <div className="p-3 bg-white/20 rounded-lg">
-              <Bell className="w-6 h-6" />
+            <div className="p-1.5 sm:p-2 md:p-3 bg-white/20 rounded-lg self-start sm:self-auto">
+              <Bell className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg shadow p-6 text-white">
-          <div className="flex items-center justify-between">
+        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg sm:rounded-xl shadow p-2.5 sm:p-4 md:p-6 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
             <div>
-              <p className="text-sm opacity-90">Unread</p>
-              <p className="text-3xl font-bold mt-1">{unreadCount}</p>
+              <p className="text-[10px] sm:text-xs md:text-sm opacity-90">Unread</p>
+              <p className="text-lg sm:text-2xl md:text-3xl font-bold">{unreadCount}</p>
             </div>
-            <div className="p-3 bg-white/20 rounded-lg">
-              <AlertCircle className="w-6 h-6" />
+            <div className="p-1.5 sm:p-2 md:p-3 bg-white/20 rounded-lg self-start sm:self-auto">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow p-6 text-white">
-          <div className="flex items-center justify-between">
+        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl shadow p-2.5 sm:p-4 md:p-6 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
             <div>
-              <p className="text-sm opacity-90">Read</p>
-              <p className="text-3xl font-bold mt-1">
+              <p className="text-[10px] sm:text-xs md:text-sm opacity-90">Read</p>
+              <p className="text-lg sm:text-2xl md:text-3xl font-bold">
                 {notifications.length - unreadCount}
               </p>
             </div>
-            <div className="p-3 bg-white/20 rounded-lg">
-              <CheckCircle className="w-6 h-6" />
+            <div className="p-1.5 sm:p-2 md:p-3 bg-white/20 rounded-lg self-start sm:self-auto">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-        <div className="flex flex-wrap gap-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow p-2.5 sm:p-4 border border-gray-100 dark:border-gray-700">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
           <button
             onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-2.5 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-sm rounded-lg font-medium transition-colors ${
               filter === "all"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
             }`}
           >
-            <Filter className="w-4 h-4 inline mr-1" />
+            <Filter className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
             All ({notifications.length})
           </button>
           <button
             onClick={() => setFilter("unread")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-2.5 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-sm rounded-lg font-medium transition-colors ${
               filter === "unread"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
             }`}
           >
-            <Bell className="w-4 h-4 inline mr-1" />
+            <Bell className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
             Unread ({unreadCount})
           </button>
           <button
             onClick={() => setFilter("read")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-2.5 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-sm rounded-lg font-medium transition-colors ${
               filter === "read"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
             }`}
           >
-            <CheckCircle className="w-4 h-4 inline mr-1" />
+            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
             Read ({notifications.length - unreadCount})
           </button>
         </div>
       </div>
 
       {/* Notifications List */}
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {filteredNotifications.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
-            <Bell className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">
+          <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow p-8 sm:p-12 text-center border border-gray-100 dark:border-gray-700">
+            <Bell className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               {filter === "unread"
                 ? "No unread notifications"
                 : "No notifications found"}
@@ -283,69 +284,69 @@ const AdminNotifications = () => {
                 className={`${getNotificationBg(
                   notification.type,
                   notification.read
-                )} rounded-lg shadow hover:shadow-md transition-all border-l-4 ${
+                )} rounded-lg sm:rounded-xl shadow hover:shadow-md transition-all border-l-4 ${
                   !notification.read
                     ? "border-blue-500"
                     : "border-transparent"
                 }`}
               >
-                <div className="p-6">
-                  <div className="flex items-start gap-4">
+                <div className="p-3 sm:p-4 md:p-6">
+                  <div className="flex items-start gap-2.5 sm:gap-4">
                     {/* Icon */}
                     <div
-                      className={`flex-shrink-0 p-3 rounded-lg ${getIconColor(
+                      className={`flex-shrink-0 p-2 sm:p-3 rounded-lg ${getIconColor(
                         notification.color
                       )}`}
                     >
-                      <Icon className="w-6 h-6" />
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <h3 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                            {notification.title}
+                      <div className="flex items-start justify-between gap-2 sm:gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
+                            <span className="truncate">{notification.title}</span>
                             {!notification.read && (
-                              <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+                              <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
                             )}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1 line-clamp-2">
                             {notification.message}
                           </p>
-                          <div className="flex items-center gap-4 mt-3">
-                            <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-500">
+                          <div className="flex items-center flex-wrap gap-2 sm:gap-4 mt-2 sm:mt-3">
+                            <span className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-500 dark:text-gray-500">
                               <Clock className="w-3 h-3" />
                               {notification.timestamp}
                             </span>
                             {notification.link && (
                               <a
                                 href={notification.link}
-                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                                className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 hover:underline"
                               >
-                                View Details →
+                                View →
                               </a>
                             )}
                           </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                           {!notification.read && (
                             <button
                               onClick={() => markAsRead(notification.id)}
-                              className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                              className="p-1.5 sm:p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                               title="Mark as read"
                             >
-                              <CheckCircle className="w-5 h-5" />
+                              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                             </button>
                           )}
                           <button
                             onClick={() => deleteNotification(notification.id)}
-                            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            className="p-1.5 sm:p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                             title="Delete"
                           >
-                            <X className="w-5 h-5" />
+                            <X className="w-4 h-4 sm:w-5 sm:h-5" />
                           </button>
                         </div>
                       </div>
@@ -360,26 +361,26 @@ const AdminNotifications = () => {
 
       {/* Activity Summary */}
       {notifications.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow p-3 sm:p-4 md:p-6 border border-gray-100 dark:border-gray-700">
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
             Recent Activity Summary
           </h2>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                  <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     Document Requests
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                     Today
                   </p>
                 </div>
               </div>
-              <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+              <span className="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400">
                 {
                   notifications.filter((n) => n.type === "document_request")
                     .length
@@ -387,40 +388,40 @@ const AdminNotifications = () => {
               </span>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                  <UserPlus className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <div className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                  <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     New Registrations
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                     Today
                   </p>
                 </div>
               </div>
-              <span className="text-lg font-bold text-green-600 dark:text-green-400">
+              <span className="text-base sm:text-lg font-bold text-green-600 dark:text-green-400">
                 {notifications.filter((n) => n.type === "registration").length}
               </span>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+            <div className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
+                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 dark:text-yellow-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                     Alerts
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                     Requiring attention
                   </p>
                 </div>
               </div>
-              <span className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
+              <span className="text-base sm:text-lg font-bold text-yellow-600 dark:text-yellow-400">
                 {notifications.filter((n) => n.type === "alert").length}
               </span>
             </div>

@@ -39,7 +39,7 @@ const AdminLayout = () => {
 
         {/* Main Content */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
-          <div className="container px-6 py-8 mx-auto max-w-7xl">
+          <div className="container px-3 py-4 sm:px-4 md:px-6 md:py-6 lg:py-8 mx-auto max-w-7xl">
             <Outlet />
           </div>
         </main>
