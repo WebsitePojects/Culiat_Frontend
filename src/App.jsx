@@ -104,11 +104,11 @@ function App() {
     return pathnameSegments.includes(bypassKeyword) || hasBypassParam || hashValue === bypassKeyword;
   }, [pathname, search, hash, bypassKeyword]);
   const bypassPath = useMemo(() => `/${bypassKeyword}`, [bypassKeyword]);
-  const homeElement = (
-    <MainLayout>
-      <Home />
-    </MainLayout>
-  );
+  const homeElement = useMemo(() => (
+      <MainLayout>
+        <Home />
+      </MainLayout>
+    ), []);
 
   // Check if maintenance mode is enabled
   const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
