@@ -1,163 +1,131 @@
-import React, { useState } from "react";
-import { CalendarDays, MapPin, Filter, Megaphone } from "lucide-react";
-import { motion } from "framer-motion";
-// import Header from "../../components/Header";
+import React, { useState, useEffect, useMemo } from "react";
+import { CalendarDays, MapPin, Filter, Megaphone, Loader2, Search, RefreshCw, Inbox, Clock, CheckCircle, ArrowUpDown, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
-const announcements = [
-   {
-      id: 1,
-      title: "Libreng Bakuna Program",
-      date: "October 25, 2025",
-      location: "Barangay Culiat Covered Court",
-      description:
-         "Join our free vaccination drive for senior citizens and children. Protect your loved ones — vaccines save lives!",
-      image: "https://files01.pna.gov.ph/category-list/2022/05/12/brgy-salitran-3-clinic.jpg",
-      category: "Health Program",
-      slug: "libreng-bakuna-program",
-   },
-   {
-      id: 2,
-      title: "Barangay Clean-Up Drive",
-      date: "November 3, 2025",
-      location: "Sitio Veterans, Culiat",
-      description:
-         "Be part of our community clean-up activity to promote a cleaner and greener barangay environment.",
-      image: "https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?w=800&h=600&fit=crop",
-      category: "Community Activity",
-      slug: "barangay-cleanup-drive",
-   },
-   {
-      id: 3,
-      title: "Youth Leadership Seminar",
-      date: "November 10, 2025",
-      location: "Barangay Hall Function Room",
-      description:
-         "Empowering the youth with leadership and teamwork skills. Open to all ages 15–25.",
-      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop",
-      category: "Education & Training",
-      slug: "youth-leadership-seminar",
-   },
-   {
-      id: 4,
-      title: "Blood Donation Campaign",
-      date: "December 2, 2025",
-      location: "Barangay Covered Court",
-      description:
-         "Give the gift of life! Participate in our blood donation campaign in partnership with Red Cross.",
-      image: "https://images.unsplash.com/photo-1615461066159-fea0960485d5?w=800&h=600&fit=crop",
-      category: "Health Program",
-      slug: "blood-donation-campaign",
-   },
-   {
-      id: 5,
-      title: "Senior Citizen's Monthly Pension",
-      date: "November 15, 2025",
-      location: "Barangay Hall Main Office",
-      description:
-         "Monthly pension distribution for qualified senior citizens. Bring your valid ID and senior citizen card.",
-      image: "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800&h=600&fit=crop",
-      category: "Social Services",
-      slug: "senior-citizens-pension",
-   },
-   {
-      id: 6,
-      title: "Barangay Sports Festival 2025",
-      date: "November 20-22, 2025",
-      location: "Culiat Multi-Purpose Court",
-      description:
-         "Three days of exciting sports events! Basketball, volleyball, and badminton tournaments. Register your team now!",
-      image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&h=600&fit=crop",
-      category: "Sports & Recreation",
-      slug: "barangay-sports-fest",
-   },
-   {
-      id: 7,
-      title: "Free Skills Training: Cooking & Baking",
-      date: "December 5-7, 2025",
-      location: "Barangay Multi-Purpose Hall",
-      description:
-         "Learn professional cooking and baking skills for free! Limited slots available. Perfect for aspiring entrepreneurs.",
-      image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&h=600&fit=crop",
-      category: "Education & Training",
-      slug: "cooking-baking-training",
-   },
-   {
-      id: 8,
-      title: "Emergency Preparedness Drill",
-      date: "December 10, 2025",
-      location: "All Sitios - Barangay Wide",
-      description:
-         "Participate in our earthquake and fire drill. Learn life-saving skills and emergency response procedures.",
-      image: "https://images.unsplash.com/photo-1591608971362-f08b2a75731a?w=800&h=600&fit=crop",
-      category: "Safety & Security",
-      slug: "emergency-preparedness-drill",
-   },
-   {
-      id: 9,
-      title: "Kabataan Christmas Party",
-      date: "December 18, 2025",
-      location: "Barangay Covered Court",
-      description:
-         "Annual Christmas celebration for the youth! Games, prizes, food, and entertainment. Open to all SK members and youth.",
-      image: "https://images.unsplash.com/photo-1576919228236-a097c32a5cd4?w=800&h=600&fit=crop",
-      category: "Community Activity",
-      slug: "kabataan-christmas-party",
-   },
-   {
-      id: 10,
-      title: "Free Legal Consultation Day",
-      date: "December 12, 2025",
-      location: "Barangay Hall Conference Room",
-      description:
-         "Get free legal advice from PAO lawyers. Consultations on family law, labor cases, and civil matters.",
-      image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&h=600&fit=crop",
-      category: "Social Services",
-      slug: "free-legal-consultation",
-   },
-];
-
-const categories = [
-   "All",
-   "Health Program",
-   "Community Activity",
-   "Education & Training",
-   "Social Services",
-   "Sports & Recreation",
-   "Safety & Security",
-];
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const Announcement = () => {
    const [activeFilter, setActiveFilter] = useState("All");
+   const [announcements, setAnnouncements] = useState([]);
+   const [loading, setLoading] = useState(true);
+   const [refreshing, setRefreshing] = useState(false);
+   const [error, setError] = useState(null);
+   const [searchTerm, setSearchTerm] = useState("");
+   const [sortOrder, setSortOrder] = useState("desc");
 
-   const filteredAnnouncements =
-      activeFilter === "All"
-         ? announcements
-         : announcements.filter((a) => a.category === activeFilter);
+   useEffect(() => {
+      fetchAnnouncements();
+   }, []);
 
-   // Animation variants
+   const fetchAnnouncements = async (isRefresh = false) => {
+      try {
+         if (isRefresh) {
+            setRefreshing(true);
+         } else {
+            setLoading(true);
+         }
+         const response = await axios.get(`${API_URL}/api/announcements`);
+         if (response.data.success) {
+            setAnnouncements(response.data.data);
+         }
+      } catch (err) {
+         console.error("Error fetching announcements:", err);
+         setError("Failed to load announcements");
+      } finally {
+         setLoading(false);
+         setRefreshing(false);
+      }
+   };
+
+   // Filter announcements less than 1 year old (already done on backend, but also filter client-side for safety)
+   const recentAnnouncements = useMemo(() => {
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      return announcements.filter(a => new Date(a.createdAt) >= oneYearAgo);
+   }, [announcements]);
+
+   // Filter by category - use useMemo to avoid recalculating on every render
+   const filteredAnnouncements = useMemo(() => {
+      let filtered = recentAnnouncements;
+      
+      // Filter by category
+      if (activeFilter !== "All") {
+         filtered = filtered.filter((a) => a.category === activeFilter);
+      }
+      
+      // Filter by search term
+      if (searchTerm.trim()) {
+         const search = searchTerm.toLowerCase();
+         filtered = filtered.filter((a) =>
+            a.title?.toLowerCase().includes(search) ||
+            a.content?.toLowerCase().includes(search) ||
+            a.location?.toLowerCase().includes(search)
+         );
+      }
+      
+      // Sort by date
+      filtered = [...filtered].sort((a, b) => {
+         const dateA = new Date(a.createdAt);
+         const dateB = new Date(b.createdAt);
+         return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+      });
+      
+      return filtered;
+   }, [activeFilter, recentAnnouncements, searchTerm, sortOrder]);
+
+   // Animation variants - optimized for instant filter switching
    const fadeUp = {
-      hidden: { opacity: 0, y: 40 },
+      hidden: { opacity: 0, y: 20 },
       show: { opacity: 1, y: 0 },
    };
 
    const staggerContainer = {
-      hidden: { opacity: 0 },
+      hidden: { opacity: 1 },
       show: {
          opacity: 1,
          transition: {
-            staggerChildren: 0.1,
+            staggerChildren: 0.05,
          },
       },
    };
+
+   const cardVariants = {
+      hidden: { opacity: 0, scale: 0.95 },
+      show: { 
+         opacity: 1, 
+         scale: 1,
+         transition: { duration: 0.2 }
+      },
+      exit: { 
+         opacity: 0, 
+         scale: 0.95,
+         transition: { duration: 0.15 }
+      }
+   };
+
+   // Format date for display
+   const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+         month: 'long',
+         day: 'numeric',
+         year: 'numeric'
+      });
+   };
+
+   // Get available categories from announcements
+   const availableCategories = useMemo(() => {
+      const cats = new Set(recentAnnouncements.map(a => a.category));
+      return ["All", ...Array.from(cats)];
+   }, [recentAnnouncements]);
 
    return (
       <div
          className="min-h-screen"
          style={{ backgroundColor: "var(--color-neutral)" }}
       >
-         {/* <Header variant="black" /> */}
-
          {/* Hero Section */}
          <motion.section
             initial={{ opacity: 0 }}
@@ -230,125 +198,214 @@ const Announcement = () => {
             </div>
          </motion.section>
 
-         {/* Filter Bar */}
+         {/* Search & Filter Bar */}
          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.7 }}
-            className="max-w-6xl mx-auto px-4 mb-8 pt-8 flex flex-wrap justify-center gap-3"
+            className="max-w-6xl mx-auto px-4 pt-8 pb-6"
          >
-            <div className="flex items-center gap-2 text-gray-700">
-               <Filter className="w-4 h-4" />
-               <span className="text-sm font-medium">Filter by Category:</span>
-            </div>
-            <div className="flex flex-wrap justify-center gap-2">
-               {categories.map((cat) => (
-                  <motion.button
-                     key={cat}
-                     onClick={() => setActiveFilter(cat)}
-                     whileHover={{ scale: 1.05, y: -2 }}
-                     whileTap={{ scale: 0.95 }}
-                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                        activeFilter === cat
-                           ? "bg-primary text-white shadow-md"
-                           : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-100"
-                     }`}
-                  >
-                     {cat}
-                  </motion.button>
-               ))}
+            <div className="bg-white rounded-xl md:rounded-2xl shadow-lg border border-gray-100 p-4 md:p-5">
+               <div className="flex flex-col lg:flex-row gap-3 md:gap-4">
+                  {/* Search Input */}
+                  <div className="flex-1 relative">
+                     <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 md:w-5 h-4 md:h-5 text-gray-400" />
+                     <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search announcements..."
+                        className="w-full pl-9 md:pl-12 pr-4 py-2.5 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl text-sm md:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                     />
+                  </div>
+
+                  {/* Filter Controls */}
+                  <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+                     <button
+                        onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
+                        className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl text-xs md:text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                     >
+                        <ArrowUpDown className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                        <span>{sortOrder === "desc" ? "Newest" : "Oldest"}</span>
+                     </button>
+
+                     <button
+                        onClick={() => fetchAnnouncements(true)}
+                        disabled={refreshing}
+                        className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 bg-blue-50 text-blue-600 rounded-lg md:rounded-xl hover:bg-blue-100 transition-colors disabled:opacity-50 text-xs md:text-sm"
+                     >
+                        <RefreshCw className={`w-3.5 h-3.5 md:w-4 md:h-4 ${refreshing ? "animate-spin" : ""}`} />
+                        <span className="hidden sm:inline">Refresh</span>
+                     </button>
+                  </div>
+               </div>
+
+               {/* Category Filter Pills */}
+               <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-2 text-gray-500 mr-2">
+                     <Filter className="w-4 h-4" />
+                     <span className="text-xs md:text-sm font-medium">Category:</span>
+                  </div>
+                  {availableCategories.map((cat) => (
+                     <button
+                        key={cat}
+                        onClick={() => setActiveFilter(cat)}
+                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-150 ${
+                           activeFilter === cat
+                              ? "bg-blue-600 text-white shadow-md"
+                              : "bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                        }`}
+                     >
+                        {cat}
+                     </button>
+                  ))}
+               </div>
+
+               {/* Active Filters & Results Count */}
+               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-3 md:mt-4 pt-3 md:pt-4 border-t border-gray-100 gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                     {searchTerm && (
+                        <span className="inline-flex items-center gap-1 px-2 md:px-3 py-0.5 md:py-1 bg-gray-100 text-gray-700 rounded-full text-[10px] md:text-sm">
+                           Search: "{searchTerm.slice(0, 15)}{searchTerm.length > 15 ? '...' : ''}"
+                           <button onClick={() => setSearchTerm("")} className="ml-1 hover:text-gray-900">
+                              <X className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                           </button>
+                        </span>
+                     )}
+                     {activeFilter !== "All" && (
+                        <span className="inline-flex items-center gap-1 px-2 md:px-3 py-0.5 md:py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] md:text-sm">
+                           {activeFilter}
+                           <button onClick={() => setActiveFilter("All")} className="ml-1 hover:text-blue-900">
+                              <X className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                           </button>
+                        </span>
+                     )}
+                  </div>
+                  <span className="text-xs md:text-sm text-gray-500">
+                     Showing <span className="font-semibold text-blue-600">{filteredAnnouncements.length}</span> of {recentAnnouncements.length} announcements
+                  </span>
+               </div>
             </div>
          </motion.div>
+
+         {/* Loading State */}
+         {loading && (
+            <div className="flex flex-col items-center justify-center py-12 md:py-20">
+               <div className="relative">
+                  <div className="w-12 h-12 md:w-16 md:h-16 border-4 border-blue-200 rounded-full animate-pulse" />
+                  <div className="absolute inset-0 w-12 h-12 md:w-16 md:h-16 border-4 border-transparent border-t-blue-600 rounded-full animate-spin" />
+               </div>
+               <p className="mt-3 md:mt-4 text-sm md:text-base text-gray-500">Loading announcements...</p>
+            </div>
+         )}
+
+         {/* Error State */}
+         {error && !loading && (
+            <div className="max-w-6xl mx-auto px-4 py-10 text-center">
+               <p className="text-red-500">{error}</p>
+               <button
+                  onClick={fetchAnnouncements}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+               >
+                  Try Again
+               </button>
+            </div>
+         )}
 
          {/* Announcements Grid */}
-         <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="show"
-            className="max-w-6xl mx-auto px-4 grid gap-8 md:grid-cols-2 lg:grid-cols-3"
-         >
-            {filteredAnnouncements.length > 0 ? (
-               filteredAnnouncements.map((item, index) => (
-                  <motion.div
-                     key={item.id}
-                     variants={fadeUp}
-                     whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                     className="bg-white shadow-lg flex flex-col border border-gray-100 rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300"
-                  >
-                     <Link
-                        to={`/announcements/${item.slug}`}
-                        className="flex flex-col h-full"
-                     >
-                        <div className="relative h-48 w-full overflow-hidden">
-                           <motion.img
-                              initial={{ scale: 1.2, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              transition={{ duration: 0.6, delay: index * 0.1 }}
-                              whileHover={{ scale: 1.05 }}
-                              src={item.image}
-                              alt={item.title}
-                              className="w-full h-full object-cover transition-transform duration-500"
-                              loading="lazy"
-                           />
-                           {/* Category Badge Overlay */}
-                           <div className="absolute top-3 right-3">
-                              <span className="px-3 py-1 bg-white/95 backdrop-blur-sm text-xs font-semibold text-primary rounded-full shadow-md uppercase tracking-wide">
-                                 {item.category}
-                              </span>
-                           </div>
-                        </div>
-
-                        <div className="p-6 flex flex-col justify-between flex-1">
-                           <div>
-                              <h3 className="text-lg font-bold text-text-color mb-2 line-clamp-2 hover:text-primary transition-colors">
-                                 {item.title}
-                              </h3>
-                              <p className="text-sm text-text-secondary mb-4 leading-relaxed line-clamp-3">
-                                 {item.description}
-                              </p>
-                           </div>
-
-                           <div className="space-y-3">
-                              <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-                                 <span className="flex items-center gap-1.5">
-                                    <CalendarDays className="w-4 h-4 text-primary" />
-                                    <span className="text-xs">{item.date}</span>
-                                 </span>
-                                 <span className="flex items-center gap-1.5">
-                                    <MapPin className="w-4 h-4 text-primary" />
-                                    <span className="text-xs line-clamp-1">
-                                       {item.location}
-                                    </span>
-                                 </span>
-                              </div>
-                              <div className="pt-2 flex items-center gap-2 text-primary font-medium text-sm group">
-                                 <span>Read more</span>
-                                 <motion.span
-                                    initial={{ x: 0 }}
-                                    whileHover={{ x: 5 }}
-                                    transition={{ duration: 0.3 }}
-                                 >
-                                    →
-                                 </motion.span>
-                              </div>
-                           </div>
-                        </div>
-                     </Link>
-                  </motion.div>
-               ))
-            ) : (
+         {!loading && !error && (
+            <AnimatePresence mode="popLayout">
                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="col-span-full text-center py-10 text-gray-500"
+                  key={activeFilter}
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="show"
+                  className="max-w-6xl mx-auto px-4 grid gap-8 md:grid-cols-2 lg:grid-cols-3"
                >
-                  No announcements available for this category.
+                  {filteredAnnouncements.length > 0 ? (
+                     filteredAnnouncements.map((item) => (
+                        <motion.div
+                           key={item._id}
+                           variants={cardVariants}
+                           layout
+                           whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                           className="bg-white shadow-lg flex flex-col border border-gray-100 rounded-2xl overflow-hidden hover:shadow-2xl transition-shadow duration-300"
+                        >
+                           <Link
+                              to={`/announcements/${item.slug || item._id}`}
+                              className="flex flex-col h-full"
+                           >
+                              <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-blue-100 to-blue-200">
+                                 {item.image ? (
+                                    <img
+                                       src={item.image}
+                                       alt={item.title}
+                                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                       loading="lazy"
+                                    />
+                                 ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                       <Megaphone className="w-16 h-16 text-blue-400" />
+                                    </div>
+                                 )}
+                                 {/* Category Badge Overlay */}
+                                 <div className="absolute top-3 right-3">
+                                    <span className="px-3 py-1 bg-white/95 backdrop-blur-sm text-xs font-semibold text-blue-600 rounded-full shadow-md uppercase tracking-wide">
+                                       {item.category}
+                                    </span>
+                                 </div>
+                              </div>
+
+                              <div className="p-6 flex flex-col justify-between flex-1">
+                                 <div>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
+                                       {item.title}
+                                    </h3>
+                                    <p className="text-sm text-gray-600 mb-4 leading-relaxed line-clamp-3">
+                                       {item.content}
+                                    </p>
+                                 </div>
+
+                                 <div className="space-y-3">
+                                    <div className="flex flex-wrap gap-3 text-sm text-gray-500">
+                                       <span className="flex items-center gap-1.5">
+                                          <CalendarDays className="w-4 h-4 text-blue-600" />
+                                          <span className="text-xs">{formatDate(item.eventDate || item.createdAt)}</span>
+                                       </span>
+                                       {item.location && (
+                                          <span className="flex items-center gap-1.5">
+                                             <MapPin className="w-4 h-4 text-blue-600" />
+                                             <span className="text-xs line-clamp-1">
+                                                {item.location}
+                                             </span>
+                                          </span>
+                                       )}
+                                    </div>
+                                    <div className="pt-2 flex items-center gap-2 text-blue-600 font-medium text-sm group">
+                                       <span>Read more</span>
+                                       <span className="group-hover:translate-x-1 transition-transform">→</span>
+                                    </div>
+                                 </div>
+                              </div>
+                           </Link>
+                        </motion.div>
+                     ))
+                  ) : (
+                     <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="col-span-full text-center py-10 text-gray-500"
+                     >
+                        <Megaphone className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                        <p className="text-lg">No announcements available for this category.</p>
+                     </motion.div>
+                  )}
                </motion.div>
-            )}
-         </motion.div>
+            </AnimatePresence>
+         )}
 
          {/* Footer */}
-         <div className="text-center text-sm text-text-secondary mt-12 pb-16">
+         <div className="text-center text-sm text-gray-500 mt-12 pb-16">
             <p>
                For more details, visit the Barangay Hall or follow our official
                social media pages.

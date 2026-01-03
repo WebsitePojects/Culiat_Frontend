@@ -42,6 +42,14 @@ const AchievementSummary = () => {
     }
   };
 
+  // Helper function to get proper image URL (Cloudinary or local)
+  const getImageUrl = (achievement) => {
+    if (!achievement?.image || achievement.image === "no-photo.jpg") return null;
+    return achievement.image.includes("http")
+      ? achievement.image
+      : `${API_URL}/uploads/achievements/${achievement.image}`;
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -104,9 +112,9 @@ const AchievementSummary = () => {
             >
               {/* Image */}
               <div className="relative h-40 overflow-hidden">
-                {achievement.image ? (
+                {getImageUrl(achievement) ? (
                   <img
-                    src={`${API_URL}/uploads/achievements/${achievement.image}`}
+                    src={getImageUrl(achievement)}
                     alt={achievement.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />

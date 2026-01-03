@@ -1,188 +1,222 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, CalendarDays, MapPin } from "lucide-react";
-// import Header from "../../../components/Header";
+import { ArrowLeft, CalendarDays, MapPin, Tag, Loader2, Eye, Share2, Megaphone } from "lucide-react";
+import { motion } from "framer-motion";
+import axios from "axios";
 
-const announcements = [
-  {
-    id: 1,
-    title: "Libreng Bakuna Program",
-    date: "October 25, 2025",
-    location: "Barangay Culiat Covered Court",
-    description:
-      "Join our free vaccination drive for senior citizens and children. Protect your loved ones — vaccines save lives!",
-    image:
-      "https://files01.pna.gov.ph/category-list/2022/05/12/brgy-salitran-3-clinic.jpg",
-    category: "Health Program",
-    slug: "libreng-bakuna-program",
-  },
-  {
-    id: 2,
-    title: "Barangay Clean-Up Drive",
-    date: "November 3, 2025",
-    location: "Sitio Veterans, Culiat",
-    description:
-      "Be part of our community clean-up activity to promote a cleaner and greener barangay environment.",
-    image:
-      "https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?w=800&h=600&fit=crop",
-    category: "Community Activity",
-    slug: "barangay-cleanup-drive",
-  },
-  {
-    id: 3,
-    title: "Youth Leadership Seminar",
-    date: "November 10, 2025",
-    location: "Barangay Hall Function Room",
-    description:
-      "Empowering the youth with leadership and teamwork skills. Open to all ages 15–25.",
-    image:
-      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop",
-    category: "Education & Training",
-    slug: "youth-leadership-seminar",
-  },
-  {
-    id: 4,
-    title: "Blood Donation Campaign",
-    date: "December 2, 2025",
-    location: "Barangay Covered Court",
-    description:
-      "Give the gift of life! Participate in our blood donation campaign in partnership with Red Cross.",
-    image:
-      "https://images.unsplash.com/photo-1615461066159-fea0960485d5?w=800&h=600&fit=crop",
-    category: "Health Program",
-    slug: "blood-donation-campaign",
-  },
-  {
-    id: 5,
-    title: "Senior Citizen's Monthly Pension",
-    date: "November 15, 2025",
-    location: "Barangay Hall Main Office",
-    description:
-      "Monthly pension distribution for qualified senior citizens. Bring your valid ID and senior citizen card.",
-    image:
-      "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800&h=600&fit=crop",
-    category: "Social Services",
-    slug: "senior-citizens-pension",
-  },
-  {
-    id: 6,
-    title: "Barangay Sports Festival 2025",
-    date: "November 20-22, 2025",
-    location: "Culiat Multi-Purpose Court",
-    description:
-      "Three days of exciting sports events! Basketball, volleyball, and badminton tournaments. Register your team now!",
-    image:
-      "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&h=600&fit=crop",
-    category: "Sports & Recreation",
-    slug: "barangay-sports-fest",
-  },
-  {
-    id: 7,
-    title: "Free Skills Training: Cooking & Baking",
-    date: "December 5-7, 2025",
-    location: "Barangay Multi-Purpose Hall",
-    description:
-      "Learn professional cooking and baking skills for free! Limited slots available. Perfect for aspiring entrepreneurs.",
-    image:
-      "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&h=600&fit=crop",
-    category: "Education & Training",
-    slug: "cooking-baking-training",
-  },
-  {
-    id: 8,
-    title: "Emergency Preparedness Drill",
-    date: "December 10, 2025",
-    location: "All Sitios - Barangay Wide",
-    description:
-      "Participate in our earthquake and fire drill. Learn life-saving skills and emergency response procedures.",
-    image:
-      "https://images.unsplash.com/photo-1591608971362-f08b2a75731a?w=800&h=600&fit=crop",
-    category: "Safety & Security",
-    slug: "emergency-preparedness-drill",
-  },
-  {
-    id: 9,
-    title: "Kabataan Christmas Party",
-    date: "December 18, 2025",
-    location: "Barangay Covered Court",
-    description:
-      "Annual Christmas celebration for the youth! Games, prizes, food, and entertainment. Open to all SK members and youth.",
-    image:
-      "https://images.unsplash.com/photo-1576919228236-a097c32a5cd4?w=800&h=600&fit=crop",
-    category: "Community Activity",
-    slug: "kabataan-christmas-party",
-  },
-  {
-    id: 10,
-    title: "Free Legal Consultation Day",
-    date: "December 12, 2025",
-    location: "Barangay Hall Conference Room",
-    description:
-      "Get free legal advice from PAO lawyers. Consultations on family law, labor cases, and civil matters.",
-    image:
-      "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=800&h=600&fit=crop",
-    category: "Social Services",
-    slug: "free-legal-consultation",
-  },
-];
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AnnouncementDetail = () => {
   const { slug } = useParams();
-  const announcement = announcements.find((a) => a.slug === slug);
+  const [announcement, setAnnouncement] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!announcement) {
+  useEffect(() => {
+    fetchAnnouncement();
+  }, [slug]);
+
+  const fetchAnnouncement = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_URL}/api/announcements/${slug}`);
+      if (response.data.success) {
+        setAnnouncement(response.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching announcement:", err);
+      setError("Announcement not found");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: announcement?.title,
+          text: announcement?.content?.substring(0, 100) + '...',
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Announcement not found.
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-500">Loading announcement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !announcement) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Megaphone className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Announcement Not Found</h2>
+          <p className="text-gray-500 mb-6">The announcement you're looking for doesn't exist or has been removed.</p>
+          <Link
+            to="/announcements"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Announcements
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <section className="min-h-screen bg-neutral py-16 mt-10">
-      {/* <Header /> */}
-      <div className="max-w-6xl mx-auto px-4">
-        <Link
-          to="/announcements"
-          className="inline-flex items-center text-text-color text-lg font-medium mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2 text-xl mt-1" /> Back to
-          Announcements
-        </Link>
+    <section className="min-h-screen bg-gray-50">
+      {/* Hero Image */}
+      <div className="relative w-full h-[40vh] md:h-[50vh] bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 overflow-hidden">
+        {announcement.image ? (
+          <>
+            <img
+              src={announcement.image}
+              alt={announcement.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+          </>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Megaphone className="w-32 h-32 text-white/20" />
+          </div>
+        )}
+        
+        {/* Back Button */}
+        <div className="absolute top-6 left-6 z-10">
+          <Link
+            to="/announcements"
+            className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full hover:bg-white/30 transition-all"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Announcements
+          </Link>
+        </div>
 
-        <div className=" ">
-          <img
-            src={announcement.image}
-            alt={announcement.title}
-            className="w-full max-h-[70vh] object-cover"
-          />
-          <div className="p-6 px-4">
-            <p className="text-xs font-semibold text-primary uppercase mb-2 tracking-wide">
-              {announcement.category}
-            </p>
-            <h1 className="text-3xl font-bold text-text-color mb-4">
+        {/* Category Badge */}
+        <div className="absolute top-6 right-6 z-10">
+          <span className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-full shadow-lg uppercase tracking-wide">
+            {announcement.category}
+          </span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-4xl mx-auto px-4 -mt-20 relative z-10 pb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white rounded-2xl shadow-xl overflow-hidden"
+        >
+          {/* Header */}
+          <div className="p-6 md:p-10">
+            {/* Title */}
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
               {announcement.title}
             </h1>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-6">
-              <span className="flex items-center gap-1">
-                <CalendarDays className="w-4 h-4 text-primary" />
-                {announcement.date}
-              </span>
-              <span className="flex items-center gap-1">
-                <MapPin className="w-4 h-4 text-primary" />
-                {announcement.location}
-              </span>
+
+            {/* Meta Info */}
+            <div className="flex flex-wrap items-center gap-4 mb-8 pb-8 border-b border-gray-100">
+              <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-4 py-2 rounded-full">
+                <CalendarDays className="w-4 h-4 text-blue-600" />
+                <span className="text-sm">{formatDate(announcement.eventDate || announcement.createdAt)}</span>
+              </div>
+              
+              {announcement.location && (
+                <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-4 py-2 rounded-full">
+                  <MapPin className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm">{announcement.location}</span>
+                </div>
+              )}
+
+              {announcement.views > 0 && (
+                <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-4 py-2 rounded-full">
+                  <Eye className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm">{announcement.views} views</span>
+                </div>
+              )}
+
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 text-blue-600 bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-100 transition-colors ml-auto"
+              >
+                <Share2 className="w-4 h-4" />
+                <span className="text-sm font-medium">Share</span>
+              </button>
             </div>
-            <div className="text-secondary/80 flex flex-wrap gap-2">
-              <p className=" cursor-pointer ">#KapitanaNanayBebangBernardino</p>
-              <p className=" cursor-pointer ">#MostChildFriendlyBarangay</p>
-              <p className=" cursor-pointer ">#KalidadsaSerbisyo</p>
-              <p className=" cursor-pointer ">#KalingaSaTao</p>
+
+            {/* Content */}
+            <div className="prose prose-lg max-w-none">
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {announcement.content}
+              </p>
             </div>
-            <p className="text-text-secondary leading-relaxed">
-              {announcement.description}
-            </p>
+
+            {/* Hashtags */}
+            <div className="mt-8 pt-8 border-t border-gray-100">
+              <div className="flex flex-wrap gap-2">
+                <span className="text-blue-600 hover:text-blue-700 cursor-pointer text-sm font-medium">
+                  #KapitanaNanayBebangBernardino
+                </span>
+                <span className="text-blue-600 hover:text-blue-700 cursor-pointer text-sm font-medium">
+                  #MostChildFriendlyBarangay
+                </span>
+                <span className="text-blue-600 hover:text-blue-700 cursor-pointer text-sm font-medium">
+                  #KalidadsaSerbisyo
+                </span>
+                <span className="text-blue-600 hover:text-blue-700 cursor-pointer text-sm font-medium">
+                  #KalingaSaTao
+                </span>
+              </div>
+            </div>
+
+            {/* Published By */}
+            {announcement.publishedBy && (
+              <div className="mt-8 pt-8 border-t border-gray-100">
+                <p className="text-sm text-gray-500">
+                  Published by <span className="font-medium text-gray-700">{announcement.publishedBy.firstName} {announcement.publishedBy.lastName}</span>
+                </p>
+              </div>
+            )}
           </div>
+        </motion.div>
+
+        {/* Back Link Bottom */}
+        <div className="text-center mt-8">
+          <Link
+            to="/announcements"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            View All Announcements
+          </Link>
         </div>
       </div>
     </section>
