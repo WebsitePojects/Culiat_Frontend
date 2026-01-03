@@ -163,10 +163,10 @@ const MaintenancePage = () => {
                   Need urgent assistance?
                 </p>
                 <a
-                  href="mailto:barangayculiat@gmail.com"
+                  href="mailto:brgy.culiat@yahoo.com"
                   className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                 >
-                  barangayculiat@gmail.com
+                  brgy.culiat@yahoo.com
                 </a>
               </div>
             </div>
