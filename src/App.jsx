@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
 import { useEffect, useMemo } from "react";
 import { AuthProvider } from "./context/AuthContext";
@@ -79,8 +79,7 @@ const ToastDismissWrapper = ({ children }) => {
 };
 
 function App() {
-  const isClient = typeof window !== "undefined";
-  const location = isClient ? window.location : null;
+  const location = useLocation();
   const bypassKeyword = useMemo(() => {
     const bypassKeywordRaw = (import.meta.env.VITE_MAINTENANCE_BYPASS_KEYWORD || "vergel").toLowerCase().trim();
     return bypassKeywordRaw.replace(/[^a-z0-9-]/g, "") || "vergel";
@@ -94,13 +93,15 @@ function App() {
     const searchParams = new URLSearchParams(search);
     const hashValue = hash.replace(/^#/, "").toLowerCase();
 
-    return (
-      pathnameSegments.includes(bypassKeyword) ||
-      Array.from(searchParams.entries()).some(
-        ([key, value]) => key.toLowerCase() === bypassKeyword || value.toLowerCase() === bypassKeyword
-      ) ||
-      hashValue === bypassKeyword
-    );
+    let hasBypassParam = false;
+    for (const [key, value] of searchParams.entries()) {
+      if (key.toLowerCase() === bypassKeyword || value.toLowerCase() === bypassKeyword) {
+        hasBypassParam = true;
+        break;
+      }
+    }
+
+    return pathnameSegments.includes(bypassKeyword) || hasBypassParam || hashValue === bypassKeyword;
   }, [pathname, search, hash, bypassKeyword]);
   const bypassPath = useMemo(() => `/${bypassKeyword}`, [bypassKeyword]);
   const homeElement = (
