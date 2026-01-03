@@ -80,11 +80,16 @@ const ToastDismissWrapper = ({ children }) => {
 
 function App() {
   const location = useLocation();
-  const bypassKeyword = "vergel";
+  const bypassKeyword = (import.meta.env.VITE_MAINTENANCE_BYPASS_KEYWORD || "vergel").toLowerCase();
   const maintenanceBypassActive = 
     location?.pathname?.toLowerCase().includes(bypassKeyword) ||
     location?.search?.toLowerCase().includes(bypassKeyword) ||
     location?.hash?.toLowerCase().includes(bypassKeyword);
+  const homeElement = (
+    <MainLayout>
+      <Home />
+    </MainLayout>
+  );
 
   // Check if maintenance mode is enabled
   const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
@@ -224,21 +229,13 @@ function App() {
           {/* User Routes with MainLayout */}
           <Route
             path="/"
-            element={
-              <MainLayout>
-                <Home />
-              </MainLayout>
-            }
+            element={homeElement}
           />
 
           {/* Maintenance bypass route */}
           <Route
             path="/vergel"
-            element={
-              <MainLayout>
-                <Home />
-              </MainLayout>
-            }
+            element={homeElement}
           />
 
           <Route
