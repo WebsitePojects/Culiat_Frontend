@@ -1,6 +1,6 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import MaintenancePage from "./components/MaintenancePage";
@@ -79,11 +79,42 @@ const ToastDismissWrapper = ({ children }) => {
 };
 
 function App() {
+  const location = useLocation();
+  const bypassKeyword = useMemo(() => {
+    const bypassKeywordRaw = (import.meta.env.VITE_MAINTENANCE_BYPASS_KEYWORD || "vergel").toLowerCase().trim();
+    return bypassKeywordRaw.replace(/[^a-z0-9-]/g, "") || "vergel";
+  }, []);
+  const pathname = location?.pathname?.toLowerCase() || "";
+  const search = location?.search || "";
+  const hash = location?.hash || "";
+
+  const maintenanceBypassActive = useMemo(() => {
+    const pathnameSegments = pathname.split("/").filter(Boolean);
+    const searchParams = new URLSearchParams(search);
+    const hashValue = hash.replace(/^#/, "").toLowerCase();
+
+    let hasBypassParam = false;
+    for (const [key, value] of searchParams.entries()) {
+      if (key.toLowerCase() === bypassKeyword || value.toLowerCase() === bypassKeyword) {
+        hasBypassParam = true;
+        break;
+      }
+    }
+
+    return pathnameSegments.includes(bypassKeyword) || hasBypassParam || hashValue === bypassKeyword;
+  }, [pathname, search, hash, bypassKeyword]);
+  const bypassPath = useMemo(() => `/${bypassKeyword}`, [bypassKeyword]);
+  const homeElement = useMemo(() => (
+      <MainLayout>
+        <Home />
+      </MainLayout>
+    ), []);
+
   // Check if maintenance mode is enabled
   const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
 
   // If maintenance mode is active, show maintenance page regardless of route
-  if (isMaintenanceMode) {
+  if (isMaintenanceMode && !maintenanceBypassActive) {
     return <MaintenancePage />;
   }
 
@@ -217,11 +248,13 @@ function App() {
           {/* User Routes with MainLayout */}
           <Route
             path="/"
-            element={
-              <MainLayout>
-                <Home />
-              </MainLayout>
-            }
+            element={homeElement}
+          />
+
+          {/* Maintenance bypass route */}
+          <Route
+            path={bypassPath}
+            element={homeElement}
           />
 
           <Route
