@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import MaintenancePage from "./components/MaintenancePage";
+import BypassForm from "./components/BypassForm";
 import AdminLogin from "./tailadminsrc/pages/AuthPages/SignIn";
 import Register from "./users/pages/Auth/Register";
 import RegistrationPending from "./users/pages/Auth/RegistrationPending";
@@ -89,6 +90,25 @@ function App() {
   const hash = location?.hash || "";
 
   const maintenanceBypassActive = useMemo(() => {
+    // Check localStorage first for persistent bypass
+    const storedBypass = localStorage.getItem('maintenanceBypass');
+    const bypassTime = localStorage.getItem('maintenanceBypassTime');
+    
+    if (storedBypass && storedBypass.toLowerCase() === bypassKeyword && bypassTime) {
+      const timeElapsed = Date.now() - parseInt(bypassTime);
+      const tenMinutesInMs = 10 * 60 * 1000; // 10 minutes
+      
+      // Check if bypass has expired (more than 10 minutes)
+      if (timeElapsed > tenMinutesInMs) {
+        // Bypass expired, clear localStorage
+        localStorage.removeItem('maintenanceBypass');
+        localStorage.removeItem('maintenanceBypassTime');
+        return false;
+      }
+      return true;
+    }
+
+    // Check URL parameters
     const pathnameSegments = pathname.split("/").filter(Boolean);
     const searchParams = new URLSearchParams(search);
     const hashValue = hash.replace(/^#/, "").toLowerCase();
@@ -101,7 +121,15 @@ function App() {
       }
     }
 
-    return pathnameSegments.includes(bypassKeyword) || hasBypassParam || hashValue === bypassKeyword;
+    const urlBypass = pathnameSegments.includes(bypassKeyword) || hasBypassParam || hashValue === bypassKeyword;
+    
+    // If bypass is in URL, store it in localStorage with timestamp
+    if (urlBypass) {
+      localStorage.setItem('maintenanceBypass', bypassKeyword);
+      localStorage.setItem('maintenanceBypassTime', Date.now().toString());
+    }
+
+    return urlBypass;
   }, [pathname, search, hash, bypassKeyword]);
   const bypassPath = useMemo(() => `/${bypassKeyword}`, [bypassKeyword]);
   const homeElement = useMemo(() => (
@@ -113,8 +141,8 @@ function App() {
   // Check if maintenance mode is enabled
   const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
 
-  // If maintenance mode is active, show maintenance page regardless of route
-  if (isMaintenanceMode && !maintenanceBypassActive) {
+  // If maintenance mode is active and not on bypass page, show maintenance page
+  if (isMaintenanceMode && !maintenanceBypassActive && pathname !== '/bypass') {
     return <MaintenancePage />;
   }
 
@@ -166,6 +194,9 @@ function App() {
         {typeof window !== "undefined" && <PolicyPopup />}
 
         <Routes>
+          {/* Maintenance Bypass Route - Always accessible */}
+          <Route path="/bypass" element={<BypassForm />} />
+          
           {/* Public Routes */}
           <Route path="/signin" element={<AdminLogin />} />
           <Route path="/login" element={<ResidentAuth />} />
