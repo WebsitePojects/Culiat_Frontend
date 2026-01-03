@@ -79,12 +79,20 @@ const ToastDismissWrapper = ({ children }) => {
 };
 
 function App() {
-  const location = typeof window !== "undefined" ? window.location : null;
-  const bypassKeyword = (import.meta.env.VITE_MAINTENANCE_BYPASS_KEYWORD || "vergel").toLowerCase();
-  const maintenanceBypassActive = 
-    location?.pathname?.toLowerCase().includes(bypassKeyword) ||
-    location?.search?.toLowerCase().includes(bypassKeyword) ||
-    location?.hash?.toLowerCase().includes(bypassKeyword);
+  const isClient = typeof window !== "undefined";
+  const location = isClient ? window.location : null;
+  const bypassKeywordRaw = (import.meta.env.VITE_MAINTENANCE_BYPASS_KEYWORD || "vergel").toLowerCase().trim();
+  const bypassKeyword = bypassKeywordRaw.replace(/[^a-z0-9-]/g, "") || "vergel";
+  const pathnameSegments = location?.pathname?.toLowerCase().split("/").filter(Boolean) || [];
+  const searchParams = location ? new URLSearchParams(location.search) : null;
+  const hashValue = location?.hash?.replace(/^#/, "").toLowerCase() || "";
+
+  const maintenanceBypassActive =
+    pathnameSegments.includes(bypassKeyword) ||
+    Array.from(searchParams?.entries() || []).some(
+      ([key, value]) => key.toLowerCase() === bypassKeyword || value.toLowerCase() === bypassKeyword
+    ) ||
+    hashValue === bypassKeyword;
   const homeElement = (
     <MainLayout>
       <Home />
