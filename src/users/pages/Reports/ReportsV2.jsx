@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { reportAPI } from "../../services/api";
@@ -30,7 +30,7 @@ import {
    FileText,
 } from "lucide-react";
 
-const Reports = () => {
+const ReportsV2 = () => {
    const { user, isAdmin } = useAuth();
    const navigate = useNavigate();
    const [reports, setReports] = useState([]);
@@ -195,7 +195,7 @@ const Reports = () => {
    };
 
    return (
-      <div className="min-h-screen" style={{ backgroundColor: "var(--color-neutral)" }}>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
          {/* Premium Hero Header */}
          <div className="relative overflow-hidden">
             <div
@@ -210,37 +210,37 @@ const Reports = () => {
             <div className="absolute top-20 right-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
             <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
 
-            <div className="relative max-w-6xl mx-auto px-4 md:px-6 pt-16 md:pt-24 pb-14 md:pb-20">
+            <div className="relative max-w-6xl mx-auto px-6 pt-24 pb-20">
                {/* Back Button */}
                <motion.button
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   onClick={() => navigate("/dashboard")}
-                  className="flex items-center gap-2 text-white/80 hover:text-white mb-6 md:mb-8 transition-colors"
+                  className="flex items-center gap-2 text-white/80 hover:text-white mb-8 transition-colors"
                >
                   <ArrowLeft className="w-4 h-4" />
-                  <span className="text-xs md:text-sm font-medium">Back to Dashboard</span>
+                  <span className="text-sm font-medium">Back to Dashboard</span>
                </motion.button>
 
                {/* Header Content */}
-               <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
+               <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                   <motion.div
                      initial={{ opacity: 0, y: 20 }}
                      animate={{ opacity: 1, y: 0 }}
                      transition={{ duration: 0.5 }}
                   >
-                     <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                        <div className="p-2 md:p-3 bg-white/20 backdrop-blur-sm rounded-lg md:rounded-xl">
-                           <ClipboardList className="w-5 h-5 md:w-7 md:h-7 text-white" />
+                     <div className="flex items-center gap-3 mb-4">
+                        <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                           <ClipboardList className="w-7 h-7 text-white" />
                         </div>
-                        <span className="px-2 md:px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-[10px] md:text-xs font-medium text-white">
+                        <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium text-white">
                            {reports.length} Total Reports
                         </span>
                      </div>
-                     <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-3">
+                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
                         {isAdmin ? "All Reports" : "My Reports"}
                      </h1>
-                     <p className="text-white/80 text-sm md:text-lg max-w-lg">
+                     <p className="text-white/80 text-lg max-w-lg">
                         {isAdmin
                            ? "Review and manage community reports from residents."
                            : "Track your submitted reports and their resolution status."}
@@ -255,10 +255,10 @@ const Reports = () => {
                         onClick={() => navigate("/reports/newReport")}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className="flex items-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 bg-white text-blue-900 rounded-lg md:rounded-xl font-semibold text-sm md:text-base shadow-xl shadow-black/10 hover:shadow-2xl transition-all group w-full md:w-auto justify-center md:justify-start"
+                        className="flex items-center gap-3 px-6 py-4 bg-white text-blue-900 rounded-xl font-semibold shadow-xl shadow-black/10 hover:shadow-2xl transition-all group"
                      >
-                        <div className="p-1.5 md:p-2 rounded-lg group-hover:scale-110 transition-transform" style={{ background: "linear-gradient(135deg, #002366 0%, #334b9f 100%)" }}>
-                           <Plus className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                        <div className="p-2 rounded-lg group-hover:scale-110 transition-transform" style={{ background: "linear-gradient(135deg, #002366 0%, #334b9f 100%)" }}>
+                           <Plus className="w-5 h-5 text-white" />
                         </div>
                         <span>New Report</span>
                      </motion.button>
@@ -270,7 +270,7 @@ const Reports = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 }}
-                  className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mt-6 md:mt-10"
+                  className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10"
                >
                   {[
                      { key: "", label: "All Reports", count: statusCounts.all, icon: Inbox, gradient: "from-blue-600 to-blue-700" },
@@ -284,7 +284,7 @@ const Reports = () => {
                         <button
                            key={idx}
                            onClick={() => setFilter({ ...filter, status: stat.key })}
-                           className={`relative overflow-hidden p-3 md:p-4 rounded-lg md:rounded-xl text-left transition-all ${
+                           className={`relative overflow-hidden p-4 rounded-xl text-left transition-all ${
                               isActive
                                  ? "bg-white shadow-xl ring-2 ring-white/50"
                                  : "bg-white/10 backdrop-blur-sm hover:bg-white/20"
@@ -292,15 +292,15 @@ const Reports = () => {
                         >
                            <div className="flex items-center justify-between">
                               <div>
-                                 <p className={`text-[9px] md:text-xs uppercase tracking-wider mb-0.5 md:mb-1 ${isActive ? "text-blue-600" : "text-blue-200"}`}>
+                                 <p className={`text-xs uppercase tracking-wider mb-1 ${isActive ? "text-blue-600" : "text-blue-200"}`}>
                                     {stat.label}
                                  </p>
-                                 <p className={`text-lg md:text-2xl font-bold ${isActive ? "text-blue-900" : "text-white"}`}>
+                                 <p className={`text-2xl font-bold ${isActive ? "text-blue-900" : "text-white"}`}>
                                     {stat.count}
                                  </p>
                               </div>
-                              <div className={`p-1.5 md:p-2 rounded-md md:rounded-lg bg-gradient-to-br ${stat.gradient}`}>
-                                 <Icon className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                              <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.gradient}`}>
+                                 <Icon className="w-5 h-5 text-white" />
                               </div>
                            </div>
                         </button>
@@ -309,50 +309,50 @@ const Reports = () => {
                </motion.div>
             </div>
 
-            {/* Wave Divider - Flipped Vertically */}
-            <div className="absolute -bottom-px left-0 w-full overflow-hidden leading-none rotate-180">
+            {/* Wave Divider */}
+            <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
                <svg
-                  className="relative block w-[calc(100%+2px)] -ml-px h-12 md:h-16"
+                  className="relative block w-full h-16"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 1200 120"
                   preserveAspectRatio="none"
                >
                   <path
                      d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
-                     fill="var(--color-neutral)"
+                     className="fill-slate-50"
                   />
                </svg>
             </div>
          </div>
 
          {/* Main Content */}
-         <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
+         <div className="max-w-6xl mx-auto px-6 py-8">
             {/* Search & Filter Bar */}
             <motion.div
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                transition={{ duration: 0.5 }}
-               className="bg-[var(--color-light)] rounded-xl md:rounded-2xl shadow-lg border border-[var(--color-neutral-active)] p-4 md:p-5 mb-6 md:mb-8"
+               className="bg-white rounded-2xl shadow-lg shadow-gray-100/50 border border-gray-100 p-5 mb-8"
             >
-               <div className="flex flex-col lg:flex-row gap-3 md:gap-4">
+               <div className="flex flex-col lg:flex-row gap-4">
                   {/* Search Input */}
                   <div className="flex-1 relative">
-                     <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 md:w-5 h-4 md:h-5 text-gray-400" />
+                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                      <input
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search reports..."
-                        className="w-full pl-9 md:pl-12 pr-4 py-2.5 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl text-sm md:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Search reports by title, description, or location..."
+                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                      />
                   </div>
 
                   {/* Filter Controls */}
-                  <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+                  <div className="flex items-center gap-3 flex-wrap">
                      <select
                         value={filter.category}
                         onChange={(e) => setFilter({ ...filter, category: e.target.value })}
-                        className="px-3 md:px-4 py-2.5 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl text-xs md:text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer flex-1 sm:flex-none"
+                        className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                      >
                         <option value="">All Categories</option>
                         <option value="infrastructure">Infrastructure</option>
@@ -364,65 +364,65 @@ const Reports = () => {
 
                      <button
                         onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-                        className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl text-xs md:text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="flex items-center gap-2 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-100 transition-colors"
                      >
-                        <ArrowUpDown className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                        <span className="hidden sm:inline">{sortOrder === "desc" ? "Newest" : "Oldest"}</span>
+                        <ArrowUpDown className="w-4 h-4" />
+                        {sortOrder === "desc" ? "Newest" : "Oldest"}
                      </button>
 
                      <button
                         onClick={() => fetchReports(true)}
                         disabled={refreshing}
-                        className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 bg-blue-50 text-blue-600 rounded-lg md:rounded-xl hover:bg-blue-100 transition-colors disabled:opacity-50 text-xs md:text-sm"
+                        className="flex items-center gap-2 px-4 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors disabled:opacity-50"
                      >
-                        <RefreshCw className={`w-3.5 h-3.5 md:w-4 md:h-4 ${refreshing ? "animate-spin" : ""}`} />
-                        <span className="hidden sm:inline">Refresh</span>
+                        <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+                        Refresh
                      </button>
                   </div>
                </div>
 
                {/* Active Filters & Results Count */}
-               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-3 md:mt-4 pt-3 md:pt-4 border-t border-gray-100 gap-2">
+               <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
                   <div className="flex items-center gap-2 flex-wrap">
                      {filter.status && (
-                        <span className="inline-flex items-center gap-1 px-2 md:px-3 py-0.5 md:py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] md:text-sm">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
                            Status: {filter.status}
                            <button onClick={() => setFilter({ ...filter, status: "" })} className="ml-1 hover:text-blue-900">
-                              <X className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                              <X className="w-3 h-3" />
                            </button>
                         </span>
                      )}
                      {filter.category && (
-                        <span className="inline-flex items-center gap-1 px-2 md:px-3 py-0.5 md:py-1 bg-purple-100 text-purple-700 rounded-full text-[10px] md:text-sm">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
                            Category: {filter.category}
                            <button onClick={() => setFilter({ ...filter, category: "" })} className="ml-1 hover:text-purple-900">
-                              <X className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                              <X className="w-3 h-3" />
                            </button>
                         </span>
                      )}
                      {searchTerm && (
-                        <span className="inline-flex items-center gap-1 px-2 md:px-3 py-0.5 md:py-1 bg-gray-100 text-gray-700 rounded-full text-[10px] md:text-sm">
-                           Search: "{searchTerm.slice(0, 15)}{searchTerm.length > 15 ? '...' : ''}"
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                           Search: "{searchTerm}"
                            <button onClick={() => setSearchTerm("")} className="ml-1 hover:text-gray-900">
-                              <X className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                              <X className="w-3 h-3" />
                            </button>
                         </span>
                      )}
                   </div>
-                  <span className="text-xs md:text-sm text-gray-500">
-                     Showing <span className="font-semibold text-blue-600">{filteredReports.length}</span> of {reports.length} reports
+                  <span className="text-sm text-gray-500">
+                     Showing {filteredReports.length} of {reports.length} reports
                   </span>
                </div>
             </motion.div>
 
             {/* Loading State */}
             {loading && (
-               <div className="flex flex-col items-center justify-center py-12 md:py-20">
+               <div className="flex flex-col items-center justify-center py-20">
                   <div className="relative">
-                     <div className="w-12 h-12 md:w-16 md:h-16 border-4 border-blue-200 rounded-full animate-pulse" />
-                     <div className="absolute inset-0 w-12 h-12 md:w-16 md:h-16 border-4 border-transparent border-t-blue-600 rounded-full animate-spin" />
+                     <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-pulse" />
+                     <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-blue-600 rounded-full animate-spin" />
                   </div>
-                  <p className="mt-3 md:mt-4 text-sm md:text-base text-gray-500">Loading your reports...</p>
+                  <p className="mt-4 text-gray-500">Loading your reports...</p>
                </div>
             )}
 
@@ -431,13 +431,13 @@ const Reports = () => {
                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex flex-col items-center justify-center py-12 md:py-20 px-4 bg-white rounded-xl md:rounded-2xl border border-gray-100"
+                  className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100"
                >
-                  <div className="w-14 h-14 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4 md:mb-6">
-                     <FileText className="w-7 h-7 md:w-10 md:h-10 text-gray-400" />
+                  <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                     <FileText className="w-10 h-10 text-gray-400" />
                   </div>
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-1.5 md:mb-2 text-center">No reports found</h3>
-                  <p className="text-sm md:text-base text-gray-500 text-center max-w-sm mb-4 md:mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No reports found</h3>
+                  <p className="text-gray-500 text-center max-w-sm mb-6">
                      {filter.status || filter.category || searchTerm
                         ? "Try adjusting your filters to see more results."
                         : "You haven't submitted any reports yet."}
@@ -445,7 +445,7 @@ const Reports = () => {
                   {!isAdmin && !filter.status && !filter.category && !searchTerm && (
                      <button
                         onClick={() => navigate("/reports/newReport")}
-                        className="px-5 md:px-6 py-2.5 md:py-3 text-sm md:text-base text-white rounded-lg md:rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
+                        className="px-6 py-3 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
                         style={{ background: "linear-gradient(135deg, #002366 0%, #334b9f 100%)" }}
                      >
                         Submit Your First Report
@@ -456,7 +456,7 @@ const Reports = () => {
 
             {/* Reports Grid */}
             {!loading && filteredReports.length > 0 && (
-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredReports.map((report, index) => {
                      const statusConfig = getStatusConfig(report.status);
                      const priorityConfig = getPriorityConfig(report.priority);
@@ -473,11 +473,11 @@ const Reports = () => {
                               setCurrentImageIndex(0);
                               setModalOpen(true);
                            }}
-                           className="group bg-white rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-gray-200 transition-all cursor-pointer overflow-hidden"
+                           className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-gray-200 transition-all cursor-pointer overflow-hidden"
                         >
                            {/* Image Preview */}
                            {report.images?.length > 0 && (
-                              <div className="relative h-32 sm:h-36 md:h-44 overflow-hidden">
+                              <div className="relative h-44 overflow-hidden">
                                  <img
                                     src={report.images[0]}
                                     alt=""
@@ -493,52 +493,52 @@ const Reports = () => {
                               </div>
                            )}
 
-                           <div className="p-3.5 md:p-5">
+                           <div className="p-5">
                               {/* Status & Priority */}
-                              <div className="flex items-center justify-between gap-2 md:gap-3 mb-2.5 md:mb-3">
-                                 <span className={`inline-flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-0.5 md:py-1 rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold border ${statusConfig.color}`}>
-                                    <StatusIcon className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                              <div className="flex items-center justify-between gap-3 mb-3">
+                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${statusConfig.color}`}>
+                                    <StatusIcon className="w-3 h-3" />
                                     {statusConfig.label}
                                  </span>
-                                 <span className={`inline-flex items-center gap-1 md:gap-1.5 px-2 md:px-2.5 py-0.5 md:py-1 rounded-md md:rounded-lg text-[10px] md:text-xs font-medium ${priorityConfig.color}`}>
+                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${priorityConfig.color}`}>
                                     <span className={`w-1.5 h-1.5 rounded-full ${priorityConfig.dot}`} />
                                     {priorityConfig.label}
                                  </span>
                               </div>
 
                               {/* Title */}
-                              <h3 className="text-sm md:text-lg font-semibold text-gray-900 mb-1.5 md:mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
                                  {report.title}
                               </h3>
 
                               {/* Description */}
-                              <p className="text-gray-500 text-xs md:text-sm line-clamp-2 mb-3 md:mb-4">
+                              <p className="text-gray-500 text-sm line-clamp-2 mb-4">
                                  {report.description}
                               </p>
 
                               {/* Meta Info */}
-                              <div className="flex items-center gap-3 md:gap-4 text-[10px] md:text-xs text-gray-400">
+                              <div className="flex items-center gap-4 text-xs text-gray-400">
                                  <span className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                                    <Calendar className="w-3.5 h-3.5" />
                                     {formatDate(report.createdAt)}
                                  </span>
                                  <span className="flex items-center gap-1 capitalize">
-                                    <Filter className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                                    <Filter className="w-3.5 h-3.5" />
                                     {report.category}
                                  </span>
                               </div>
 
                               {/* Location */}
                               {report.location && (
-                                 <div className="mt-2.5 md:mt-3 pt-2.5 md:pt-3 border-t border-gray-100 flex items-center gap-1.5 text-[10px] md:text-xs text-gray-500">
-                                    <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
+                                 <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs text-gray-500">
+                                    <MapPin className="w-3.5 h-3.5" />
                                     <span className="truncate">{report.location}</span>
                                  </div>
                               )}
                            </div>
 
                            {/* Hover Overlay */}
-                           <div className="absolute inset-0 border-2 border-transparent group-hover:border-blue-500/30 rounded-xl md:rounded-2xl pointer-events-none transition-colors" />
+                           <div className="absolute inset-0 border-2 border-transparent group-hover:border-blue-500/30 rounded-2xl pointer-events-none transition-colors" />
                         </motion.div>
                      );
                   })}
@@ -553,7 +553,7 @@ const Reports = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/70 backdrop-blur-md z-[9999] flex items-center justify-center p-3 md:p-4"
+                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                   onClick={() => setModalOpen(false)}
                >
                   <motion.div
@@ -561,12 +561,12 @@ const Reports = () => {
                      animate={{ opacity: 1, scale: 1, y: 0 }}
                      exit={{ opacity: 0, scale: 0.95, y: 20 }}
                      onClick={(e) => e.stopPropagation()}
-                     className="bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] md:max-h-[90vh] overflow-hidden"
+                     className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden"
                   >
                      {/* Modal Header with Image */}
                      <div className="relative">
                         {selectedReport.images?.length > 0 ? (
-                           <div className="relative h-40 md:h-64 overflow-hidden">
+                           <div className="relative h-64 overflow-hidden">
                               <img
                                  src={selectedReport.images[0]}
                                  alt=""
@@ -601,18 +601,18 @@ const Reports = () => {
                      </div>
 
                      {/* Modal Content */}
-                     <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(85vh-12rem)] md:max-h-[calc(90vh-16rem)]">
+                     <div className="p-6 overflow-y-auto max-h-[calc(90vh-16rem)]">
                         {/* Title & Badges */}
-                        <div className="flex flex-col md:flex-row md:flex-wrap items-start gap-2 md:gap-3 mb-4 md:mb-6">
-                           <div className="flex-1 min-w-0 w-full md:w-auto">
-                              <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-1 md:mb-2">
+                        <div className="flex flex-wrap items-start gap-3 mb-6">
+                           <div className="flex-1 min-w-0">
+                              <h2 className="text-2xl font-bold text-gray-900 mb-2">
                                  {selectedReport.title}
                               </h2>
-                              <p className="text-xs md:text-sm text-gray-500">
+                              <p className="text-sm text-gray-500">
                                  Submitted {formatDate(selectedReport.createdAt)}
                               </p>
                            </div>
-                           <div className="flex items-center gap-2 flex-wrap">
+                           <div className="flex items-center gap-2">
                               <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getStatusConfig(selectedReport.status).color}`}>
                                  {React.createElement(getStatusConfig(selectedReport.status).icon, { className: "w-3.5 h-3.5" })}
                                  {getStatusConfig(selectedReport.status).label}
@@ -624,57 +624,59 @@ const Reports = () => {
                         </div>
 
                         {/* Description */}
-                        <div className="mb-4 md:mb-6">
-                           <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 md:mb-2">Description</h4>
-                           <p className="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        <div className="mb-6">
+                           <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Description</h4>
+                           <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                               {selectedReport.description}
                            </p>
                         </div>
 
-                        {/* Info Grid - 2 cols on mobile, 2x2 on desktop */}
-                        <div className="grid grid-cols-2 gap-2 md:gap-4 mb-4 md:mb-6">
-                           <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-4 bg-gray-50 rounded-lg md:rounded-xl">
-                              <div className="p-1.5 md:p-2 bg-blue-100 rounded-md md:rounded-lg">
-                                 <Filter className="w-3.5 h-3.5 md:w-4 md:h-4 text-blue-600" />
+                        {/* Info Grid */}
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+                              <div className="p-2 bg-blue-100 rounded-lg">
+                                 <Filter className="w-4 h-4 text-blue-600" />
                               </div>
-                              <div className="min-w-0">
-                                 <p className="text-[10px] md:text-xs text-gray-500">Category</p>
-                                 <p className="text-xs md:text-sm font-medium text-gray-900 capitalize truncate">{selectedReport.category}</p>
-                              </div>
-                           </div>
-
-                           <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-4 bg-gray-50 rounded-lg md:rounded-xl">
-                              <div className="p-1.5 md:p-2 bg-green-100 rounded-md md:rounded-lg">
-                                 <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-600" />
-                              </div>
-                              <div className="min-w-0">
-                                 <p className="text-[10px] md:text-xs text-gray-500">Location</p>
-                                 <p className="text-xs md:text-sm font-medium text-gray-900 truncate">{selectedReport.location || "Not specified"}</p>
+                              <div>
+                                 <p className="text-xs text-gray-500">Category</p>
+                                 <p className="text-sm font-medium text-gray-900 capitalize">{selectedReport.category}</p>
                               </div>
                            </div>
 
-                           <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-4 bg-gray-50 rounded-lg md:rounded-xl">
-                              <div className="p-1.5 md:p-2 bg-purple-100 rounded-md md:rounded-lg">
-                                 <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 text-purple-600" />
+                           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+                              <div className="p-2 bg-green-100 rounded-lg">
+                                 <MapPin className="w-4 h-4 text-green-600" />
                               </div>
-                              <div className="min-w-0">
-                                 <p className="text-[10px] md:text-xs text-gray-500">Date</p>
-                                 <p className="text-xs md:text-sm font-medium text-gray-900">
+                              <div>
+                                 <p className="text-xs text-gray-500">Location</p>
+                                 <p className="text-sm font-medium text-gray-900">{selectedReport.location || "Not specified"}</p>
+                              </div>
+                           </div>
+
+                           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+                              <div className="p-2 bg-purple-100 rounded-lg">
+                                 <Calendar className="w-4 h-4 text-purple-600" />
+                              </div>
+                              <div>
+                                 <p className="text-xs text-gray-500">Date Submitted</p>
+                                 <p className="text-sm font-medium text-gray-900">
                                     {new Date(selectedReport.createdAt).toLocaleDateString("en-US", {
+                                       weekday: "short",
                                        month: "short",
                                        day: "numeric",
+                                       year: "numeric",
                                     })}
                                  </p>
                               </div>
                            </div>
 
-                           <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-4 bg-gray-50 rounded-lg md:rounded-xl">
-                              <div className="p-1.5 md:p-2 bg-orange-100 rounded-md md:rounded-lg">
-                                 <AlertCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-orange-600" />
+                           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+                              <div className="p-2 bg-orange-100 rounded-lg">
+                                 <AlertCircle className="w-4 h-4 text-orange-600" />
                               </div>
-                              <div className="min-w-0">
-                                 <p className="text-[10px] md:text-xs text-gray-500">Priority</p>
-                                 <p className="text-xs md:text-sm font-medium text-gray-900 capitalize">{selectedReport.priority}</p>
+                              <div>
+                                 <p className="text-xs text-gray-500">Priority Level</p>
+                                 <p className="text-sm font-medium text-gray-900 capitalize">{selectedReport.priority}</p>
                               </div>
                            </div>
                         </div>
@@ -682,10 +684,10 @@ const Reports = () => {
                         {/* Image Gallery Thumbnails */}
                         {selectedReport.images?.length > 0 && (
                            <div>
-                              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 md:mb-3">
+                              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                                  Attachments ({selectedReport.images.length})
                               </h4>
-                              <div className="grid grid-cols-3 md:grid-cols-4 gap-1.5 md:gap-2">
+                              <div className="grid grid-cols-4 gap-2">
                                  {selectedReport.images.map((img, idx) => (
                                     <button
                                        key={idx}
@@ -717,10 +719,10 @@ const Reports = () => {
                      </div>
 
                      {/* Modal Footer */}
-                     <div className="flex items-center justify-end gap-3 p-4 md:p-6 border-t border-gray-100 bg-gray-50">
+                     <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50">
                         <button
                            onClick={() => setModalOpen(false)}
-                           className="px-4 md:px-6 py-2 md:py-2.5 text-sm md:text-base text-gray-700 font-medium hover:bg-gray-200 rounded-lg md:rounded-xl transition-colors"
+                           className="px-6 py-2.5 text-gray-700 font-medium hover:bg-gray-200 rounded-xl transition-colors"
                         >
                            Close
                         </button>
@@ -737,7 +739,7 @@ const Reports = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black z-[99999] flex items-center justify-center"
+                  className="fixed inset-0 bg-black z-[100] flex items-center justify-center"
                   onClick={closeImageGallery}
                >
                   {/* Close Button */}
@@ -821,4 +823,4 @@ const Reports = () => {
    );
 };
 
-export default Reports;
+export default ReportsV2;

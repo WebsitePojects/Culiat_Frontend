@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { reportAPI } from "../../services/api";
 import { motion } from "framer-motion";
-import { AlertTriangle, ArrowLeft, CheckCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle, Upload, X, Image } from "lucide-react";
 
 const NewReport = () => {
   const { user, logout } = useAuth();
@@ -12,9 +12,11 @@ const NewReport = () => {
     title: "",
     description: "",
     category: "infrastructure",
-    priority: "medium",
     location: "",
+    priority: "medium",
   });
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -25,13 +27,64 @@ const NewReport = () => {
     });
   };
 
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    
+    // Limit to 5 images
+    if (images.length + files.length > 5) {
+      setError("You can only upload up to 5 images");
+      return;
+    }
+
+    // Validate file types
+    const validFiles = files.filter(file => {
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      return validTypes.includes(file.type);
+    });
+
+    if (validFiles.length !== files.length) {
+      setError("Only JPG, JPEG, and PNG files are allowed");
+      return;
+    }
+
+    setError("");
+    setImages([...images, ...validFiles]);
+
+    // Create previews
+    validFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews(prev => [...prev, reader.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
+    setImagePreviews(imagePreviews.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      await reportAPI.create(formData);
+      // Create FormData for multipart upload
+      const submitData = new FormData();
+      submitData.append('title', formData.title);
+      submitData.append('description', formData.description);
+      submitData.append('category', formData.category);
+      submitData.append('location', formData.location);
+      submitData.append('priority', formData.priority);
+      
+      // Append images
+      images.forEach(image => {
+        submitData.append('reportImages', image);
+      });
+
+      await reportAPI.create(submitData);
       navigate("/reports");
     } catch (error) {
       setError(error.response?.data?.message || "Error creating report");
@@ -255,6 +308,67 @@ const NewReport = () => {
                 className="w-full px-4 py-3 border border-[var(--color-neutral-active)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all outline-none"
                 placeholder="Specific location or address"
               />
+            </motion.div>
+
+            {/* Image Upload Section */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.65 }}
+            >
+              <label className="block text-sm font-semibold text-[var(--color-text-color)] mb-2">
+                Upload Images (Optional)
+              </label>
+              <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+                You can upload up to 5 images (JPG, JPEG, PNG). Max 5MB per image.
+              </p>
+              
+              {/* Upload Area */}
+              <div className="border-2 border-dashed border-[var(--color-neutral-active)] rounded-lg p-6 text-center hover:border-[var(--color-primary)] transition-colors">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png"
+                  multiple
+                  onChange={handleImageChange}
+                  className="hidden"
+                  id="image-upload"
+                  disabled={images.length >= 5}
+                />
+                <label
+                  htmlFor="image-upload"
+                  className={`cursor-pointer flex flex-col items-center gap-2 ${images.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <Upload className="w-10 h-10 text-[var(--color-text-secondary)]" />
+                  <span className="text-[var(--color-text-secondary)]">
+                    {images.length >= 5 ? 'Maximum images reached' : 'Click to upload images'}
+                  </span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">
+                    {images.length}/5 images uploaded
+                  </span>
+                </label>
+              </div>
+
+              {/* Image Previews */}
+              {imagePreviews.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border border-[var(--color-neutral-active)]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
 
             {/* Privacy Notice */}

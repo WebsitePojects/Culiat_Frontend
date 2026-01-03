@@ -23,29 +23,33 @@ api.interceptors.request.use(
 
 // Reports API
 export const reportAPI = {
-  create: (data) => api.post('/reports', data),
-  getAll: () => api.get('/reports'),
-  getMyReports: () => api.get('/reports/my-reports'),
-  getById: (id) => api.get(`/reports/${id}`),
-  updateStatus: (id, data) => api.put(`/reports/${id}/status`, data),
-  addComment: (id, data) => api.post(`/reports/${id}/comments`, data),
-  delete: (id) => api.delete(`/reports/${id}`),
+  create: (data) => api.post('/api/reports', data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
+  getAll: () => api.get('/api/reports'),
+  getMyReports: () => api.get('/api/reports/my-reports'),
+  getById: (id) => api.get(`/api/reports/${id}`),
+  updateStatus: (id, data) => api.put(`/api/reports/${id}/status`, data),
+  addComment: (id, data) => api.post(`/api/reports/${id}/comments`, data),
+  delete: (id) => api.delete(`/api/reports/${id}`),
 };
 
 // Announcements API
 export const announcementAPI = {
-  create: (data) => api.post('/announcements', data),
-  getAll: () => api.get('/announcements/all'),
-  getPublished: () => api.get('/announcements'),
-  getById: (id) => api.get(`/announcements/${id}`),
-  update: (id, data) => api.put(`/announcements/${id}`, data),
-  togglePublish: (id) => api.put(`/announcements/${id}/publish`),
-  delete: (id) => api.delete(`/announcements/${id}`),
+  create: (data) => api.post('/api/announcements', data),
+  getAll: () => api.get('/api/announcements/all'),
+  getPublished: () => api.get('/api/announcements'),
+  getById: (id) => api.get(`/api/announcements/${id}`),
+  update: (id, data) => api.put(`/api/announcements/${id}`, data),
+  togglePublish: (id) => api.put(`/api/announcements/${id}/publish`),
+  delete: (id) => api.delete(`/api/announcements/${id}`),
 };
 
 // Feedback API
 export const feedbackAPI = {
-  create: (data) => api.post('/feedback', data),
+  create: (data) => api.post('/api/feedback', data),
 };
 
 // Documents API

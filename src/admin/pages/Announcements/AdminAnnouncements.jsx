@@ -1,84 +1,176 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import {
   Plus,
   Edit,
   Trash2,
   Eye,
-  Image as ImageIcon,
   X,
   Save,
   AlertCircle,
   CheckCircle,
   Upload,
   FileText,
-  Calendar,
+  Calendar as CalendarIcon,
   Tag,
+  Search,
+  Download,
+  RefreshCw,
+  Filter,
+  Megaphone,
+  Archive,
+  ArchiveRestore,
+  MapPin,
+  Clock,
+  TrendingUp,
+  Inbox,
+  Image,
+  ArrowUpDown,
+  AlertTriangle,
+  Flag,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 
 const AdminAnnouncements = () => {
-  const { notifyAnnouncementPublished, showPromise } = useNotifications();
+  const { notifyAnnouncementPublished, showSuccess, showError, showPromise } = useNotifications();
   const [announcements, setAnnouncements] = useState([]);
+  const [filteredAnnouncements, setFilteredAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [selectedAnnouncements, setSelectedAnnouncements] = useState([]);
+
+  // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [statusUpdateModal, setStatusUpdateModal] = useState(false);
+  const [newStatus, setNewStatus] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  
+
+  // Image gallery states
+  const [imageGalleryOpen, setImageGalleryOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const [formData, setFormData] = useState({
     title: "",
     content: "",
     category: "General",
     status: "published",
+    location: "Barangay Culiat",
+    eventDate: "",
     image: null,
   });
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  const categories = ["General", "Event", "Emergency", "Update", "Community"];
+  const categories = [
+    "General",
+    "Event",
+    "Emergency",
+    "Update",
+    "Health Program",
+    "Community Activity",
+    "Education & Training",
+    "Social Services",
+    "Sports & Recreation",
+    "Safety & Security",
+  ];
 
   useEffect(() => {
     fetchAnnouncements();
   }, []);
 
-  const fetchAnnouncements = async () => {
+  const fetchAnnouncements = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_URL}/api/announcements`, {
+      const response = await axios.get(`${API_URL}/api/announcements/admin/all`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setAnnouncements(response.data.data || []);
+
+      if (response.data.success) {
+        setAnnouncements(response.data.data || []);
+        if (isRefresh) showSuccess("Announcements refreshed");
+      }
     } catch (error) {
       console.error("Error fetching announcements:", error);
-      // Use sample data if API fails
-      setAnnouncements([
-        {
-          _id: 1,
-          title: "Community Clean-up Drive",
-          content: "Join us for a community clean-up drive this Saturday!",
-          category: "Event",
-          createdAt: "2025-10-25",
-          status: "published",
-          views: 234,
-        },
-        {
-          _id: 2,
-          title: "New Health Center Schedule",
-          content: "Updated health center operating hours.",
-          category: "Update",
-          createdAt: "2025-10-23",
-          status: "published",
-          views: 456,
-        },
-      ]);
+      showError("Failed to fetch announcements");
+      setAnnouncements([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  useEffect(() => {
+    applyFilters();
+  }, [filter, searchTerm, categoryFilter, sortBy, sortOrder, announcements]);
+
+  const applyFilters = () => {
+    let filtered = [...announcements];
+
+    // Filter by status
+    if (filter === "archived") {
+      filtered = filtered.filter((a) => a.status === "archived");
+    } else if (filter !== "all") {
+      filtered = filtered.filter((a) => a.status === filter);
+    }
+
+    // Filter by category
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter((a) => a.category === categoryFilter);
+    }
+
+    // Search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.trim().toLowerCase();
+      filtered = filtered.filter(
+        (a) =>
+          a.title?.toLowerCase().includes(searchLower) ||
+          a.content?.toLowerCase().includes(searchLower) ||
+          a.category?.toLowerCase().includes(searchLower) ||
+          a.location?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      let aVal, bVal;
+      switch (sortBy) {
+        case "date":
+          aVal = new Date(a.createdAt);
+          bVal = new Date(b.createdAt);
+          break;
+        case "title":
+          aVal = a.title.toLowerCase();
+          bVal = b.title.toLowerCase();
+          break;
+        case "views":
+          aVal = a.views || 0;
+          bVal = b.views || 0;
+          break;
+        default:
+          return 0;
+      }
+      return sortOrder === "asc" ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+    });
+
+    setFilteredAnnouncements(filtered);
   };
 
   const resetForm = () => {
@@ -87,6 +179,8 @@ const AdminAnnouncements = () => {
       content: "",
       category: "General",
       status: "published",
+      location: "Barangay Culiat",
+      eventDate: "",
       image: null,
     });
     setImagePreview(null);
@@ -107,11 +201,18 @@ const AdminAnnouncements = () => {
       content: announcement.content,
       category: announcement.category || "General",
       status: announcement.status || "published",
+      location: announcement.location || "Barangay Culiat",
+      eventDate: announcement.eventDate ? new Date(announcement.eventDate).toISOString().split('T')[0] : "",
       image: null,
     });
     setImagePreview(announcement.image || null);
     setIsEditMode(true);
     setIsModalOpen(true);
+  };
+
+  const handleViewAnnouncement = (announcement) => {
+    setSelectedAnnouncement(announcement);
+    setViewModalOpen(true);
   };
 
   const handleDeleteClick = (announcement) => {
@@ -142,30 +243,43 @@ const AdminAnnouncements = () => {
       submitData.append("content", formData.content);
       submitData.append("category", formData.category);
       submitData.append("status", formData.status);
+      submitData.append("location", formData.location);
+      if (formData.eventDate) {
+        submitData.append("eventDate", formData.eventDate);
+      }
       if (formData.image) {
         submitData.append("image", formData.image);
       }
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      };
 
       if (isEditMode) {
         await axios.put(
           `${API_URL}/api/announcements/${selectedAnnouncement._id}`,
           submitData,
-          { headers: { Authorization: `Bearer ${token}` } }
+          config
         );
-        setSuccess("Announcement updated successfully!");
+        showSuccess("Announcement updated successfully!");
       } else {
-        await axios.post(`${API_URL}/api/announcements`, submitData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setSuccess("Announcement created successfully!");
+        await axios.post(`${API_URL}/api/announcements`, submitData, config);
+        showSuccess("Announcement created successfully!");
+        
+        if (formData.status === "published") {
+          notifyAnnouncementPublished(formData.title);
+        }
       }
 
-      setTimeout(() => setSuccess(""), 3000);
       setIsModalOpen(false);
       resetForm();
       fetchAnnouncements();
     } catch (error) {
       setError(error.response?.data?.message || "Failed to save announcement");
+      showError("Failed to save announcement");
     }
   };
 
@@ -176,248 +290,678 @@ const AdminAnnouncements = () => {
         `${API_URL}/api/announcements/${selectedAnnouncement._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess("Announcement deleted successfully!");
-      setTimeout(() => setSuccess(""), 3000);
+      showSuccess("Announcement deleted successfully!");
       setShowDeleteModal(false);
       fetchAnnouncements();
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to delete announcement");
+      showError(error.response?.data?.message || "Failed to delete announcement");
     }
   };
 
-  const handleStatusToggle = async (announcement) => {
+  const handleStatusUpdate = (announcement) => {
+    setSelectedAnnouncement(announcement);
+    setNewStatus(announcement.status);
+    setStatusUpdateModal(true);
+  };
+
+  const confirmStatusUpdate = async () => {
     try {
       const token = localStorage.getItem("token");
-      const newStatus = announcement.status === "published" ? "draft" : "published";
-      
-      const promise = axios.put(
-        `${API_URL}/api/announcements/${announcement._id}`,
+      await axios.put(
+        `${API_URL}/api/announcements/${selectedAnnouncement._id}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      await showPromise(promise, {
-        loading: `${newStatus === 'published' ? 'Publishing' : 'Unpublishing'} announcement...`,
-        success: `Announcement ${newStatus === 'published' ? 'published' : 'saved as draft'} successfully!`,
-        error: 'Failed to update announcement status'
-      });
+      showSuccess(`Announcement ${newStatus === 'published' ? 'published' : newStatus === 'archived' ? 'archived' : 'saved as draft'} successfully!`);
       
-      // Notify users if publishing
       if (newStatus === "published") {
-        notifyAnnouncementPublished(announcement.title);
+        notifyAnnouncementPublished(selectedAnnouncement.title);
       }
       
+      setStatusUpdateModal(false);
       fetchAnnouncements();
     } catch (error) {
-      console.error("Failed to toggle status:", error);
+      showError("Failed to update status");
     }
   };
 
-  const getStatusColor = (status) => {
-    return status === "published"
-      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+  const handleArchiveToggle = async (announcement) => {
+    try {
+      const token = localStorage.getItem("token");
+      const promise = axios.put(
+        `${API_URL}/api/announcements/${announcement._id}/archive`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      await showPromise(promise, {
+        loading: announcement.status === 'archived' ? 'Unarchiving...' : 'Archiving...',
+        success: announcement.status === 'archived' ? 'Announcement unarchived!' : 'Announcement archived!',
+        error: 'Failed to update announcement'
+      });
+      
+      fetchAnnouncements();
+    } catch (error) {
+      console.error("Failed to toggle archive:", error);
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedAnnouncements.length === filteredAnnouncements.length) {
+      setSelectedAnnouncements([]);
+    } else {
+      setSelectedAnnouncements(filteredAnnouncements.map((a) => a._id));
+    }
+  };
+
+  const handleSelectAnnouncement = (id) => {
+    if (selectedAnnouncements.includes(id)) {
+      setSelectedAnnouncements(selectedAnnouncements.filter((aid) => aid !== id));
+    } else {
+      setSelectedAnnouncements([...selectedAnnouncements, id]);
+    }
+  };
+
+  const exportToCSV = () => {
+    const headers = ["ID", "Title", "Category", "Status", "Location", "Date", "Views"];
+    const rows = filteredAnnouncements.map((a) => [
+      a._id,
+      a.title,
+      a.category,
+      a.status,
+      a.location,
+      new Date(a.createdAt).toLocaleDateString(),
+      a.views || 0,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((row) => row.map((cell) => `"${cell}"`).join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `announcements_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showSuccess("Announcements exported successfully");
+  };
+
+  const getStatusConfig = (status) => {
+    const configs = {
+      draft: {
+        color: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800",
+        icon: Clock,
+        label: "Draft",
+        dotColor: "bg-gray-500",
+      },
+      published: {
+        color: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800",
+        icon: CheckCircle,
+        label: "Published",
+        dotColor: "bg-emerald-500",
+      },
+      archived: {
+        color: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800",
+        icon: Archive,
+        label: "Archived",
+        dotColor: "bg-amber-500",
+      },
+    };
+    return configs[status] || configs.draft;
   };
 
   const getCategoryColor = (category) => {
     const colors = {
-      General: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-      Event: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-      Emergency: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-      Update: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-      Community: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+      General: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+      Event: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+      Emergency: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+      Update: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+      "Health Program": "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+      "Community Activity": "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400",
+      "Education & Training": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400",
+      "Social Services": "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-400",
+      "Sports & Recreation": "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+      "Safety & Security": "bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400",
     };
     return colors[category] || colors.General;
   };
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+    });
+  };
+
+  // Image gallery handlers
+  const openImageGallery = useCallback((index) => {
+    setCurrentImageIndex(index);
+    setImageGalleryOpen(true);
+  }, []);
+
+  const closeImageGallery = useCallback(() => {
+    setImageGalleryOpen(false);
+  }, []);
+
+  const nextImage = useCallback(() => {
+    if (selectedAnnouncement?.images?.length) {
+      setCurrentImageIndex((prev) =>
+        prev === selectedAnnouncement.images.length - 1 ? 0 : prev + 1
+      );
+    }
+  }, [selectedAnnouncement]);
+
+  const prevImage = useCallback(() => {
+    if (selectedAnnouncement?.images?.length) {
+      setCurrentImageIndex((prev) =>
+        prev === 0 ? selectedAnnouncement.images.length - 1 : prev - 1
+      );
+    }
+  }, [selectedAnnouncement]);
+
+  // Keyboard navigation for image gallery
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!imageGalleryOpen) return;
+      if (e.key === "ArrowRight") nextImage();
+      if (e.key === "ArrowLeft") prevImage();
+      if (e.key === "Escape") closeImageGallery();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [imageGalleryOpen, nextImage, prevImage, closeImageGallery]);
+
+  const statusCounts = useMemo(() => ({
+    all: announcements.length,
+    published: announcements.filter((a) => a.status === "published").length,
+    draft: announcements.filter((a) => a.status === "draft").length,
+    archived: announcements.filter((a) => a.status === "archived").length,
+  }), [announcements]);
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Manage Announcements
-          </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Create and manage barangay announcements
-          </p>
+    <div className="space-y-6 p-1">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 p-8">
+        <div className="absolute inset-0 bg-grid-white/5"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"></div>
+
+        <div className="relative z-10 flex items-center justify-between flex-wrap gap-6">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-white/10 backdrop-blur-sm rounded-xl">
+                <Megaphone className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-white tracking-tight">
+                Announcements Management
+              </h1>
+            </div>
+            <p className="text-blue-200 text-sm max-w-lg">
+              Create, manage and publish barangay announcements. Keep residents informed about events, programs, and important notices.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => fetchAnnouncements(true)}
+              disabled={refreshing}
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-200 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </button>
+            <button
+              onClick={exportToCSV}
+              disabled={filteredAnnouncements.length === 0}
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-200 disabled:opacity-50"
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+            <button
+              onClick={handleCreateClick}
+              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-blue-900 bg-white rounded-xl hover:bg-blue-50 transition-all duration-200 shadow-lg shadow-white/25"
+            >
+              <Plus className="w-4 h-4" />
+              New Announcement
+            </button>
+          </div>
         </div>
-        <button
-          onClick={handleCreateClick}
-          className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Announcement
-        </button>
+
+        {/* Stats Grid */}
+        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          {[
+            { label: "Total", count: statusCounts.all, icon: Inbox, gradient: "from-blue-500 to-blue-600", filterValue: "all" },
+            { label: "Published", count: statusCounts.published, icon: CheckCircle, gradient: "from-emerald-500 to-green-500", filterValue: "published" },
+            { label: "Drafts", count: statusCounts.draft, icon: Clock, gradient: "from-gray-500 to-slate-500", filterValue: "draft" },
+            { label: "Archived", count: statusCounts.archived, icon: Archive, gradient: "from-amber-500 to-orange-500", filterValue: "archived" },
+          ].map((stat, idx) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={idx}
+                className={`relative overflow-hidden p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-all duration-300 cursor-pointer group ${filter === stat.filterValue ? 'ring-2 ring-white/30' : ''}`}
+                onClick={() => setFilter(stat.filterValue)}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-blue-200 uppercase tracking-wider">{stat.label}</p>
+                    <p className="mt-1 text-2xl font-bold text-white">{stat.count}</p>
+                  </div>
+                  <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.gradient}`}>
+                    <Icon className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Success/Error Messages */}
-      {success && (
-        <div className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-lg border border-green-200 dark:border-green-800">
-          <CheckCircle className="w-5 h-5" />
-          <span>{success}</span>
-        </div>
-      )}
-      {error && !isModalOpen && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg border border-red-200 dark:border-red-800">
-          <AlertCircle className="w-5 h-5" />
-          <span>{error}</span>
+      {/* Bulk Actions Bar */}
+      {selectedAnnouncements.length > 0 && (
+        <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl animate-in slide-in-from-top-2 duration-200">
+          <span className="text-sm font-medium text-blue-900 dark:text-blue-300">
+            {selectedAnnouncements.length} announcement{selectedAnnouncements.length > 1 ? "s" : ""} selected
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedAnnouncements([])}
+              className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              Clear
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-        <div className="p-6 bg-white rounded-lg shadow dark:bg-gray-800">
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Total Announcements
-          </p>
-          <p className="mt-2 text-3xl font-bold text-blue-600 dark:text-blue-400">
-            {announcements.length}
-          </p>
+      {/* Search & Filters */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-5">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+          {/* Search */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search announcements by title, content, or location..."
+              className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            />
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-slate-700 rounded-lg">
+              {["all", "published", "draft", "archived"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilter(status)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 ${
+                    filter === status
+                      ? "bg-white dark:bg-slate-600 text-gray-900 dark:text-white shadow-sm"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  }`}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-3 py-2 text-xs font-medium border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Categories</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+
+            <button
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+            >
+              <ArrowUpDown className="w-3.5 h-3.5" />
+              {sortOrder === "desc" ? "Newest" : "Oldest"}
+            </button>
+          </div>
         </div>
-        <div className="p-6 bg-white rounded-lg shadow dark:bg-gray-800">
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Published
-          </p>
-          <p className="mt-2 text-3xl font-bold text-green-600 dark:text-green-400">
-            {announcements.filter((a) => a.status === "published").length}
-          </p>
-        </div>
-        <div className="p-6 bg-white rounded-lg shadow dark:bg-gray-800">
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Drafts
-          </p>
-          <p className="mt-2 text-3xl font-bold text-gray-600 dark:text-gray-400">
-            {announcements.filter((a) => a.status === "draft").length}
-          </p>
+
+        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            Showing {filteredAnnouncements.length} of {announcements.length} announcements
+          </span>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              Clear search
+            </button>
+          )}
         </div>
       </div>
 
       {/* Loading State */}
       {loading && (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Loading announcements...</p>
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-blue-200 dark:border-blue-800 rounded-full animate-pulse"></div>
+            <div className="absolute top-0 left-0 w-12 h-12 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
+          </div>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Loading announcements...</p>
         </div>
       )}
 
       {/* Empty State */}
-      {!loading && announcements.length === 0 && (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">No announcements yet</p>
-          <button
-            onClick={handleCreateClick}
-            className="mt-4 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-          >
-            Create Your First Announcement
-          </button>
+      {!loading && filteredAnnouncements.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+          <div className="w-16 h-16 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
+            <Megaphone className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">No announcements found</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            {announcements.length === 0 ? "Create your first announcement to get started" : "Try adjusting your filters"}
+          </p>
+          {announcements.length === 0 && (
+            <button
+              onClick={handleCreateClick}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            >
+              Create Announcement
+            </button>
+          )}
         </div>
       )}
 
-      {/* Announcements Table */}
-      {!loading && announcements.length > 0 && (
-        <div className="overflow-hidden bg-white rounded-lg shadow dark:bg-gray-800">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                    Announcement
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                {announcements.map((announcement) => (
-                  <tr key={announcement._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                          {announcement.image ? (
-                            <img
-                              src={announcement.image}
-                              alt=""
-                              className="w-12 h-12 rounded-lg object-cover"
-                            />
-                          ) : (
-                            <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                          )}
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {announcement.title}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
-                            {announcement.content}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(
-                          announcement.category
-                        )}`}
-                      >
+      {/* Announcements Grid */}
+      {!loading && filteredAnnouncements.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filteredAnnouncements.map((announcement) => {
+            const statusConfig = getStatusConfig(announcement.status);
+            const StatusIcon = statusConfig.icon;
+
+            return (
+              <div
+                key={announcement._id}
+                className={`group relative bg-white dark:bg-slate-800 rounded-xl border transition-all duration-200 hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-slate-900/50 cursor-pointer ${
+                  selectedAnnouncements.includes(announcement._id)
+                    ? "border-blue-500 ring-2 ring-blue-500/20"
+                    : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600"
+                }`}
+                onClick={() => handleViewAnnouncement(announcement)}
+              >
+                {/* Selection Checkbox */}
+                <div
+                  className="absolute top-4 left-4 z-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedAnnouncements.includes(announcement._id)}
+                    onChange={() => handleSelectAnnouncement(announcement._id)}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                  />
+                </div>
+
+                {/* Image Preview */}
+                {announcement.image && (
+                  <div className="relative h-40 overflow-hidden rounded-t-xl">
+                    <img
+                      src={announcement.image}
+                      alt=""
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                  </div>
+                )}
+
+                {!announcement.image && (
+                  <div className="relative h-32 overflow-hidden rounded-t-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 flex items-center justify-center">
+                    <Megaphone className="w-12 h-12 text-blue-400" />
+                  </div>
+                )}
+
+                <div className="p-4">
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {announcement.title}
+                      </h3>
+                      <span className={`inline-flex items-center mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${getCategoryColor(announcement.category)}`}>
                         <Tag className="w-3 h-3 mr-1" />
                         {announcement.category}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleStatusToggle(announcement)}
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-pointer transition-colors ${getStatusColor(
-                          announcement.status
-                        )}`}
-                      >
-                        {announcement.status === "published" ? (
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                        ) : (
-                          <Eye className="w-3 h-3 mr-1" />
-                        )}
-                        {announcement.status}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        {new Date(announcement.createdAt).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEditClick(announcement)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                          title="Edit"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(announcement)}
-                          className="p-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+                    {announcement.content}
+                  </p>
+
+                  {/* Meta */}
+                  <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    {announcement.location && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {announcement.location}
+                      </span>
+                    )}
+                    {announcement.views > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        {announcement.views} views
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-slate-700">
+                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md border ${statusConfig.color}`}>
+                      <StatusIcon className="w-3 h-3" />
+                      <span className="text-xs font-medium">{statusConfig.label}</span>
+                    </div>
+                    <span className="text-xs text-gray-400">{formatDate(announcement.createdAt)}</span>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div
+                  className="absolute top-4 right-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={() => handleEditClick(announcement)}
+                    className="p-1.5 bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 rounded-lg shadow-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    title="Edit"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleArchiveToggle(announcement)}
+                    className="p-1.5 bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 rounded-lg shadow-sm hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                    title={announcement.status === 'archived' ? 'Unarchive' : 'Archive'}
+                  >
+                    {announcement.status === 'archived' ? (
+                      <ArchiveRestore className="w-3.5 h-3.5" />
+                    ) : (
+                      <Archive className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(announcement)}
+                    className="p-1.5 bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 rounded-lg shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* View Announcement Modal */}
+      {viewModalOpen && selectedAnnouncement && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header with Image */}
+            <div className="relative">
+              {selectedAnnouncement.image ? (
+                <div className="relative h-64 overflow-hidden">
+                  <img
+                    src={selectedAnnouncement.image}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+                  
+                  {/* Image Gallery Trigger */}
+                  <button
+                    onClick={() => openImageGallery(0)}
+                    className="absolute bottom-4 right-4 flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-sm font-medium text-gray-900 hover:bg-white transition-colors"
+                  >
+                    <ZoomIn className="w-4 h-4" />
+                    View Full Image
+                  </button>
+                </div>
+              ) : (
+                <div className="h-32 bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                  <Megaphone className="w-16 h-16 text-white/30" />
+                </div>
+              )}
+
+              <button
+                onClick={() => setViewModalOpen(false)}
+                className="absolute top-4 right-4 p-2 bg-black/30 backdrop-blur-sm text-white rounded-full hover:bg-black/50 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-16rem)]">
+              {/* Title & Badges */}
+              <div className="flex flex-wrap items-start gap-3 mb-6">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                    {selectedAnnouncement.title}
+                  </h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getCategoryColor(selectedAnnouncement.category)}`}>
+                    {selectedAnnouncement.category}
+                  </span>
+                  <span className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${getStatusConfig(selectedAnnouncement.status).color}`}>
+                    {React.createElement(getStatusConfig(selectedAnnouncement.status).icon, { className: "w-3 h-3" })}
+                    {getStatusConfig(selectedAnnouncement.status).label}
+                  </span>
+                </div>
+              </div>
+
+              {/* Info Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-6">
+                <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <CalendarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Date Created</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{new Date(selectedAnnouncement.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <MapPin className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Location</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedAnnouncement.location || 'Not specified'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <Eye className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Views</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedAnnouncement.views || 0}</p>
+                  </div>
+                </div>
+
+                {selectedAnnouncement.publishedBy && (
+                  <div className="flex items-center gap-3 p-3 md:p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+                    <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                      <FileText className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Published By</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedAnnouncement.publishedBy.firstName} {selectedAnnouncement.publishedBy.lastName}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="mb-6">
+                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Content</h4>
+                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl whitespace-pre-wrap">
+                  {selectedAnnouncement.content}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between gap-3 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50">
+              <button
+                onClick={() => handleDeleteClick(selectedAnnouncement)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setViewModalOpen(false)}
+                  className="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    setViewModalOpen(false);
+                    handleEditClick(selectedAnnouncement);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -425,7 +969,7 @@ const AdminAnnouncements = () => {
       {/* Create/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-3xl bg-white dark:bg-gray-800 rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-3xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 {isEditMode ? "Edit Announcement" : "Create New Announcement"}
@@ -463,7 +1007,7 @@ const AdminAnnouncements = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Category
@@ -471,7 +1015,7 @@ const AdminAnnouncements = () => {
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                   >
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>
@@ -488,11 +1032,39 @@ const AdminAnnouncements = () => {
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="published">Published</option>
                     <option value="draft">Draft</option>
+                    <option value="archived">Archived</option>
                   </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    placeholder="e.g., Barangay Hall"
+                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Event Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.eventDate}
+                    onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  />
                 </div>
               </div>
 
@@ -571,36 +1143,137 @@ const AdminAnnouncements = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl">
+      {/* Status Update Modal */}
+      {statusUpdateModal && selectedAnnouncement && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
             <div className="p-6">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/20 rounded-full">
-                <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                  <Flag className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Update Status</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Change the status of this announcement</p>
+                </div>
               </div>
-              <h3 className="mt-4 text-xl font-semibold text-center text-gray-900 dark:text-white">
-                Delete Announcement
+
+              <div className="space-y-2 mb-6">
+                {[
+                  { value: "draft", label: "Draft", desc: "Not visible to public" },
+                  { value: "published", label: "Published", desc: "Visible to all residents" },
+                  { value: "archived", label: "Archived", desc: "Hidden and stored for records" },
+                ].map((status) => {
+                  const config = getStatusConfig(status.value);
+                  return (
+                    <label
+                      key={status.value}
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        newStatus === status.value
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="status"
+                        value={status.value}
+                        checked={newStatus === status.value}
+                        onChange={(e) => setNewStatus(e.target.value)}
+                        className="sr-only"
+                      />
+                      <div className={`w-3 h-3 rounded-full ${config.dotColor}`}></div>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 dark:text-white">{status.label}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{status.desc}</p>
+                      </div>
+                      {newStatus === status.value && (
+                        <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setStatusUpdateModal(false)}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmStatusUpdate}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25"
+                >
+                  Update Status
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && selectedAnnouncement && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                Delete Announcement?
               </h3>
-              <p className="mt-2 text-sm text-center text-gray-500 dark:text-gray-400">
-                Are you sure you want to delete "<strong>{selectedAnnouncement?.title}</strong>"? This action cannot be undone.
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                Are you sure you want to delete "<strong>{selectedAnnouncement.title}</strong>"? This action cannot be undone.
               </p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-600/25"
+                >
+                  Delete Announcement
+                </button>
+              </div>
             </div>
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </button>
-            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full Screen Image Gallery */}
+      {imageGalleryOpen && selectedAnnouncement?.image && (
+        <div
+          className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+          onClick={closeImageGallery}
+        >
+          {/* Close Button */}
+          <button
+            onClick={closeImageGallery}
+            className="absolute top-4 right-4 z-10 p-3 bg-white/10 backdrop-blur-sm text-white rounded-full hover:bg-white/20 transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Image Counter */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 bg-white/10 backdrop-blur-sm text-white text-sm rounded-full">
+            Announcement Image
+          </div>
+
+          {/* Main Image */}
+          <div className="relative w-full h-full flex items-center justify-center p-16">
+            <img
+              src={selectedAnnouncement.image}
+              alt=""
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
         </div>
       )}

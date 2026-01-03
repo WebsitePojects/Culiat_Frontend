@@ -8,6 +8,7 @@ import RegistrationPending from "./users/pages/Auth/RegistrationPending";
 import Dashboard from "./users/pages/Home/Dashboard";
 import Reports from "./users/pages/Reports/Reports";
 import NewReport from "./users/pages/Reports/NewReport";
+import ReportDetail from "./users/pages/Reports/ReportDetail";
 import Announcements from "./users/pages/Announcement/Announcements";
 import AnnouncementDetail from "./users/pages/Announcement/AnnouncementDetail";
 import Services from "./users/pages/Services/Services";
@@ -200,6 +201,17 @@ function App() {
               <MainLayout>
                 <NewReport />
               </MainLayout>
+            }
+          />
+
+          <Route
+            path="/reports/:id"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <ReportDetail />
+                </MainLayout>
+              </PrivateRoute>
             }
           />
 
