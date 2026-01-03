@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import MaintenancePage from "./components/MaintenancePage";
@@ -81,18 +81,28 @@ const ToastDismissWrapper = ({ children }) => {
 function App() {
   const isClient = typeof window !== "undefined";
   const location = isClient ? window.location : null;
-  const bypassKeywordRaw = (import.meta.env.VITE_MAINTENANCE_BYPASS_KEYWORD || "vergel").toLowerCase().trim();
-  const bypassKeyword = bypassKeywordRaw.replace(/[^a-z0-9-]/g, "") || "vergel";
-  const pathnameSegments = location?.pathname?.toLowerCase().split("/").filter(Boolean) || [];
-  const searchParams = location ? new URLSearchParams(location.search) : null;
-  const hashValue = location?.hash?.replace(/^#/, "").toLowerCase() || "";
+  const bypassKeyword = useMemo(() => {
+    const bypassKeywordRaw = (import.meta.env.VITE_MAINTENANCE_BYPASS_KEYWORD || "vergel").toLowerCase().trim();
+    return bypassKeywordRaw.replace(/[^a-z0-9-]/g, "") || "vergel";
+  }, []);
+  const pathname = location?.pathname?.toLowerCase() || "";
+  const search = location?.search || "";
+  const hash = location?.hash || "";
 
-  const maintenanceBypassActive =
-    pathnameSegments.includes(bypassKeyword) ||
-    Array.from(searchParams?.entries() || []).some(
-      ([key, value]) => key.toLowerCase() === bypassKeyword || value.toLowerCase() === bypassKeyword
-    ) ||
-    hashValue === bypassKeyword;
+  const maintenanceBypassActive = useMemo(() => {
+    const pathnameSegments = pathname.split("/").filter(Boolean);
+    const searchParams = new URLSearchParams(search);
+    const hashValue = hash.replace(/^#/, "").toLowerCase();
+
+    return (
+      pathnameSegments.includes(bypassKeyword) ||
+      Array.from(searchParams.entries()).some(
+        ([key, value]) => key.toLowerCase() === bypassKeyword || value.toLowerCase() === bypassKeyword
+      ) ||
+      hashValue === bypassKeyword
+    );
+  }, [pathname, search, hash, bypassKeyword]);
+  const bypassPath = useMemo(() => `/${bypassKeyword}`, [bypassKeyword]);
   const homeElement = (
     <MainLayout>
       <Home />
@@ -242,7 +252,7 @@ function App() {
 
           {/* Maintenance bypass route */}
           <Route
-            path={`/${bypassKeyword}`}
+            path={bypassPath}
             element={homeElement}
           />
 
