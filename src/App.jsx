@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
 import { useEffect } from "react";
 import { AuthProvider } from "./context/AuthContext";
@@ -79,7 +79,7 @@ const ToastDismissWrapper = ({ children }) => {
 };
 
 function App() {
-  const location = useLocation();
+  const location = typeof window !== "undefined" ? window.location : null;
   const bypassKeyword = (import.meta.env.VITE_MAINTENANCE_BYPASS_KEYWORD || "vergel").toLowerCase();
   const maintenanceBypassActive = 
     location?.pathname?.toLowerCase().includes(bypassKeyword) ||
@@ -234,7 +234,7 @@ function App() {
 
           {/* Maintenance bypass route */}
           <Route
-            path="/vergel"
+            path={`/${bypassKeyword}`}
             element={homeElement}
           />
 
