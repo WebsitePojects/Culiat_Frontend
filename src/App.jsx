@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
+import { useEffect } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
+import MaintenancePage from "./components/MaintenancePage";
 import AdminLogin from "./tailadminsrc/pages/AuthPages/SignIn";
 import Register from "./users/pages/Auth/Register";
 import RegistrationPending from "./users/pages/Auth/RegistrationPending";
@@ -49,10 +51,46 @@ import ForgotPassword from "./users/pages/Auth/ForgotPassword";
 import ResetPassword from "./users/pages/Auth/ResetPassword";
 import PaymentPage from "./users/pages/Payment/PaymentPage";
 
+// Global click handler to dismiss toasts
+const ToastDismissWrapper = ({ children }) => {
+  useEffect(() => {
+    const handleGlobalClick = (e) => {
+      // Don't dismiss if clicking on the toast itself
+      const toastContainer = document.querySelector('[data-sonner-toaster]') || 
+                             document.querySelector('.go2072408551') || // react-hot-toast container class
+                             e.target.closest('[role="status"]');
+      if (toastContainer && toastContainer.contains(e.target)) {
+        return;
+      }
+      // Dismiss all toasts on any click/touch
+      toast.dismiss();
+    };
+
+    document.addEventListener('click', handleGlobalClick);
+    document.addEventListener('touchstart', handleGlobalClick);
+
+    return () => {
+      document.removeEventListener('click', handleGlobalClick);
+      document.removeEventListener('touchstart', handleGlobalClick);
+    };
+  }, []);
+
+  return children;
+};
+
 function App() {
+  // Check if maintenance mode is enabled
+  const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
+
+  // If maintenance mode is active, show maintenance page regardless of route
+  if (isMaintenanceMode) {
+    return <MaintenancePage />;
+  }
+
   return (
     <>
       <AuthProvider>
+        <ToastDismissWrapper>
         {/* Toast Notifications */}
         <Toaster
           position="top-right"
@@ -274,6 +312,7 @@ function App() {
           {/* Catch-all route for 404 Not Found */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </ToastDismissWrapper>
       </AuthProvider>
     </>
   );
