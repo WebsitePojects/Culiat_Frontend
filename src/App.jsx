@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
 import { useEffect } from "react";
 import { AuthProvider } from "./context/AuthContext";
@@ -79,11 +79,18 @@ const ToastDismissWrapper = ({ children }) => {
 };
 
 function App() {
+  const location = useLocation();
+  const bypassKeyword = "vergel";
+  const maintenanceBypassActive = 
+    location?.pathname?.toLowerCase().includes(bypassKeyword) ||
+    location?.search?.toLowerCase().includes(bypassKeyword) ||
+    location?.hash?.toLowerCase().includes(bypassKeyword);
+
   // Check if maintenance mode is enabled
   const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
 
   // If maintenance mode is active, show maintenance page regardless of route
-  if (isMaintenanceMode) {
+  if (isMaintenanceMode && !maintenanceBypassActive) {
     return <MaintenancePage />;
   }
 
@@ -217,6 +224,16 @@ function App() {
           {/* User Routes with MainLayout */}
           <Route
             path="/"
+            element={
+              <MainLayout>
+                <Home />
+              </MainLayout>
+            }
+          />
+
+          {/* Maintenance bypass route */}
+          <Route
+            path="/vergel"
             element={
               <MainLayout>
                 <Home />
