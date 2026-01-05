@@ -33,7 +33,7 @@ const RegistrationPending = () => {
         
         <p style={styles.note}>
           <strong>Note:</strong> This process usually takes 1-3 business days. 
-          If you have any questions, please contact us at barangayculiat@example.com
+          If you have any questions, please contact us at brgy.culiat@yahoo.com
         </p>
         
         <Link to="/login" style={styles.button}>
