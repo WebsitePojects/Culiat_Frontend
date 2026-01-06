@@ -38,10 +38,19 @@ export const AuthProvider = ({ children }) => {
     // Don't show if verification is pending
     if (profileVerification?.status === 'pending') return;
     
-    // Don't show if no deadline set
-    if (!psaCompletion?.deadline) return;
+    // Don't show if no deadline set - critical check to prevent broken modal
+    if (!psaCompletion?.deadline) {
+      console.log('PSA Warning: No deadline set, skipping modal');
+      return;
+    }
     
     const daysLeft = psaCompletion?.daysLeft;
+    
+    // Additional validation - ensure daysLeft is a valid number
+    if (typeof daysLeft !== 'number' || isNaN(daysLeft)) {
+      console.log('PSA Warning: Invalid daysLeft value, skipping modal');
+      return;
+    }
     
     // ALWAYS show modal on every login if PSA profile is not complete
     setPsaWarningData({

@@ -62,7 +62,7 @@ const AchievementSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    maxlength: [500, 'Description can not be more than 500 characters']
+    maxlength: [10000, 'Description can not be more than 10000 characters']
   },
   date: {
     type: Date,
@@ -82,7 +82,7 @@ const AchievementSchema = new mongoose.Schema({
 **Key Schema Features:**
 - `title` - Required, max 100 characters
 - `category` - Required enum: Awards, Recognitions, Partnerships
-- `description` - Optional, max 500 characters
+- `description` - Optional, max 10000 characters
 - `date` - Achievement date, defaults to creation date
 - `image` - Stores Cloudinary URL or local filename
 

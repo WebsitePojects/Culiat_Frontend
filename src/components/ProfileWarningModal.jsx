@@ -58,7 +58,15 @@ const ProfileWarningModal = ({
     return () => clearInterval(timer);
   }, [isOpen, deadline]);
 
+  // Early return if not open OR if essential data is missing
   if (!isOpen) return null;
+  
+  // Don't render the backdrop if deadline is missing - prevent the broken modal state
+  if (!deadline) {
+    console.warn('ProfileWarningModal: deadline is missing, closing modal');
+    if (onClose) onClose();
+    return null;
+  }
 
   // Safeguard for daysLeft being null/undefined
   const safeDaysLeft = daysLeft ?? 90;
