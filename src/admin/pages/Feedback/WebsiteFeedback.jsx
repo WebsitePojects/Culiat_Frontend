@@ -48,6 +48,14 @@ const WebsiteFeedback = () => {
   const [blockedIPs, setBlockedIPs] = useState([]);
   const feedbacksPerPage = 15;
 
+  // Modal states for spam, block IP, and delete
+  const [showSpamModal, setShowSpamModal] = useState(false);
+  const [showBlockIPModal, setShowBlockIPModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState(null);
+  const [actionIP, setActionIP] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const statuses = [
@@ -146,13 +154,18 @@ const WebsiteFeedback = () => {
     }
   };
 
-  const handleMarkAsSpam = async (id) => {
-    if (!window.confirm("Mark this feedback as spam?")) return;
+  const openSpamModal = (feedback) => {
+    setActionFeedback(feedback);
+    setShowSpamModal(true);
+  };
 
+  const confirmMarkAsSpam = async () => {
+    if (!actionFeedback) return;
+    setActionLoading(true);
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `${API_URL}/api/contact-messages/${id}/spam`,
+        `${API_URL}/api/contact-messages/${actionFeedback._id}/spam`,
         { isSpam: true },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -162,34 +175,54 @@ const WebsiteFeedback = () => {
     } catch (error) {
       console.error("Error updating feedback:", error);
       showError("Failed to mark as spam");
+    } finally {
+      setActionLoading(false);
+      setShowSpamModal(false);
+      setActionFeedback(null);
     }
   };
 
-  const handleBlockIP = async (ip) => {
-    if (!window.confirm(`Block IP address ${ip}? This will prevent further submissions from this IP.`)) return;
+  const openBlockIPModal = (ip, feedback = null) => {
+    setActionIP(ip);
+    setActionFeedback(feedback);
+    setShowBlockIPModal(true);
+  };
 
+  const confirmBlockIP = async () => {
+    if (!actionIP) return;
+    setActionLoading(true);
     try {
       const token = localStorage.getItem("token");
       await axios.put(
         `${API_URL}/api/contact-messages/block-ip`,
-        { ipAddress: ip },
+        { ipAddress: actionIP },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      showSuccess(`IP ${ip} has been blocked`);
+      showSuccess(`IP ${actionIP} has been blocked`);
       fetchFeedbacks();
       fetchStats();
     } catch (error) {
       console.error("Error blocking IP:", error);
       showError("Failed to block IP address");
+    } finally {
+      setActionLoading(false);
+      setShowBlockIPModal(false);
+      setActionIP(null);
+      setActionFeedback(null);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this feedback?")) return;
+  const openDeleteModal = (feedback) => {
+    setActionFeedback(feedback);
+    setShowDeleteModal(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!actionFeedback) return;
+    setActionLoading(true);
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`${API_URL}/api/contact-messages/${id}`, {
+      await axios.delete(`${API_URL}/api/contact-messages/${actionFeedback._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       showSuccess("Feedback deleted successfully");
@@ -198,6 +231,10 @@ const WebsiteFeedback = () => {
     } catch (error) {
       console.error("Error deleting feedback:", error);
       showError("Failed to delete feedback");
+    } finally {
+      setActionLoading(false);
+      setShowDeleteModal(false);
+      setActionFeedback(null);
     }
   };
 
@@ -247,78 +284,105 @@ const WebsiteFeedback = () => {
 
   return (
     <div className="space-y-3 sm:space-y-4 md:space-y-6 p-2.5 sm:p-4 md:p-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
-            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-purple-600" />
-            Website Feedback
-          </h1>
-          <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
-            Manage feedback from home page contact form
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => fetchFeedbacks()}
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-md sm:rounded-lg">
-              <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-            </div>
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 p-4 sm:p-6 md:p-8">
+        {/* Dot pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
+            backgroundSize: "20px 20px",
+          }}
+        />
+        <div className="relative z-10">
+          {/* Header Top */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{stats.total || totalFeedbacks}</p>
-              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Total Feedback</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/30 rounded-md sm:rounded-lg">
-              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.new}
+              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <div className="p-2 sm:p-2.5 bg-purple-500/20 rounded-lg sm:rounded-xl">
+                  <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+                </div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                  Website Feedback
+                </h1>
+              </div>
+              <p className="text-[11px] sm:text-sm text-purple-200/80">
+                Manage feedback from home page contact form
               </p>
-              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">New Messages</p>
             </div>
+            <button
+              onClick={() => fetchFeedbacks()}
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-white/10 border border-white/20 rounded-lg sm:rounded-xl hover:bg-white/20 transition-colors"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
           </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-md sm:rounded-lg">
-              <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
+          {/* Stats Grid in Header */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg">
+                  <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white">
+                    {stats.total || totalFeedbacks}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-purple-200/70">
+                    Total Feedback
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "0.0"}
-              </p>
-              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Avg. Rating</p>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-red-100 dark:bg-red-900/30 rounded-md sm:rounded-lg">
-              <Ban className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-green-500/20 rounded-lg">
+                  <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white">
+                    {stats.new}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-purple-200/70">
+                    New Messages
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{stats.blockedIPs}</p>
-              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Blocked IPs</p>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-yellow-500/20 rounded-lg">
+                  <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white">
+                    {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : "0.0"}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-purple-200/70">
+                    Avg. Rating
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-red-500/20 rounded-lg">
+                  <Ban className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-red-400" />
+                </div>
+                <div>
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white">
+                    {stats.blockedIPs}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-purple-200/70">
+                    Blocked IPs
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -462,7 +526,13 @@ const WebsiteFeedback = () => {
                         <Eye className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => handleDelete(feedback._id)}
+                        onClick={() => openSpamModal(feedback)}
+                        className="p-1.5 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg"
+                      >
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal(feedback)}
                         className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -556,14 +626,14 @@ const WebsiteFeedback = () => {
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleMarkAsSpam(feedback._id)}
+                        onClick={() => openSpamModal(feedback)}
                         className="p-2 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
                         title="Mark as Spam"
                       >
                         <AlertTriangle className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleBlockIP(feedback.ipAddress)}
+                        onClick={() => openBlockIPModal(feedback.ipAddress, feedback)}
                         className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                         title="Block IP"
                         disabled={blockedIPs.includes(feedback.ipAddress)}
@@ -571,7 +641,7 @@ const WebsiteFeedback = () => {
                         <Ban className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDelete(feedback._id)}
+                        onClick={() => openDeleteModal(feedback)}
                         className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                         title="Delete"
                       >
@@ -698,7 +768,17 @@ const WebsiteFeedback = () => {
               <div className="flex gap-2 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   onClick={() => {
-                    handleBlockIP(selectedFeedback.ipAddress);
+                    openSpamModal(selectedFeedback);
+                    setShowDetailModal(false);
+                  }}
+                  className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-orange-300 text-orange-600 rounded-lg hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-900/30 flex items-center justify-center gap-1.5 sm:gap-2"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  Mark Spam
+                </button>
+                <button
+                  onClick={() => {
+                    openBlockIPModal(selectedFeedback.ipAddress, selectedFeedback);
                     setShowDetailModal(false);
                   }}
                   className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-red-300 text-red-600 rounded-lg hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/30 flex items-center justify-center gap-1.5 sm:gap-2"
@@ -708,12 +788,215 @@ const WebsiteFeedback = () => {
                 </button>
                 <button
                   onClick={() => {
-                    handleDelete(selectedFeedback._id);
+                    openDeleteModal(selectedFeedback);
                     setShowDetailModal(false);
                   }}
                   className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-1.5 sm:gap-2"
                 >
                   <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mark as Spam Modal */}
+      {showSpamModal && actionFeedback && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => !actionLoading && setShowSpamModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 sm:p-6 text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+                <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600 dark:text-orange-400" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-1.5 sm:mb-2">
+                Mark as Spam?
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                This will mark the feedback from <span className="font-medium text-gray-900 dark:text-white">{actionFeedback.name || "Anonymous"}</span> as spam.
+              </p>
+              
+              {/* Preview card */}
+              <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 text-left">
+                <div className="flex items-center gap-2 mb-2">
+                  <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
+                  <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {actionFeedback.email || "No email"}
+                  </span>
+                </div>
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                  {actionFeedback.message}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  onClick={() => setShowSpamModal(false)}
+                  disabled={actionLoading}
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-lg sm:rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmMarkAsSpam}
+                  disabled={actionLoading}
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-lg sm:rounded-xl transition-all shadow-lg shadow-orange-600/25 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {actionLoading ? (
+                    <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                  ) : (
+                    <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  )}
+                  Mark as Spam
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Block IP Modal */}
+      {showBlockIPModal && actionIP && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => !actionLoading && setShowBlockIPModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 sm:p-6 text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <Ban className="w-6 h-6 sm:w-8 sm:h-8 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-1.5 sm:mb-2">
+                Block IP Address?
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                This will permanently block the IP address from submitting any feedback.
+              </p>
+              
+              {/* IP Address display */}
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+                <div className="flex items-center justify-center gap-2">
+                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 dark:text-red-400" />
+                  <span className="text-sm sm:text-base font-mono font-semibold text-red-700 dark:text-red-300">
+                    {actionIP}
+                  </span>
+                </div>
+                {actionFeedback && (
+                  <p className="text-[10px] sm:text-xs text-red-600/70 dark:text-red-400/70 mt-2">
+                    Associated with: {actionFeedback.name || "Anonymous"}
+                  </p>
+                )}
+              </div>
+
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2.5 sm:p-3 mb-4 sm:mb-6">
+                <p className="text-[10px] sm:text-xs text-amber-700 dark:text-amber-300 flex items-center justify-center gap-1.5">
+                  <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  This action cannot be easily undone
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  onClick={() => setShowBlockIPModal(false)}
+                  disabled={actionLoading}
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-lg sm:rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmBlockIP}
+                  disabled={actionLoading}
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg sm:rounded-xl transition-all shadow-lg shadow-red-600/25 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {actionLoading ? (
+                    <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                  ) : (
+                    <Ban className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  )}
+                  Block IP
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && actionFeedback && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => !actionLoading && setShowDeleteModal(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 sm:p-6 text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <Trash2 className="w-6 h-6 sm:w-8 sm:h-8 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-1.5 sm:mb-2">
+                Delete Feedback?
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                This action cannot be undone. The feedback will be permanently removed.
+              </p>
+              
+              {/* Preview card */}
+              <div className="bg-gray-50 dark:bg-slate-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 text-left">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
+                    <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {actionFeedback.name || "Anonymous"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${star <= actionFeedback.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                  {actionFeedback.message}
+                </p>
+                <p className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 mt-2 flex items-center gap-1">
+                  <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  {formatDate(actionFeedback.createdAt)}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={actionLoading}
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-lg sm:rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={actionLoading}
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg sm:rounded-xl transition-all shadow-lg shadow-red-600/25 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {actionLoading ? (
+                    <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  )}
                   Delete
                 </button>
               </div>

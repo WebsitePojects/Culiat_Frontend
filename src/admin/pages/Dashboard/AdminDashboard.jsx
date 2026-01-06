@@ -23,6 +23,10 @@ import {
   Eye,
   FileSpreadsheet,
   Megaphone,
+  LayoutDashboard,
+  Calendar,
+  Activity,
+  Download,
 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -62,19 +66,19 @@ const StatCard = ({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${colorClasses[color]} p-4 sm:p-5 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group`}
+      className={`relative overflow-hidden rounded-lg sm:rounded-xl bg-gradient-to-br ${colorClasses[color]} p-3 sm:p-4 md:p-5 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group`}
     >
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-white/20"></div>
-        <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-white/10"></div>
+        <div className="absolute -right-4 -top-4 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/20"></div>
+        <div className="absolute -right-8 -bottom-8 w-20 h-20 sm:w-32 sm:h-32 rounded-full bg-white/10"></div>
       </div>
 
       <div className="relative z-10">
         {/* Header with Icon and Dropdown */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 backdrop-blur-sm group-hover:scale-110 transition-transform">
-            <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+        <div className="flex items-start justify-between mb-2 sm:mb-3">
+          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg sm:rounded-xl bg-white/20 backdrop-blur-sm group-hover:scale-110 transition-transform">
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
           </div>
           
           {dropdown && dropdownOptions.length > 0 && (
@@ -84,20 +88,20 @@ const StatCard = ({
                   e.stopPropagation();
                   setIsOpen(!isOpen);
                 }}
-                className="flex items-center gap-1 px-2 py-1 text-xs text-white/90 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
+                className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs text-white/90 bg-white/20 rounded-md sm:rounded-lg hover:bg-white/30 transition-colors"
               >
-                <span className="max-w-[60px] truncate">{dropdownValue || "All"}</span>
-                <ChevronDown className="w-3 h-3" />
+                <span className="max-w-[40px] sm:max-w-[60px] truncate">{dropdownValue || "All"}</span>
+                <ChevronDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               </button>
               {isOpen && (
-                <div className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-48 overflow-y-auto">
+                <div className="absolute right-0 top-full mt-1 w-28 sm:w-36 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-48 overflow-y-auto">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onDropdownChange("all");
                       setIsOpen(false);
                     }}
-                    className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
                     All Areas
                   </button>
@@ -109,7 +113,7 @@ const StatCard = ({
                         onDropdownChange(option);
                         setIsOpen(false);
                       }}
-                      className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       {option}
                     </button>
@@ -121,32 +125,32 @@ const StatCard = ({
         </div>
 
         {/* Value */}
-        <div className="mb-1">
+        <div className="mb-0.5 sm:mb-1">
           {loading ? (
-            <div className="h-8 w-20 bg-white/20 animate-pulse rounded"></div>
+            <div className="h-6 sm:h-8 w-16 sm:w-20 bg-white/20 animate-pulse rounded"></div>
           ) : (
-            <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
               {typeof value === 'number' ? value.toLocaleString() : value}
             </p>
           )}
         </div>
 
         {/* Title */}
-        <p className="text-sm text-white/80 font-medium mb-2">{title}</p>
+        <p className="text-[10px] sm:text-xs md:text-sm text-white/80 font-medium mb-1 sm:mb-2">{title}</p>
 
         {/* Change/Subtitle */}
         {(change !== undefined || subtitle) && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             {change !== undefined && (
-              <div className="flex items-center gap-1">
-                <TrendIcon className={`w-3.5 h-3.5 ${trendColor}`} />
-                <span className={`text-xs font-semibold ${trendColor}`}>
+              <div className="flex items-center gap-0.5 sm:gap-1">
+                <TrendIcon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${trendColor}`} />
+                <span className={`text-[10px] sm:text-xs font-semibold ${trendColor}`}>
                   {change >= 0 ? "+" : ""}{change}%
                 </span>
               </div>
             )}
             {subtitle && (
-              <span className="text-xs text-white/60">{subtitle}</span>
+              <span className="text-[9px] sm:text-xs text-white/60">{subtitle}</span>
             )}
           </div>
         )}
@@ -158,26 +162,26 @@ const StatCard = ({
 // Demographics Card Component
 const DemographicsCard = ({ title, data, icon: Icon, loading }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center gap-2">
-        <Icon className="w-4 h-4 text-blue-500" />
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{title}</h3>
+    <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-100 dark:border-gray-700 flex items-center gap-1.5 sm:gap-2">
+        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
+        <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">{title}</h3>
       </div>
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         {loading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-6 bg-gray-100 dark:bg-gray-700 animate-pulse rounded"></div>
+              <div key={i} className="h-5 sm:h-6 bg-gray-100 dark:bg-gray-700 animate-pulse rounded"></div>
             ))}
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             {Object.entries(data).map(([key, value]) => (
               <div key={key} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                <span className="text-[10px] sm:text-sm text-gray-600 dark:text-gray-400 capitalize">
                   {key.replace(/([A-Z])/g, ' $1').trim()}
                 </span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                <span className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
                   {typeof value === 'number' ? value.toLocaleString() : value}
                 </span>
               </div>
@@ -203,18 +207,18 @@ const ProgressBar = ({ label, value, total, color = "blue" }) => {
   };
 
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-600 dark:text-gray-400 truncate max-w-[120px]">{label}</span>
+    <div className="space-y-0.5 sm:space-y-1">
+      <div className="flex items-center justify-between text-xs sm:text-sm">
+        <span className="text-gray-600 dark:text-gray-400 truncate max-w-[80px] sm:max-w-[120px]">{label}</span>
         <span className="font-semibold text-gray-900 dark:text-white">{value.toLocaleString()}</span>
       </div>
-      <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+      <div className="h-1.5 sm:h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
         <div 
           className={`h-full ${colorClasses[color]} transition-all duration-500 rounded-full`}
           style={{ width: `${percentage}%` }}
         ></div>
       </div>
-      <p className="text-xs text-gray-500 dark:text-gray-500">{percentage}% of total</p>
+      <p className="text-[9px] sm:text-xs text-gray-500 dark:text-gray-500">{percentage}% of total</p>
     </div>
   );
 };
@@ -222,27 +226,27 @@ const ProgressBar = ({ label, value, total, color = "blue" }) => {
 // Data Table Component (Desktop) / Cards (Mobile)
 const DataTable = ({ title, columns, data, loading, emptyMessage, onViewAll }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{title}</h3>
+    <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">{title}</h3>
         {onViewAll && (
           <button
             onClick={onViewAll}
-            className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+            className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5 sm:gap-1"
           >
-            View All <Eye className="w-3 h-3" />
+            View All <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
           </button>
         )}
       </div>
       
       {loading ? (
-        <div className="p-4 space-y-3">
+        <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 bg-gray-100 dark:bg-gray-700 animate-pulse rounded"></div>
+            <div key={i} className="h-10 sm:h-12 bg-gray-100 dark:bg-gray-700 animate-pulse rounded"></div>
           ))}
         </div>
       ) : data.length === 0 ? (
-        <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+        <div className="p-6 sm:p-8 text-center text-gray-500 dark:text-gray-400">
           {emptyMessage || "No data available"}
         </div>
       ) : (
@@ -253,7 +257,7 @@ const DataTable = ({ title, columns, data, loading, emptyMessage, onViewAll }) =
               <thead className="bg-gray-50 dark:bg-gray-700/50">
                 <tr>
                   {columns.map((col) => (
-                    <th key={col.key} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                    <th key={col.key} className="px-3 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                       {col.label}
                     </th>
                   ))}
@@ -263,7 +267,7 @@ const DataTable = ({ title, columns, data, loading, emptyMessage, onViewAll }) =
                 {data.map((row, idx) => (
                   <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                     {columns.map((col) => (
-                      <td key={col.key} className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                      <td key={col.key} className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-700 dark:text-gray-300">
                         {col.render ? col.render(row[col.key], row) : row[col.key]}
                       </td>
                     ))}
@@ -274,13 +278,13 @@ const DataTable = ({ title, columns, data, loading, emptyMessage, onViewAll }) =
           </div>
 
           {/* Mobile Cards */}
-          <div className="md:hidden p-3 space-y-3">
+          <div className="md:hidden p-2 sm:p-3 space-y-2 sm:space-y-3">
             {data.map((row, idx) => (
-              <div key={idx} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 space-y-2">
+              <div key={idx} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2.5 sm:p-3 space-y-1.5 sm:space-y-2">
                 {columns.map((col) => (
                   <div key={col.key} className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{col.label}</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">{col.label}</span>
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
                       {col.render ? col.render(row[col.key], row) : row[col.key]}
                     </span>
                   </div>
@@ -306,7 +310,7 @@ const StatusBadge = ({ status }) => {
   };
 
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusStyles[status] || statusStyles.pending}`}>
+    <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium capitalize ${statusStyles[status] || statusStyles.pending}`}>
       {status}
     </span>
   );
@@ -619,67 +623,84 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-1">
-      {/* Header Section */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-            Dashboard Overview
-          </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Comprehensive analytics and resident management
-          </p>
+    <div className="space-y-3 sm:space-y-4 md:space-y-6 p-1">
+      {/* Premium Gradient Header Banner */}
+      <div className="relative overflow-hidden rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 p-3 sm:p-4 md:p-6">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)`,
+            backgroundSize: '24px 24px'
+          }}></div>
         </div>
+        <div className="absolute top-0 right-0 w-32 sm:w-48 md:w-64 h-32 sm:h-48 md:h-64 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-24 sm:w-32 md:w-48 h-24 sm:h-32 md:h-48 bg-cyan-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+        
+        <div className="relative z-10 flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+              <LayoutDashboard className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white">
+                Dashboard Overview
+              </h1>
+              <p className="text-[10px] sm:text-xs md:text-sm text-white/70">
+                Comprehensive analytics and resident management
+              </p>
+            </div>
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          {/* Time Range Selector */}
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:text-gray-300"
-          >
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="quarter">This Quarter</option>
-            <option value="year">This Year</option>
-            <option value="all">All Time</option>
-          </select>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-3">
+            {/* Time Range Selector */}
+            <select
+              value={timeRange}
+              onChange={(e) => setTimeRange(e.target.value)}
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-white"
+            >
+              <option value="week" className="text-gray-900">This Week</option>
+              <option value="month" className="text-gray-900">This Month</option>
+              <option value="quarter" className="text-gray-900">This Quarter</option>
+              <option value="year" className="text-gray-900">This Year</option>
+              <option value="all" className="text-gray-900">All Time</option>
+            </select>
 
-          {/* Refresh Button */}
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
+            {/* Refresh Button */}
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm font-medium text-white bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
 
-          {/* Export Button */}
-          <button
-            onClick={handleExportToExcel}
-            disabled={loading || !dashboardData}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span className="hidden sm:inline">Export Excel</span>
-          </button>
+            {/* Export Button */}
+            <button
+              onClick={handleExportToExcel}
+              disabled={loading || !dashboardData}
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm font-medium text-white bg-emerald-500/80 backdrop-blur-sm border border-emerald-400/50 rounded-lg hover:bg-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
 
-          {/* Analytics Button */}
-          <button
-            onClick={() => navigate("/admin/analytics")}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <BarChart3 className="w-4 h-4" />
-            <span className="hidden sm:inline">Full Analytics</span>
-          </button>
+            {/* Analytics Button */}
+            <button
+              onClick={() => navigate("/admin/analytics")}
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm font-medium text-white bg-blue-500/80 backdrop-blur-sm border border-blue-400/50 rounded-lg hover:bg-blue-500 transition-colors"
+            >
+              <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Analytics</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-        <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+      <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
+        <h2 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3">Quick Actions</h2>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2 md:gap-3">
           {quickActions.map((action, index) => {
             const Icon = action.icon;
             const colors = getColorClasses(action.color);
@@ -687,12 +708,12 @@ const AdminDashboard = () => {
               <button
                 key={index}
                 onClick={() => navigate(action.path)}
-                className="flex flex-col items-center p-2 sm:p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all hover:shadow-md group"
+                className="flex flex-col items-center p-1.5 sm:p-2 md:p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all hover:shadow-md group"
               >
-                <div className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${colors.bg} group-hover:scale-110 transition-transform`}>
-                  <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${colors.text}`} />
+                <div className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-lg sm:rounded-xl ${colors.bg} group-hover:scale-110 transition-transform`}>
+                  <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 ${colors.text}`} />
                 </div>
-                <span className="mt-1.5 text-[10px] sm:text-xs font-medium text-gray-900 dark:text-white text-center leading-tight">
+                <span className="mt-1 sm:mt-1.5 text-[9px] sm:text-[10px] md:text-xs font-medium text-gray-900 dark:text-white text-center leading-tight">
                   {action.name}
                 </span>
               </button>
@@ -702,7 +723,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Stats Grid - Key Metrics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
         <StatCard
           title="Total Residents"
           value={dashboardData?.overview?.totalResidents || 0}
@@ -753,7 +774,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Secondary Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
         <StatCard
           title="Pending Registrations"
           value={dashboardData?.overview?.pendingRegistrations || 0}
@@ -794,19 +815,19 @@ const AdminDashboard = () => {
       </div>
 
       {/* Demographics Section */}
-      <div className="space-y-4">
+      <div className="space-y-2 sm:space-y-3 md:space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <User className="w-5 h-5 text-blue-500" />
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
+            <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
             Resident Demographics
           </h2>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+          <span className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
             {selectedArea === "all" ? "All Areas" : `Area: ${selectedArea}`}
           </span>
         </div>
 
         {/* Demographics Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
           <DemographicsCard
             title="Gender Distribution"
             icon={Users}
@@ -846,12 +867,12 @@ const AdminDashboard = () => {
       </div>
 
       {/* Age Distribution Progress Bars */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <BarChart3 className="w-4 h-4 text-blue-500" />
+      <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
+        <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
+          <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
           Age Distribution
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
           {demographics?.ageRanges && Object.entries(demographics.ageRanges)
             .filter(([key]) => key !== 'notSpecified')
             .map(([range, count], idx) => {
@@ -871,24 +892,24 @@ const AdminDashboard = () => {
 
       {/* Area Distribution */}
       {demographics?.areaDistribution && demographics.areaDistribution.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-blue-500" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
+            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
             Residents by Area (Purok)
           </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2 md:gap-3">
             {demographics.areaDistribution.slice(0, 12).map((item) => (
               <button
                 key={item.area}
                 onClick={() => setSelectedArea(item.area)}
-                className={`p-3 rounded-lg border transition-all ${
+                className={`p-2 sm:p-2.5 md:p-3 rounded-lg border transition-all ${
                   selectedArea === item.area
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
                 }`}
               >
-                <p className="text-lg font-bold text-gray-900 dark:text-white">{item.count.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{item.area || "Unspecified"}</p>
+                <p className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white">{item.count.toLocaleString()}</p>
+                <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-500 dark:text-gray-400 truncate">{item.area || "Unspecified"}</p>
               </button>
             ))}
           </div>
@@ -896,7 +917,7 @@ const AdminDashboard = () => {
       )}
 
       {/* Recent Activity Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
         <DataTable
           title="Recent Document Requests"
           columns={documentColumns}
@@ -917,14 +938,14 @@ const AdminDashboard = () => {
       </div>
 
       {/* Top Occupations & Religions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
         {demographics?.topOccupations && demographics.topOccupations.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Briefcase className="w-4 h-4 text-blue-500" />
+          <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
+              <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
               Top Occupations
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {demographics.topOccupations.slice(0, 5).map((item, idx) => (
                 <ProgressBar
                   key={item.occupation}
@@ -939,12 +960,12 @@ const AdminDashboard = () => {
         )}
 
         {demographics?.religionDistribution && demographics.religionDistribution.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Heart className="w-4 h-4 text-blue-500" />
+          <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
+              <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
               Religion Distribution
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {demographics.religionDistribution.slice(0, 5).map((item, idx) => (
                 <ProgressBar
                   key={item.religion}
@@ -960,52 +981,52 @@ const AdminDashboard = () => {
       </div>
 
       {/* Registration Trends Mini Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-blue-500" />
+      <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
+        <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
+          <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
           Registration Trends (Last 6 Months)
         </h3>
         {loading ? (
-          <div className="flex items-end justify-between gap-2 h-32">
+          <div className="flex items-end justify-between gap-1 sm:gap-2 h-24 sm:h-28 md:h-32">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div className="h-4 w-6 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
-                <div className="w-full h-16 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-t-md"></div>
-                <div className="h-3 w-8 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+              <div key={i} className="flex-1 flex flex-col items-center gap-0.5 sm:gap-1">
+                <div className="h-3 sm:h-4 w-4 sm:w-6 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+                <div className="w-full h-12 sm:h-16 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-t-md"></div>
+                <div className="h-2.5 sm:h-3 w-6 sm:w-8 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
               </div>
             ))}
           </div>
         ) : demographics?.registrationTrends && demographics.registrationTrends.length > 0 ? (
-          <div className="flex items-end justify-between gap-2" style={{ height: "120px" }}>
+          <div className="flex items-end justify-between gap-1 sm:gap-2" style={{ height: "100px" }}>
             {demographics.registrationTrends.map((item, idx) => {
               const maxCount = Math.max(...demographics.registrationTrends.map(t => t.count), 1);
-              const heightPx = maxCount > 0 ? Math.max((item.count / maxCount) * 80, 8) : 8;
+              const heightPx = maxCount > 0 ? Math.max((item.count / maxCount) * 70, 8) : 8;
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center justify-end h-full">
-                  <span className="text-xs font-medium text-gray-900 dark:text-white mb-1">{item.count}</span>
+                  <span className="text-[9px] sm:text-[10px] md:text-xs font-medium text-gray-900 dark:text-white mb-0.5 sm:mb-1">{item.count}</span>
                   <div 
                     className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-md transition-all duration-500 min-h-[8px]"
                     style={{ height: `${heightPx}px` }}
                   ></div>
-                  <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">{item.month}</span>
+                  <span className="text-[8px] sm:text-[9px] md:text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1">{item.month}</span>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="flex items-center justify-center h-32 text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-center h-24 sm:h-28 md:h-32 text-gray-500 dark:text-gray-400">
             <div className="text-center">
-              <BarChart3 className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No registration data available</p>
-              <p className="text-xs">Data will appear as users register</p>
+              <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2 opacity-50" />
+              <p className="text-[10px] sm:text-xs md:text-sm">No registration data available</p>
+              <p className="text-[9px] sm:text-[10px] md:text-xs">Data will appear as users register</p>
             </div>
           </div>
         )}
       </div>
 
       {/* Footer Info */}
-      <div className="text-center py-4">
-        <p className="text-xs text-gray-400 dark:text-gray-500">
+      <div className="text-center py-2 sm:py-3 md:py-4">
+        <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-400 dark:text-gray-500">
           Last updated: {new Date().toLocaleString()} • Data refreshes automatically
         </p>
       </div>

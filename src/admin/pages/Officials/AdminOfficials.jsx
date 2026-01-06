@@ -23,6 +23,9 @@ const POSITION_OPTIONS = [
   { value: "barangay_secretary", label: "Barangay Secretary" },
   { value: "barangay_treasurer", label: "Barangay Treasurer" },
   { value: "administrative_officer", label: "Administrative Officer" },
+  { value: "admin_officer_internal", label: "Administrative Officer Internal" },
+  { value: "admin_officer_external", label: "Administrative Officer External" },
+  { value: "executive_officer", label: "Executive Officer (EX-O)" },
   { value: "deputy_officer", label: "Deputy Officer" },
   { value: "other", label: "Other" },
 ];
@@ -48,8 +51,6 @@ const AdminOfficials = () => {
     middleName: "",
     position: "barangay_kagawad",
     committee: "",
-    contactNumber: "",
-    bio: "",
     isActive: true,
     displayOrder: 0,
   });
@@ -95,8 +96,6 @@ const AdminOfficials = () => {
       middleName: "",
       position: "barangay_kagawad",
       committee: "",
-      contactNumber: "",
-      bio: "",
       isActive: true,
       displayOrder: officials.length,
     });
@@ -114,8 +113,6 @@ const AdminOfficials = () => {
         middleName: official.middleName || "",
         position: official.position || "barangay_kagawad",
         committee: official.committee || "",
-        contactNumber: official.contactNumber || "",
-        bio: official.bio || "",
         isActive: official.isActive ?? true,
         displayOrder: official.displayOrder || 0,
       });
@@ -226,22 +223,37 @@ const AdminOfficials = () => {
   }
 
   return (
-    <div className="p-3 sm:p-4 md:p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Barangay Officials</h1>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">
-            Manage barangay officials and their information
-          </p>
+    <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 p-4 sm:p-6 md:p-8">
+        {/* Dot pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
+            backgroundSize: "20px 20px",
+          }}
+        />
+        <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <div>
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+              <div className="p-2 sm:p-2.5 bg-blue-500/20 rounded-lg sm:rounded-xl">
+                <User className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+              </div>
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Barangay Officials</h1>
+            </div>
+            <p className="text-[11px] sm:text-sm text-blue-200/80">
+              Manage barangay officials and their information
+            </p>
+          </div>
+          <button
+            onClick={() => openModal()}
+            className="w-full sm:w-auto flex items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25 text-xs sm:text-sm font-medium"
+          >
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+            Add Official
+          </button>
         </div>
-        <button
-          onClick={() => openModal()}
-          className="w-full sm:w-auto flex items-center justify-center gap-1.5 sm:gap-2 bg-blue-600 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25 text-sm"
-        >
-          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-          Add Official
-        </button>
       </div>
 
       {/* Officials Grid */}
@@ -474,38 +486,6 @@ const AdminOfficials = () => {
                     placeholder="e.g., Health & Sanitation"
                   />
                 </div>
-              </div>
-
-              {/* Contact */}
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Contact Number
-                </label>
-                <input
-                  type="tel"
-                  value={formData.contactNumber}
-                  onChange={(e) =>
-                    setFormData({ ...formData, contactNumber: e.target.value })
-                  }
-                  className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="e.g., 09171234567"
-                />
-              </div>
-
-              {/* Bio */}
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Bio / Description
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.bio}
-                  onChange={(e) =>
-                    setFormData({ ...formData, bio: e.target.value })
-                  }
-                  className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  placeholder="Brief description about the official"
-                />
               </div>
 
               {/* Display Order & Active Status */}

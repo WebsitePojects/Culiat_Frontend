@@ -261,97 +261,114 @@ const DocumentRequestHistory = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 p-2.5 sm:p-4 md:p-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <FileText className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-blue-600" />
-            Document Request History
-          </h1>
-          <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-            Track all document request approvals and service transactions
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleRefresh}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            Export
-          </button>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-            </div>
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 p-4 sm:p-6 md:p-8">
+        {/* Dot pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
+            backgroundSize: "20px 20px",
+          }}
+        />
+        <div className="relative z-10">
+          {/* Header Top */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.total}
+              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <div className="p-2 sm:p-2.5 bg-blue-500/20 rounded-lg sm:rounded-xl">
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                </div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                  Document Request History
+                </h1>
+              </div>
+              <p className="text-[11px] sm:text-sm text-blue-200/80">
+                Track all document request approvals and service transactions
               </p>
-              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
-                Total Requests
-              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleRefresh}
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-white/10 border border-white/20 rounded-lg sm:rounded-xl hover:bg-white/20 transition-colors"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
+                Refresh
+              </button>
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-blue-600 rounded-lg sm:rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25"
+              >
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                Export
+              </button>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+          {/* Stats Grid in Header */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg">
+                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white">
+                    {stats.total}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-blue-200/70">
+                    Total Requests
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.approved}
-              </p>
-              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
-                Approved
-              </p>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-green-500/20 rounded-lg">
+                  <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white">
+                    {stats.approved}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-blue-200/70">
+                    Approved
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.pending}
-              </p>
-              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
-                Pending
-              </p>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-1.5 sm:p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
-              <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-yellow-500/20 rounded-lg">
+                  <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white">
+                    {stats.pending}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-blue-200/70">
+                    Pending
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.rejected}
-              </p>
-              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
-                Rejected
-              </p>
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-red-500/20 rounded-lg">
+                  <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-red-400" />
+                </div>
+                <div>
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white">
+                    {stats.rejected}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-blue-200/70">
+                    Rejected
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Save, RefreshCw, MapPin, Phone, Users, Globe } from "lucide-react";
+import { Save, MapPin, Phone, Users, Globe, RefreshCw, Building, Target, History, Mail } from "lucide-react";
+import { motion } from "framer-motion";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -31,12 +32,6 @@ const CMSAboutUs = () => {
       totalHouseholds: 0,
       ongoingPublicProjects: 0,
       barangayArea: 0,
-    },
-    socialMedia: {
-      facebook: "",
-      twitter: "",
-      instagram: "",
-      youtube: "",
     },
     logo: "",
     coverPhoto: "",
@@ -74,12 +69,6 @@ const CMSAboutUs = () => {
             ongoingPublicProjects:
               data.demographics?.ongoingPublicProjects || 0,
             barangayArea: data.demographics?.barangayArea || 0,
-          },
-          socialMedia: {
-            facebook: data.socialMedia?.facebook || "",
-            twitter: data.socialMedia?.twitter || "",
-            instagram: data.socialMedia?.instagram || "",
-            youtube: data.socialMedia?.youtube || "",
           },
           logo: data.logo || "",
           coverPhoto: data.coverPhoto || "",
@@ -155,12 +144,6 @@ const CMSAboutUs = () => {
     }
   };
 
-  const handleReset = () => {
-    if (window.confirm("Are you sure you want to reset all changes?")) {
-      fetchBarangayInfo();
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -170,31 +153,79 @@ const CMSAboutUs = () => {
   }
 
   return (
-    <div className="p-2.5 sm:p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Globe className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-            About Us
-          </h1>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">
-            Manage all About Us page content dynamically
-          </p>
+    <div className="space-y-4 md:space-y-6">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 p-4 sm:p-6 md:p-8">
+        {/* Dot pattern overlay */}
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+          backgroundSize: '20px 20px'
+        }}></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"></div>
+
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+              <div className="p-1.5 sm:p-2 bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl">
+                <Globe className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+              </div>
+              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white tracking-tight">
+                About Us Management
+              </h1>
+            </div>
+            <p className="text-blue-200 text-xs sm:text-sm max-w-lg hidden sm:block">
+              Manage all About Us page content dynamically
+            </p>
+          </div>
+
+          <button
+            onClick={fetchBarangayInfo}
+            disabled={loading}
+            className="flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-blue-900 bg-white rounded-lg sm:rounded-xl hover:bg-blue-50 transition-all duration-200 shadow-lg shadow-white/25"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
         </div>
-        <button
-          onClick={handleReset}
-          className="flex items-center gap-1.5 sm:gap-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors self-start sm:self-auto"
-        >
-          <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
-          Reset
-        </button>
+
+        {/* Quick Stats */}
+        <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mt-4 sm:mt-6">
+          {[
+            { label: "Population", value: formData.demographics.totalPopulation.toLocaleString(), icon: Users, iconColor: "text-blue-300", iconBg: "bg-blue-500/20" },
+            { label: "Households", value: formData.demographics.totalHouseholds.toLocaleString(), icon: Building, iconColor: "text-green-300", iconBg: "bg-green-500/20" },
+            { label: "Projects", value: formData.demographics.ongoingPublicProjects.toLocaleString(), icon: Target, iconColor: "text-yellow-300", iconBg: "bg-yellow-500/20" },
+            { label: "Area (ha)", value: formData.demographics.barangayArea.toLocaleString(), icon: MapPin, iconColor: "text-purple-300", iconBg: "bg-purple-500/20" },
+          ].map((stat, idx) => (
+            <div
+              key={idx}
+              className="relative overflow-hidden p-2.5 sm:p-3 md:p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg sm:rounded-xl hover:bg-white/10 transition-all duration-300"
+            >
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 ${stat.iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                  <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.iconColor}`} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm sm:text-lg md:text-xl font-bold text-white">{stat.value}</p>
+                  <p className="text-[10px] sm:text-xs text-blue-200 uppercase tracking-wider truncate">{stat.label}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* Basic Information */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow p-3 sm:p-4 md:p-6 border border-gray-100 dark:border-gray-700">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6"
+        >
           <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
-            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
+            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
+            </div>
             Basic Information
           </h2>
 
@@ -230,11 +261,19 @@ const CMSAboutUs = () => {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Mission & Vision */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow p-3 sm:p-4 md:p-6 border border-gray-100 dark:border-gray-700">
-          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6"
+        >
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+            <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+              <Target className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
             Mission & Vision
           </h2>
 
@@ -269,11 +308,19 @@ const CMSAboutUs = () => {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* History Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow p-3 sm:p-4 md:p-6 border border-gray-100 dark:border-gray-700">
-          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6"
+        >
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+              <History className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-400" />
+            </div>
             History Section
           </h2>
 
@@ -294,12 +341,19 @@ const CMSAboutUs = () => {
               Tip: Use double line breaks to separate paragraphs.
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Contact Information */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow p-3 sm:p-4 md:p-6 border border-gray-100 dark:border-gray-700">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6"
+        >
           <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
-            <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
+            <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+              <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400" />
+            </div>
             Contact Information
           </h2>
 
@@ -346,12 +400,19 @@ const CMSAboutUs = () => {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Demographics */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow p-3 sm:p-4 md:p-6 border border-gray-100 dark:border-gray-700">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6"
+        >
           <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
-            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 dark:text-orange-400" />
+            <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 dark:text-orange-400" />
+            </div>
             Demographics
           </h2>
 
@@ -441,108 +502,22 @@ const CMSAboutUs = () => {
               />
             </div>
           </div>
-        </div>
-
-        {/* Social Media */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow p-3 sm:p-4 md:p-6 border border-gray-100 dark:border-gray-700">
-          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
-            <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400" />
-            Social Media Links
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Facebook
-              </label>
-              <input
-                type="url"
-                value={formData.socialMedia.facebook}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    socialMedia: {
-                      ...formData.socialMedia,
-                      facebook: e.target.value,
-                    },
-                  })
-                }
-                className="w-full px-2.5 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="https://facebook.com/..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Twitter
-              </label>
-              <input
-                type="url"
-                value={formData.socialMedia.twitter}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    socialMedia: {
-                      ...formData.socialMedia,
-                      twitter: e.target.value,
-                    },
-                  })
-                }
-                className="w-full px-2.5 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="https://twitter.com/..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Instagram
-              </label>
-              <input
-                type="url"
-                value={formData.socialMedia.instagram}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    socialMedia: {
-                      ...formData.socialMedia,
-                      instagram: e.target.value,
-                    },
-                  })
-                }
-                className="w-full px-2.5 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="https://instagram.com/..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                YouTube
-              </label>
-              <input
-                type="url"
-                value={formData.socialMedia.youtube}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    socialMedia: {
-                      ...formData.socialMedia,
-                      youtube: e.target.value,
-                    },
-                  })
-                }
-                className="w-full px-2.5 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="https://youtube.com/..."
-              />
-            </div>
-          </div>
-        </div>
+        </motion.div>
 
         {/* Submit Button */}
-        <div className="flex justify-end gap-2 sm:gap-3">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6"
+        >
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+            <strong className="text-gray-800 dark:text-gray-200">Note:</strong> All changes will be reflected immediately on the About Us page after saving.
+          </div>
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-1.5 sm:gap-2 bg-blue-600 text-white px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+            className="flex items-center justify-center gap-1.5 sm:gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
           >
             {saving ? (
               <>
@@ -556,16 +531,8 @@ const CMSAboutUs = () => {
               </>
             )}
           </button>
-        </div>
+        </motion.div>
       </form>
-
-      {/* Preview Note */}
-      <div className="mt-4 sm:mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-2.5 sm:p-4">
-        <p className="text-[10px] sm:text-xs md:text-sm text-blue-800 dark:text-blue-300">
-          <strong>Note:</strong> All changes will be reflected immediately on
-          the About Us page after saving.
-        </p>
-      </div>
     </div>
   );
 };

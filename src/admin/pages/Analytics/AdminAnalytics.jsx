@@ -307,27 +307,64 @@ const AdminAnalytics = () => {
 
   return (
     <div className="space-y-3 sm:space-y-4 md:space-y-6 p-2.5 sm:p-4 md:p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-            Analytics Dashboard
-          </h1>
-          <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
-            Comprehensive overview of barangay services and activities
-          </p>
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 p-3 sm:p-4 md:p-6">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: "32px 32px"
+          }}></div>
         </div>
-        <div className="flex items-center gap-2">
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="week">Last 7 Days</option>
-            <option value="month">Last 30 Days</option>
-            <option value="quarter">Last Quarter</option>
-            <option value="year">Last Year</option>
-          </select>
+        
+        <div className="relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                  Analytics Dashboard
+                </h1>
+                <p className="text-[10px] sm:text-xs md:text-sm text-blue-200">
+                  Comprehensive overview of barangay services and activities
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-white/20 backdrop-blur-sm border border-white/20 rounded-lg sm:rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/30 appearance-none cursor-pointer"
+              >
+                <option value="week" className="text-gray-900">Last 7 Days</option>
+                <option value="month" className="text-gray-900">Last 30 Days</option>
+                <option value="quarter" className="text-gray-900">Last Quarter</option>
+                <option value="year" className="text-gray-900">Last Year</option>
+              </select>
+            </div>
+          </div>
+          
+          {/* Quick Summary Stats in Header */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-4 sm:mt-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-white/10">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-white">{summary.avgProcessingTime || '0'}</p>
+              <p className="text-[10px] sm:text-xs text-blue-200">Avg. Processing (days)</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-white/10">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-white">{summary.activeUsersToday || '0'}</p>
+              <p className="text-[10px] sm:text-xs text-green-300">Active Users Today</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-white/10">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-white">{summary.satisfactionRate || '0'}/5</p>
+              <p className="text-[10px] sm:text-xs text-purple-300">Satisfaction Rate</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-white/10">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-white">{summary.peakHour || 'N/A'}</p>
+              <p className="text-[10px] sm:text-xs text-yellow-300">Peak Hour</p>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -408,76 +408,85 @@ const AdminReportsV2 = () => {
   };
 
   return (
-    <div className="space-y-6 p-1">
+    <div className="space-y-4 sm:space-y-6 p-1">
       {/* Premium Header */}
-      <div className="relative overflow-hidden rounded-2xl p-8" style={{ background: "linear-gradient(135deg, #002366 0%, #334b9f 100%)" }}>
-        <div className="absolute inset-0 bg-grid-white/5"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-300/10 rounded-full blur-3xl"></div>
-        
-        <div className="relative z-10 flex items-center justify-between flex-wrap gap-6">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-white/10 backdrop-blur-sm rounded-xl">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">
-                Reports Management
-              </h1>
-            </div>
-            <p className="text-blue-200 text-sm max-w-lg">
-              Monitor, manage and resolve resident reports efficiently. Track status, priority, and maintain community satisfaction.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => fetchReports(true)}
-              disabled={refreshing}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl hover:bg-white/20 transition-all duration-200 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
-              Refresh
-            </button>
-            <button
-              onClick={exportToCSV}
-              disabled={filteredReports.length === 0}
-              className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-blue-900 bg-white rounded-xl hover:bg-blue-50 transition-all duration-200 shadow-lg shadow-white/25 disabled:opacity-50"
-            >
-              <Download className="w-4 h-4" />
-              Export CSV
-            </button>
-          </div>
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900">
+        {/* Dot Pattern Overlay - More visible */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0)`,
+            backgroundSize: "20px 20px"
+          }}></div>
         </div>
+        {/* Subtle gradient orbs */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
+        
+        <div className="relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center">
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white tracking-tight">
+                  Reports Management
+                </h1>
+                <p className="text-[10px] sm:text-xs md:text-sm text-blue-200 max-w-lg">
+                  Monitor, manage and resolve resident reports efficiently
+                </p>
+              </div>
+            </div>
 
-        {/* Stats Grid */}
-        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-          {[
-            { label: "Total Reports", count: statusCounts.all, icon: Inbox, gradient: "from-blue-600 to-blue-700" },
-            { label: "Pending", count: statusCounts.pending, icon: Clock, gradient: "from-amber-500 to-orange-500" },
-            { label: "In Progress", count: statusCounts["in-progress"], icon: TrendingUp, gradient: "from-cyan-500 to-blue-500" },
-            { label: "Resolved", count: statusCounts.resolved, icon: CheckCircle, gradient: "from-emerald-500 to-green-500" },
-          ].map((stat, idx) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={idx}
-                className="relative overflow-hidden p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 transition-all duration-300 cursor-pointer group"
-                onClick={() => setFilter(idx === 0 ? "all" : idx === 1 ? "pending" : idx === 2 ? "in-progress" : "resolved")}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => fetchReports(true)}
+                disabled={refreshing}
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg sm:rounded-xl transition-all border border-white/20 disabled:opacity-50"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-blue-200 uppercase tracking-wider">{stat.label}</p>
-                    <p className="mt-1 text-2xl font-bold text-white">{stat.count}</p>
-                  </div>
-                  <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.gradient}`}>
-                    <Icon className="w-5 h-5 text-white" />
+                <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? "animate-spin" : ""}`} />
+                <span className="hidden xs:inline">Refresh</span>
+              </button>
+              <button
+                onClick={exportToCSV}
+                disabled={filteredReports.length === 0}
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-lg sm:rounded-xl transition-all shadow-lg disabled:opacity-50"
+              >
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden xs:inline">Export CSV</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mt-4 sm:mt-6">
+            {[
+              { label: "Total Reports", count: statusCounts.all, icon: Inbox, gradient: "from-blue-600 to-blue-700", filter: "all" },
+              { label: "Pending", count: statusCounts.pending, icon: Clock, gradient: "from-amber-500 to-orange-500", filter: "pending" },
+              { label: "In Progress", count: statusCounts["in-progress"], icon: TrendingUp, gradient: "from-cyan-500 to-blue-500", filter: "in-progress" },
+              { label: "Resolved", count: statusCounts.resolved, icon: CheckCircle, gradient: "from-emerald-500 to-green-500", filter: "resolved" },
+            ].map((stat, idx) => {
+              const Icon = stat.icon;
+              return (
+                <div
+                  key={idx}
+                  className="relative overflow-hidden p-2.5 sm:p-3 md:p-4 bg-white/10 backdrop-blur-sm border border-white/10 rounded-lg sm:rounded-xl hover:bg-white/20 transition-all duration-300 cursor-pointer group"
+                  onClick={() => setFilter(stat.filter)}
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] sm:text-xs text-blue-200 uppercase tracking-wider">{stat.label}</p>
+                      <p className="mt-0.5 sm:mt-1 text-lg sm:text-xl md:text-2xl font-bold text-white">{stat.count}</p>
+                    </div>
+                    <div className={`hidden sm:flex p-1.5 sm:p-2 rounded-lg bg-gradient-to-br ${stat.gradient}`}>
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -511,17 +520,17 @@ const AdminReportsV2 = () => {
       )}
 
       {/* Search & Filters */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-5">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+      <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 p-3 sm:p-4 md:p-5">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 sm:gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-2.5 sm:left-3.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search reports by title, resident, or description..."
-              className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 dark:border-slate-600 rounded-xl bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 text-xs sm:text-sm border border-gray-200 dark:border-slate-600 rounded-lg sm:rounded-xl bg-gray-50 dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
 
@@ -532,7 +541,7 @@ const AdminReportsV2 = () => {
                 <button
                   key={status}
                   onClick={() => setFilter(status)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium rounded-md transition-all ${
                     filter === status
                       ? "bg-white dark:bg-slate-600 text-gray-900 dark:text-white shadow-sm"
                       : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -546,7 +555,7 @@ const AdminReportsV2 = () => {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-3 py-2 text-xs font-medium border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Categories</option>
               {categories.map((cat) => (
@@ -557,7 +566,7 @@ const AdminReportsV2 = () => {
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="px-3 py-2 text-xs font-medium border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Priorities</option>
               {priorities.map((p) => (
@@ -567,22 +576,22 @@ const AdminReportsV2 = () => {
 
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
             >
-              <ArrowUpDown className="w-3.5 h-3.5" />
-              {sortOrder === "desc" ? "Newest" : "Oldest"}
+              <ArrowUpDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span className="hidden xs:inline">{sortOrder === "desc" ? "Newest" : "Oldest"}</span>
             </button>
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
+          <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
             Showing {filteredReports.length} of {reports.length} reports
           </span>
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
-              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+              className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 hover:underline"
             >
               Clear search
             </button>
@@ -734,15 +743,18 @@ const AdminReportsV2 = () => {
 
       {/* View Report Modal */}
       {viewModalOpen && selectedReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div 
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setViewModalOpen(false)}
+        >
           <div
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200"
+            className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="relative">
               {selectedReport.images?.length > 0 ? (
-                <div className="relative h-64 overflow-hidden">
+                <div className="relative h-48 sm:h-64 overflow-hidden">
                   <img
                     src={selectedReport.images[0]}
                     alt=""
@@ -754,103 +766,103 @@ const AdminReportsV2 = () => {
                   {selectedReport.images.length > 0 && (
                     <button
                       onClick={() => openImageGallery(0)}
-                      className="absolute bottom-4 right-4 flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-sm font-medium text-gray-900 hover:bg-white transition-colors"
+                      className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white/90 backdrop-blur-sm rounded-lg text-xs sm:text-sm font-medium text-gray-900 hover:bg-white transition-colors"
                     >
-                      <Image className="w-4 h-4" />
+                      <Image className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       View {selectedReport.images.length} photo{selectedReport.images.length > 1 ? "s" : ""}
                     </button>
                   )}
                 </div>
               ) : (
-                <div className="h-20 bg-gradient-to-br from-blue-500 to-blue-600"></div>
+                <div className="h-16 sm:h-20 bg-gradient-to-br from-blue-500 to-blue-600"></div>
               )}
 
               <button
                 onClick={() => setViewModalOpen(false)}
-                className="absolute top-4 right-4 p-2 bg-black/30 backdrop-blur-sm text-white rounded-full hover:bg-black/50 transition-colors"
+                className="absolute top-3 sm:top-4 right-3 sm:right-4 p-1.5 sm:p-2 bg-black/30 backdrop-blur-sm text-white rounded-full hover:bg-black/50 transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
 
             {/* Modal Content */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-16rem)]">
+            <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(95vh-16rem)] sm:max-h-[calc(90vh-16rem)]">
               {/* Title & Badges */}
-              <div className="flex flex-wrap items-start gap-3 mb-6">
+              <div className="flex flex-wrap items-start gap-2 sm:gap-3 mb-4 sm:mb-6">
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-0.5 sm:mb-1">
                     {selectedReport.title}
                   </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                     Report ID: #{selectedReport.id}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getPriorityConfig(selectedReport.priority).color}`}>
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <span className={`px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold rounded-full ${getPriorityConfig(selectedReport.priority).color}`}>
                     {selectedReport.priority.toUpperCase()}
                   </span>
-                  <span className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full border ${getStatusConfig(selectedReport.status).color}`}>
-                    {React.createElement(getStatusConfig(selectedReport.status).icon, { className: "w-3 h-3" })}
+                  <span className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold rounded-full border ${getStatusConfig(selectedReport.status).color}`}>
+                    {React.createElement(getStatusConfig(selectedReport.status).icon, { className: "w-2.5 h-2.5 sm:w-3 sm:h-3" })}
                     {getStatusConfig(selectedReport.status).label.toUpperCase()}
                   </span>
                 </div>
               </div>
 
               {/* Info Grid */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <User className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl">
+                  <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Reported By</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedReport.resident}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
-                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                    <Mail className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{selectedReport.residentEmail}</p>
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-300 font-medium">Reported By</p>
+                    <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100 truncate">{selectedReport.resident}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
-                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <CalendarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
+                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg sm:rounded-xl">
+                  <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Date Reported</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{new Date(selectedReport.date).toLocaleDateString()}</p>
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-xs text-purple-600 dark:text-purple-300 font-medium">Email</p>
+                    <p className="text-xs sm:text-sm font-medium text-purple-900 dark:text-purple-100 truncate">{selectedReport.residentEmail}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
-                  <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                    <MapPin className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg sm:rounded-xl">
+                  <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <CalendarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Location</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedReport.location}</p>
+                    <p className="text-[10px] sm:text-xs text-green-600 dark:text-green-300 font-medium">Date Reported</p>
+                    <p className="text-xs sm:text-sm font-medium text-green-900 dark:text-green-100">{new Date(selectedReport.date).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg sm:rounded-xl">
+                  <div className="p-1.5 sm:p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                    <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-300 font-medium">Location</p>
+                    <p className="text-xs sm:text-sm font-medium text-orange-900 dark:text-orange-100">{selectedReport.location}</p>
                   </div>
                 </div>
               </div>
 
               {/* Category */}
-              <div className="mb-6">
-                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Category</h4>
-                <span className="inline-flex items-center px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-medium rounded-lg">
+              <div className="mb-4 sm:mb-6">
+                <h4 className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5 sm:mb-2">Category</h4>
+                <span className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs sm:text-sm font-medium rounded-lg">
                   {selectedReport.category}
                 </span>
               </div>
 
               {/* Description */}
-              <div className="mb-6">
-                <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Description</h4>
-                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl">
+              <div className="mb-4 sm:mb-6">
+                <h4 className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5 sm:mb-2">Description</h4>
+                <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm leading-relaxed p-3 sm:p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg sm:rounded-xl">
                   {selectedReport.description}
                 </p>
               </div>
@@ -858,10 +870,10 @@ const AdminReportsV2 = () => {
               {/* Image Gallery Thumbnails */}
               {selectedReport.images?.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                  <h4 className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 sm:mb-3">
                     Attachments ({selectedReport.images.length})
                   </h4>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 sm:gap-2">
                     {selectedReport.images.map((img, idx) => (
                       <button
                         key={idx}
@@ -870,7 +882,7 @@ const AdminReportsV2 = () => {
                       >
                         <img src={img} alt="" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                          <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <ZoomIn className="w-4 h-4 sm:w-5 sm:h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </button>
                     ))}
@@ -880,18 +892,18 @@ const AdminReportsV2 = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-between gap-3 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 p-4 sm:p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50">
               <button
                 onClick={() => handleDeleteReport(selectedReport)}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg sm:rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors order-3 sm:order-1"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Delete Report
               </button>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 order-1 sm:order-2">
                 <button
                   onClick={() => setViewModalOpen(false)}
-                  className="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg sm:rounded-xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
                 >
                   Close
                 </button>
@@ -900,9 +912,9 @@ const AdminReportsV2 = () => {
                     setViewModalOpen(false);
                     handleStatusUpdate(selectedReport);
                   }}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg sm:rounded-xl transition-all shadow-lg shadow-blue-600/25"
                 >
-                  <Flag className="w-4 h-4" />
+                  <Flag className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Update Status
                 </button>
               </div>
@@ -913,20 +925,26 @@ const AdminReportsV2 = () => {
 
       {/* Status Update Modal */}
       {statusUpdateModal && selectedReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                  <Flag className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+        <div 
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setStatusUpdateModal(false)}
+        >
+          <div 
+            className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                <div className="p-2 sm:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg sm:rounded-xl">
+                  <Flag className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Update Status</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Change the status of this report</p>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Update Status</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Change the status of this report</p>
                 </div>
               </div>
 
-              <div className="space-y-2 mb-6">
+              <div className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6">
                 {[
                   { value: "pending", label: "Pending", desc: "Report is awaiting review" },
                   { value: "in-progress", label: "In Progress", desc: "Report is being addressed" },
@@ -937,7 +955,7 @@ const AdminReportsV2 = () => {
                   return (
                     <label
                       key={status.value}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 cursor-pointer transition-all ${
                         newStatus === status.value
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                           : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600"
@@ -951,29 +969,29 @@ const AdminReportsV2 = () => {
                         onChange={(e) => setNewStatus(e.target.value)}
                         className="sr-only"
                       />
-                      <div className={`w-3 h-3 rounded-full ${config.dotColor}`}></div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">{status.label}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{status.desc}</p>
+                      <div className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${config.dotColor}`}></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-white">{status.label}</p>
+                        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">{status.desc}</p>
                       </div>
                       {newStatus === status.value && (
-                        <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                       )}
                     </label>
                   );
                 })}
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <button
                   onClick={() => setStatusUpdateModal(false)}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-lg sm:rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmStatusUpdate}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25"
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg sm:rounded-xl transition-all shadow-lg shadow-blue-600/25"
                 >
                   Update Status
                 </button>
@@ -985,28 +1003,34 @@ const AdminReportsV2 = () => {
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && selectedReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
-            <div className="p-6 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-red-100 dark:bg-red-900/30 rounded-full">
-                <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
+        <div 
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setDeleteModalOpen(false)}
+        >
+          <div 
+            className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 sm:p-6 text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-red-600 dark:text-red-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-1.5 sm:mb-2">
                 Delete Report?
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
                 Are you sure you want to delete "{selectedReport.title}"? This action cannot be undone.
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <button
                   onClick={() => setDeleteModalOpen(false)}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-lg sm:rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDeleteReport}
-                  className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-600/25"
+                  className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-lg sm:rounded-xl transition-all shadow-lg shadow-red-600/25"
                 >
                   Delete Report
                 </button>

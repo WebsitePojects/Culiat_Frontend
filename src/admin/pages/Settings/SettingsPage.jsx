@@ -3,35 +3,31 @@ import axios from "axios";
 import {
   Settings as SettingsIcon,
   Save,
-  Building,
-  Phone,
-  Mail,
-  MapPin,
-  Globe,
-  Palette,
   Shield,
   RefreshCw,
-  AlertCircle,
-  Plus,
-  Trash2,
-  GripVertical,
-  Eye,
-  EyeOff,
+  Bell,
+  BellOff,
+  Lock,
+  Users,
+  FileText,
+  MessageSquare,
+  Clock,
+  HardDrive,
+  Activity,
+  Wrench,
+  CheckCircle,
+  XCircle,
+  Info,
+  AlertTriangle,
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 
 const SettingsPage = () => {
   const { showSuccess, showError, showPromise } = useNotifications();
-  const [activeTab, setActiveTab] = useState("site-info");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState(null);
   const [formData, setFormData] = useState({
-    siteInfo: {},
-    contactInfo: {},
-    socialMedia: {},
-    footer: { quickLinks: [] },
-    theme: {},
     system: {},
   });
   const [hasChanges, setHasChanges] = useState(false);
@@ -52,11 +48,6 @@ const SettingsPage = () => {
       const data = response.data.data;
       setSettings(data);
       setFormData({
-        siteInfo: data.siteInfo || {},
-        contactInfo: data.contactInfo || {},
-        socialMedia: data.socialMedia || {},
-        footer: data.footer || { quickLinks: [] },
-        theme: data.theme || {},
         system: data.system || {},
       });
     } catch (error) {
@@ -109,66 +100,11 @@ const SettingsPage = () => {
 
   const handleReset = () => {
     setFormData({
-      siteInfo: settings.siteInfo || {},
-      contactInfo: settings.contactInfo || {},
-      socialMedia: settings.socialMedia || {},
-      footer: settings.footer || { quickLinks: [] },
-      theme: settings.theme || {},
       system: settings.system || {},
     });
     setHasChanges(false);
     showSuccess("Changes discarded");
   };
-
-  // Footer Quick Links Management
-  const addQuickLink = () => {
-    const newLink = {
-      title: "",
-      url: "",
-      order: formData.footer.quickLinks?.length || 0,
-    };
-    setFormData((prev) => ({
-      ...prev,
-      footer: {
-        ...prev.footer,
-        quickLinks: [...(prev.footer.quickLinks || []), newLink],
-      },
-    }));
-    setHasChanges(true);
-  };
-
-  const removeQuickLink = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      footer: {
-        ...prev.footer,
-        quickLinks: prev.footer.quickLinks.filter((_, i) => i !== index),
-      },
-    }));
-    setHasChanges(true);
-  };
-
-  const updateQuickLink = (index, field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      footer: {
-        ...prev.footer,
-        quickLinks: prev.footer.quickLinks.map((link, i) =>
-          i === index ? { ...link, [field]: value } : link
-        ),
-      },
-    }));
-    setHasChanges(true);
-  };
-
-  const tabs = [
-    { id: "site-info", label: "Site Information", icon: Building },
-    { id: "contactInfo", label: "Contact Info", icon: Phone },
-    { id: "socialMedia", label: "Social Media", icon: Globe },
-    { id: "footer", label: "Footer Settings", icon: Mail },
-    { id: "theme", label: "Theme", icon: Palette },
-    { id: "system", label: "System Settings", icon: Shield },
-  ];
 
   if (loading) {
     return (
@@ -184,811 +120,397 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2 sm:gap-3">
-            <SettingsIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-blue-600" />
-            System Settings
-          </h1>
-          <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-            Configure your barangay management system
-          </p>
+    <div className="space-y-4 sm:space-y-6 p-2.5 sm:p-4 md:p-6">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 p-3 sm:p-4 md:p-6">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: "32px 32px"
+          }}></div>
         </div>
+        
+        <div className="relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center">
+                <SettingsIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                  System Settings
+                </h1>
+                <p className="text-[10px] sm:text-xs md:text-sm text-blue-200">
+                  Configure your barangay management system
+                </p>
+              </div>
+            </div>
 
-        {hasChanges && (
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={handleReset}
-              className="px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-              <span className="hidden xs:inline">Discard</span>
-            </button>
-            <button
-              onClick={() => handleSave()}
-              disabled={saving}
-              className="px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-              {saving ? "Saving..." : "Save All"}
-            </button>
+            {hasChanges && (
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  onClick={handleReset}
+                  className="px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white rounded-lg sm:rounded-xl transition-all border border-white/20"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                  <span className="hidden xs:inline">Discard</span>
+                </button>
+                <button
+                  onClick={() => handleSave()}
+                  disabled={saving}
+                  className="px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-lg sm:rounded-xl transition-all shadow-lg disabled:opacity-50"
+                >
+                  <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                  {saving ? "Saving..." : "Save All"}
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-        <nav className="flex space-x-1 sm:space-x-4 min-w-max px-1">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center px-2 sm:px-4 py-2 sm:py-3 text-[10px] sm:text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
-                  activeTab === tab.id
-                    ? "border-blue-600 text-blue-600 dark:text-blue-400"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* Tab Content */}
+      {/* System Settings Content */}
       <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-3 sm:p-4 md:p-6">
-        {/* Site Information */}
-        {activeTab === "site-info" && (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <Building className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
-                Site Information
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Barangay Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.siteInfo.barangayName || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "siteInfo",
-                      "barangayName",
-                      e.target.value
-                    )
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  City *
-                </label>
-                <input
-                  type="text"
-                  value={formData.siteInfo.city || ""}
-                  onChange={(e) =>
-                    handleInputChange("siteInfo", "city", e.target.value)
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Province *
-                </label>
-                <input
-                  type="text"
-                  value={formData.siteInfo.province || ""}
-                  onChange={(e) =>
-                    handleInputChange("siteInfo", "province", e.target.value)
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Tagline
-                </label>
-                <input
-                  type="text"
-                  value={formData.siteInfo.tagline || ""}
-                  onChange={(e) =>
-                    handleInputChange("siteInfo", "tagline", e.target.value)
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="Your barangay's tagline"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Description
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.siteInfo.description || ""}
-                  onChange={(e) =>
-                    handleInputChange("siteInfo", "description", e.target.value)
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="Brief description of your barangay"
-                ></textarea>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
-              <button
-                onClick={() => handleSave("site-info")}
-                disabled={saving}
-                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                Save Site Info
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Contact Information */}
-        {activeTab === "contactInfo" && (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
-                Contact Information
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-              <div className="md:col-span-2">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
-                  Office Address
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.contactInfo.officeAddress || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "contactInfo",
-                      "officeAddress",
-                      e.target.value
-                    )
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="Complete office address"
-                ></textarea>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={formData.contactInfo.phoneNumber || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "contactInfo",
-                      "phoneNumber",
-                      e.target.value
-                    )
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="+63 123 456 7890"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Mobile Number
-                </label>
-                <input
-                  type="tel"
-                  value={formData.contactInfo.mobileNumber || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "contactInfo",
-                      "mobileNumber",
-                      e.target.value
-                    )
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="+63 987 654 3210"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1" />
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={formData.contactInfo.emailAddress || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "contactInfo",
-                      "emailAddress",
-                      e.target.value
-                    )
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="contact@barangay.gov.ph"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Office Hours
-                </label>
-                <input
-                  type="text"
-                  value={formData.contactInfo.officeHours || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "contactInfo",
-                      "officeHours",
-                      e.target.value
-                    )
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="Monday - Friday, 8:00 AM - 5:00 PM"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Google Maps Embed URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.contactInfo.mapEmbedUrl || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "contactInfo",
-                      "mapEmbedUrl",
-                      e.target.value
-                    )
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="https://www.google.com/maps/embed?pb=..."
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Google Maps Directions URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.contactInfo.mapDirectionsUrl || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "contactInfo",
-                      "mapDirectionsUrl",
-                      e.target.value
-                    )
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="https://www.google.com/maps/place/..."
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
-              <button
-                onClick={() => handleSave("contact-info")}
-                disabled={saving}
-                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                Save Contact Info
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Social Media */}
-        {activeTab === "socialMedia" && (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <Globe className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
-                Social Media Links
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  <span className="text-blue-600">📘</span> Facebook
-                </label>
-                <input
-                  type="url"
-                  value={formData.socialMedia.facebook || ""}
-                  onChange={(e) =>
-                    handleInputChange("socialMedia", "facebook", e.target.value)
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="https://facebook.com/your-page"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  <span className="text-sky-500">🐦</span> Twitter
-                </label>
-                <input
-                  type="url"
-                  value={formData.socialMedia.twitter || ""}
-                  onChange={(e) =>
-                    handleInputChange("socialMedia", "twitter", e.target.value)
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="https://twitter.com/your-handle"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  <span className="text-pink-600">📷</span> Instagram
-                </label>
-                <input
-                  type="url"
-                  value={formData.socialMedia.instagram || ""}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "socialMedia",
-                      "instagram",
-                      e.target.value
-                    )
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="https://instagram.com/your-account"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  <span className="text-red-600">📺</span> YouTube
-                </label>
-                <input
-                  type="url"
-                  value={formData.socialMedia.youtube || ""}
-                  onChange={(e) =>
-                    handleInputChange("socialMedia", "youtube", e.target.value)
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="https://youtube.com/your-channel"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
-              <button
-                onClick={() => handleSave("social-media")}
-                disabled={saving}
-                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                Save Social Media
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Footer Settings */}
-        {activeTab === "footer" && (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
-                Footer Settings
-              </h2>
-            </div>
-
-            <div className="space-y-4 sm:space-y-6">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  About Text
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.footer.aboutText || ""}
-                  onChange={(e) =>
-                    handleInputChange("footer", "aboutText", e.target.value)
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="Brief description about your barangay"
-                ></textarea>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Copyright Text
-                </label>
-                <input
-                  type="text"
-                  value={formData.footer.copyrightText || ""}
-                  onChange={(e) =>
-                    handleInputChange("footer", "copyrightText", e.target.value)
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="© 2025 Barangay Name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Powered By Text
-                </label>
-                <input
-                  type="text"
-                  value={formData.footer.poweredByText || ""}
-                  onChange={(e) =>
-                    handleInputChange("footer", "poweredByText", e.target.value)
-                  }
-                  className="w-full px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  placeholder="Your Company Name"
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3">
-                <div className="min-w-0">
-                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
-                    Show Quick Links
-                  </h3>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                    Display quick links section in footer
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={formData.footer.showQuickLinks || false}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "footer",
-                        "showQuickLinks",
-                        e.target.checked
-                      )
-                    }
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3">
-                <div className="min-w-0">
-                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
-                    Show Location Map
-                  </h3>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                    Display map in footer
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={formData.footer.showMap || false}
-                    onChange={(e) =>
-                      handleInputChange("footer", "showMap", e.target.checked)
-                    }
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              {/* Quick Links Management */}
-              <div>
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <h3 className="text-sm sm:text-base md:text-lg font-medium text-gray-900 dark:text-white">
-                    Quick Links
-                  </h3>
-                  <button
-                    onClick={addQuickLink}
-                    className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    Add
-                  </button>
-                </div>
-
-                <div className="space-y-2 sm:space-y-3">
-                  {formData.footer.quickLinks?.map((link, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
-                    >
-                      <GripVertical className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 cursor-move hidden sm:block" />
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
-                        <input
-                          type="text"
-                          value={link.title || ""}
-                          onChange={(e) =>
-                            updateQuickLink(index, "title", e.target.value)
-                          }
-                          placeholder="Link Title"
-                          className="px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        />
-                        <input
-                          type="url"
-                          value={link.url || ""}
-                          onChange={(e) =>
-                            updateQuickLink(index, "url", e.target.value)
-                          }
-                          placeholder="URL"
-                          className="px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        />
-                      </div>
-                      <button
-                        onClick={() => removeQuickLink(index)}
-                        className="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </button>
-                    </div>
-                  ))}
-                  {(!formData.footer.quickLinks ||
-                    formData.footer.quickLinks.length === 0) && (
-                    <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 py-6 sm:py-8">
-                      No quick links added yet. Click "Add" to get started.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
-              <button
-                onClick={() => handleSave("footer")}
-                disabled={saving}
-                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                Save Footer
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Theme Settings */}
-        {activeTab === "theme" && (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <Palette className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
-                Theme Settings
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Primary Color
-                </label>
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <input
-                    type="color"
-                    value={formData.theme.primaryColor || "#3B82F6"}
-                    onChange={(e) =>
-                      handleInputChange("theme", "primaryColor", e.target.value)
-                    }
-                    className="h-8 w-12 sm:h-10 sm:w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={formData.theme.primaryColor || "#3B82F6"}
-                    onChange={(e) =>
-                      handleInputChange("theme", "primaryColor", e.target.value)
-                    }
-                    className="flex-1 px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Secondary Color
-                </label>
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <input
-                    type="color"
-                    value={formData.theme.secondaryColor || "#8B5CF6"}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "theme",
-                        "secondaryColor",
-                        e.target.value
-                      )
-                    }
-                    className="h-8 w-12 sm:h-10 sm:w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={formData.theme.secondaryColor || "#8B5CF6"}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "theme",
-                        "secondaryColor",
-                        e.target.value
-                      )
-                    }
-                    className="flex-1 px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Accent Color
-                </label>
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <input
-                    type="color"
-                    value={formData.theme.accentColor || "#10B981"}
-                    onChange={(e) =>
-                      handleInputChange("theme", "accentColor", e.target.value)
-                    }
-                    className="h-8 w-12 sm:h-10 sm:w-20 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={formData.theme.accentColor || "#10B981"}
-                    onChange={(e) =>
-                      handleInputChange("theme", "accentColor", e.target.value)
-                    }
-                    className="flex-1 px-2.5 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="p-2.5 sm:p-3 md:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-[10px] sm:text-xs md:text-sm text-blue-800 dark:text-blue-300 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 flex-shrink-0" />
-                <span>
-                  Theme colors will be applied system-wide. Changes may require
-                  a page refresh to take full effect.
-                </span>
-              </p>
-            </div>
-
-            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
-              <button
-                onClick={() => handleSave("theme")}
-                disabled={saving}
-                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                Save Theme
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* System Settings */}
-        {activeTab === "system" && (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-6">
+            <Shield className="w-6 h-6 text-blue-600" />
+            <div>
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
                 System Settings
               </h2>
-            </div>
-
-            <div className="space-y-3 sm:space-y-4">
-              <div className="flex items-center justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3">
-                <div className="min-w-0">
-                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
-                    User Registration
-                  </h3>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                    Allow new user registrations
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={formData.system.registrationEnabled || false}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "system",
-                        "registrationEnabled",
-                        e.target.checked
-                      )
-                    }
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3">
-                <div className="min-w-0">
-                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
-                    Document Requests
-                  </h3>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                    Enable document request submissions
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={formData.system.documentRequestEnabled || false}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "system",
-                        "documentRequestEnabled",
-                        e.target.checked
-                      )
-                    }
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3">
-                <div className="min-w-0">
-                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
-                    Report Submissions
-                  </h3>
-                  <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                    Allow residents to submit reports
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={formData.system.reportingEnabled || false}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "system",
-                        "reportingEnabled",
-                        e.target.checked
-                      )
-                    }
-                    className="sr-only peer"
-                  />
-                  <div className="w-9 h-5 sm:w-11 sm:h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-3 sm:pt-4 border-t dark:border-gray-700">
-              <button
-                onClick={() => handleSave()}
-                disabled={saving}
-                className="px-3 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                Save System
-              </button>
+              <p className="text-sm text-gray-500">Configure core system behavior and controls</p>
             </div>
           </div>
-        )}
+
+          {/* Email Notifications - Primary Control */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 md:p-6 border-2 border-blue-200 dark:border-blue-800">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className={`p-3 rounded-xl ${formData.system.emailNotificationsEnabled ? 'bg-green-100' : 'bg-red-100'}`}>
+                  {formData.system.emailNotificationsEnabled ? (
+                    <Bell className="w-6 h-6 text-green-600" />
+                  ) : (
+                    <BellOff className="w-6 h-6 text-red-600" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
+                    Email Notifications
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Master control for all system email notifications. When disabled, no emails will be sent for registrations, document requests, or any system events.
+                  </p>
+                  <div className={`inline-flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full text-sm font-medium ${
+                    formData.system.emailNotificationsEnabled 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {formData.system.emailNotificationsEnabled ? (
+                      <>
+                        <CheckCircle className="w-4 h-4" />
+                        Emails are being sent
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="w-4 h-4" />
+                        All emails disabled
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input
+                  type="checkbox"
+                  checked={formData.system.emailNotificationsEnabled || false}
+                  onChange={(e) =>
+                      handleInputChange(
+                        "system",
+                        "emailNotificationsEnabled",
+                        e.target.checked
+                      )
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-green-500"></div>
+                </label>
+              </div>
+            </div>
+
+            {/* Maintenance Mode */}
+            <div className={`rounded-xl p-4 md:p-6 border-2 ${
+              formData.system.maintenanceMode 
+                ? 'bg-amber-50 border-amber-300 dark:bg-amber-900/20 dark:border-amber-700' 
+                : 'bg-gray-50 border-gray-200 dark:bg-gray-700/50 dark:border-gray-600'
+            }`}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-xl ${formData.system.maintenanceMode ? 'bg-amber-100' : 'bg-gray-100'}`}>
+                    <Wrench className={`w-6 h-6 ${formData.system.maintenanceMode ? 'text-amber-600' : 'text-gray-600'}`} />
+                  </div>
+                  <div>
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
+                      Maintenance Mode
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      When enabled, the public site will show a maintenance message. Admin access remains available.
+                    </p>
+                    {formData.system.maintenanceMode && (
+                      <div className="flex items-center gap-2 mt-3 px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
+                        <AlertTriangle className="w-4 h-4" />
+                        Site is in maintenance mode
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={formData.system.maintenanceMode || false}
+                    onChange={(e) =>
+                      handleInputChange(
+                        "system",
+                        "maintenanceMode",
+                        e.target.checked
+                      )
+                    }
+                    className="sr-only peer"
+                  />
+                  <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 dark:peer-focus:ring-amber-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-amber-500"></div>
+                </label>
+              </div>
+              {formData.system.maintenanceMode && (
+                <div className="mt-4 pt-4 border-t border-amber-200 dark:border-amber-700">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Maintenance Message
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={formData.system.maintenanceMessage || ""}
+                    onChange={(e) =>
+                      handleInputChange("system", "maintenanceMessage", e.target.value)
+                    }
+                    className="w-full px-4 py-2 text-sm border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:border-amber-600 dark:text-white"
+                    placeholder="Message to display during maintenance"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Feature Controls Grid */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                Feature Controls
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* User Registration */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${formData.system.registrationEnabled ? 'bg-green-100' : 'bg-gray-200'}`}>
+                      <Users className={`w-5 h-5 ${formData.system.registrationEnabled ? 'text-green-600' : 'text-gray-500'}`} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">User Registration</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Allow new user sign-ups</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.system.registrationEnabled || false}
+                      onChange={(e) => handleInputChange("system", "registrationEnabled", e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                  </label>
+                </div>
+
+                {/* Document Requests */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${formData.system.documentRequestEnabled ? 'bg-green-100' : 'bg-gray-200'}`}>
+                      <FileText className={`w-5 h-5 ${formData.system.documentRequestEnabled ? 'text-green-600' : 'text-gray-500'}`} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Document Requests</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Enable document submissions</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.system.documentRequestEnabled || false}
+                      onChange={(e) => handleInputChange("system", "documentRequestEnabled", e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                  </label>
+                </div>
+
+                {/* Report Submissions */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${formData.system.reportingEnabled ? 'bg-green-100' : 'bg-gray-200'}`}>
+                      <MessageSquare className={`w-5 h-5 ${formData.system.reportingEnabled ? 'text-green-600' : 'text-gray-500'}`} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Report Submissions</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Allow residents to submit reports</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.system.reportingEnabled || false}
+                      onChange={(e) => handleInputChange("system", "reportingEnabled", e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                  </label>
+                </div>
+
+                {/* Profile Updates */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${formData.system.profileUpdateEnabled ? 'bg-green-100' : 'bg-gray-200'}`}>
+                      <Users className={`w-5 h-5 ${formData.system.profileUpdateEnabled ? 'text-green-600' : 'text-gray-500'}`} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Profile Updates</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Allow residents to update profiles</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.system.profileUpdateEnabled !== false}
+                      onChange={(e) => handleInputChange("system", "profileUpdateEnabled", e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                  </label>
+                </div>
+
+                {/* Auto-Approve Residents */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${formData.system.autoApproveResidents ? 'bg-green-100' : 'bg-gray-200'}`}>
+                      <CheckCircle className={`w-5 h-5 ${formData.system.autoApproveResidents ? 'text-green-600' : 'text-gray-500'}`} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Auto-Approve Residents</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Skip manual approval for new users</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.system.autoApproveResidents || false}
+                      onChange={(e) => handleInputChange("system", "autoApproveResidents", e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Security & Limits */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Security & Limits
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Session Timeout
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="5"
+                      max="120"
+                      value={formData.system.sessionTimeout || 30}
+                      onChange={(e) => handleInputChange("system", "sessionTimeout", parseInt(e.target.value))}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                    <span className="text-sm text-gray-500 whitespace-nowrap">minutes</span>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Lock className="w-5 h-5 text-blue-600" />
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Max Login Attempts
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="3"
+                      max="10"
+                      value={formData.system.maxLoginAttempts || 5}
+                      onChange={(e) => handleInputChange("system", "maxLoginAttempts", parseInt(e.target.value))}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                    <span className="text-sm text-gray-500 whitespace-nowrap">attempts</span>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center gap-2 mb-3">
+                    <HardDrive className="w-5 h-5 text-blue-600" />
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Max File Size
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="50"
+                      value={formData.system.maxFileSize || 5}
+                      onChange={(e) => handleInputChange("system", "maxFileSize", parseInt(e.target.value))}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    />
+                    <span className="text-sm text-gray-500 whitespace-nowrap">MB</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          {/* Info Alert */}
+          <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
+                Important: Changes to system settings take effect immediately
+              </p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                Disabling email notifications will stop all automated emails. Enable only when the system is ready for production use.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t dark:border-gray-700">
+            <button
+              onClick={() => handleSave("system")}
+              disabled={saving}
+              className="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {saving ? "Saving..." : "Save System Settings"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

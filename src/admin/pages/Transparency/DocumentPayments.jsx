@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
-  DollarSign,
+  Coins,
   Search,
   Calendar,
   Download,
@@ -179,97 +179,114 @@ const DocumentPayments = () => {
 
   return (
     <div className="space-y-3 sm:space-y-4 md:space-y-6 p-2.5 sm:p-4 md:p-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
-            <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-green-600" />
-            Document Payment Income
-          </h1>
-          <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
-            Track income from document service fees and payments
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleRefresh}
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
-          <button
-            onClick={handleExportPDF}
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 md:gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">
-                Total Revenue
-              </p>
-              <p className="text-base sm:text-lg md:text-2xl font-bold text-green-600 mt-0.5 sm:mt-1 truncate">
-                {formatCurrency(summary.totalRevenue)}
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-slate-900 via-green-900 to-slate-900 p-4 sm:p-6 md:p-8">
+        {/* Dot pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
+            backgroundSize: "20px 20px",
+          }}
+        />
+        <div className="relative z-10">
+          {/* Header Top */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div>
+              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <div className="p-2 sm:p-2.5 bg-green-500/20 rounded-lg sm:rounded-xl">
+                  <Coins className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
+                </div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                  Document Fee Collections
+                </h1>
+              </div>
+              <p className="text-[11px] sm:text-sm text-green-200/80">
+                Track collections from document service fees and payments
               </p>
             </div>
-            <div className="p-1.5 sm:p-2 md:p-3 bg-green-100 dark:bg-green-900/30 rounded-md sm:rounded-lg flex-shrink-0 ml-2">
-              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-green-600" />
+            <div className="flex gap-2">
+              <button
+                onClick={handleRefresh}
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-white/10 border border-white/20 rounded-lg sm:rounded-xl hover:bg-white/20 transition-colors"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+              <button
+                onClick={handleExportPDF}
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-green-600 rounded-lg sm:rounded-xl hover:bg-green-700 transition-colors shadow-lg shadow-green-600/25"
+              >
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Export</span>
+              </button>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">
-                Transactions
-              </p>
-              <p className="text-base sm:text-lg md:text-2xl font-bold text-blue-600 mt-0.5 sm:mt-1">
-                {summary.totalTransactions}
-              </p>
+          {/* Stats Grid in Header */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-green-500/20 rounded-lg">
+                  <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-green-400" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white truncate">
+                    {formatCurrency(summary.totalRevenue)}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-green-200/70">
+                    Total Collections
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="p-1.5 sm:p-2 md:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-md sm:rounded-lg flex-shrink-0 ml-2">
-              <Receipt className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">
-                Avg. Transaction
-              </p>
-              <p className="text-base sm:text-lg md:text-2xl font-bold text-purple-600 mt-0.5 sm:mt-1 truncate">
-                {formatCurrency(summary.averageTransaction)}
-              </p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg">
+                  <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white">
+                    {summary.totalTransactions}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-green-200/70">
+                    Transactions
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="p-1.5 sm:p-2 md:p-3 bg-purple-100 dark:bg-purple-900/30 rounded-md sm:rounded-lg flex-shrink-0 ml-2">
-              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:p-6">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">
-                Top Document
-              </p>
-              <p className="text-sm sm:text-base md:text-lg font-bold text-orange-600 mt-0.5 sm:mt-1 truncate">
-                {summary.topDocument || "N/A"}
-              </p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-purple-500/20 rounded-lg">
+                  <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-purple-400" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-base sm:text-lg md:text-xl font-bold text-white truncate">
+                    {formatCurrency(summary.averageTransaction)}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-green-200/70">
+                    Avg. Transaction
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="p-1.5 sm:p-2 md:p-3 bg-orange-100 dark:bg-orange-900/30 rounded-md sm:rounded-lg flex-shrink-0 ml-2">
-              <FileText className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-orange-600" />
+
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-orange-500/20 rounded-lg">
+                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-orange-400" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm sm:text-base md:text-lg font-bold text-white truncate">
+                    {summary.topDocument || "N/A"}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-green-200/70">
+                    Top Document
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

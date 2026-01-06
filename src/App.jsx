@@ -1,10 +1,11 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
 import { useEffect, useMemo } from "react";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import MaintenancePage from "./components/MaintenancePage";
 import BypassForm from "./components/BypassForm";
+import ProfileWarningModal from "./components/ProfileWarningModal";
 import AdminLogin from "./tailadminsrc/pages/AuthPages/SignIn";
 import Register from "./users/pages/Auth/Register";
 import RegistrationPending from "./users/pages/Auth/RegistrationPending";
@@ -43,6 +44,8 @@ import AdminProfile from "./admin/pages/Profile/AdminProfile";
 import DocumentRequestHistory from "./admin/pages/ActivityLogs/DocumentRequestHistory";
 import DocumentPayments from "./admin/pages/Transparency/DocumentPayments";
 import WebsiteFeedback from "./admin/pages/Feedback/WebsiteFeedback";
+import ProfileVerifications from "./admin/pages/ProfileVerifications/ProfileVerifications";
+import ProfileUpdates from "./admin/pages/ProfileUpdates/ProfileUpdates";
 
 // Resident Auth
 import ResidentAuth from "./users/pages/Auth/ResidentAuth";
@@ -77,6 +80,22 @@ const ToastDismissWrapper = ({ children }) => {
   }, []);
 
   return children;
+};
+
+// PSA Warning Modal Wrapper - uses auth context
+const PsaWarningModalWrapper = () => {
+  const { showPsaWarningModal, psaWarningData, closePsaWarningModal } = useAuth();
+  
+  return (
+    <ProfileWarningModal 
+      isOpen={showPsaWarningModal}
+      onClose={closePsaWarningModal}
+      daysLeft={psaWarningData?.daysLeft}
+      deadline={psaWarningData?.deadline}
+      verificationStatus={psaWarningData?.verificationStatus}
+      rejectionReason={psaWarningData?.rejectionReason}
+    />
+  );
 };
 
 function App() {
@@ -193,6 +212,9 @@ function App() {
         {/* 👇 Render only on client side */}
         {typeof window !== "undefined" && <PolicyPopup />}
 
+        {/* PSA Profile Completion Warning Modal */}
+        <PsaWarningModalWrapper />
+
         <Routes>
           {/* Maintenance Bypass Route - Always accessible */}
           <Route path="/bypass" element={<BypassForm />} />
@@ -274,6 +296,8 @@ function App() {
             <Route path="document-history" element={<DocumentRequestHistory />} />
             <Route path="document-payments" element={<DocumentPayments />} />
             <Route path="feedback" element={<WebsiteFeedback />} />
+            <Route path="profile-verifications" element={<ProfileVerifications />} />
+            <Route path="profile-updates" element={<ProfileUpdates />} />
           </Route>
 
           {/* User Routes with MainLayout */}

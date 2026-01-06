@@ -17,6 +17,42 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // PSA Profile completion warning modal state
+  const [showPsaWarningModal, setShowPsaWarningModal] = useState(false);
+  const [psaWarningData, setPsaWarningData] = useState(null);
+
+  // Check if PSA warning modal should be shown
+  const checkPsaCompletionWarning = (userData) => {
+    console.log('PSA Warning check - userData:', userData?.psaCompletion);
+    
+    // Only for residents
+    if (userData?.roleCode !== 74934 && userData?.role !== 'Resident') return;
+    
+    const psaCompletion = userData?.psaCompletion;
+    const profileVerification = userData?.profileVerification;
+    
+    // Don't show if profile is complete
+    if (psaCompletion?.isComplete) return;
+    
+    // Don't show if verification is pending
+    if (profileVerification?.status === 'pending') return;
+    
+    // Don't show if no deadline set
+    if (!psaCompletion?.deadline) return;
+    
+    const daysLeft = psaCompletion?.daysLeft;
+    
+    // ALWAYS show modal on every login if PSA profile is not complete
+    setPsaWarningData({
+      daysLeft,
+      deadline: psaCompletion.deadline,
+      verificationStatus: profileVerification?.status,
+      rejectionReason: profileVerification?.rejectionReason,
+    });
+    setShowPsaWarningModal(true);
+    console.log('PSA Warning modal triggered!');
+  };
 
   // Check for existing session on mount
   useEffect(() => {
@@ -102,6 +138,9 @@ export const AuthProvider = ({ children }) => {
           }
         }
         
+        // Check for PSA profile completion warning
+        checkPsaCompletionWarning(fullUserData);
+        
         return { success: true, user: fullUserData };
       } catch (meError) {
         // Fallback to basic user data if /me fails
@@ -159,6 +198,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('documentRequestForm'); // Clear saved form data
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
+    // Clear PSA warning state
+    setShowPsaWarningModal(false);
+    setPsaWarningData(null);
+  };
+
+  // Close PSA warning modal
+  const closePsaWarningModal = () => {
+    setShowPsaWarningModal(false);
   };
 
   // Check if user is Admin or SuperAdmin
@@ -177,6 +224,11 @@ export const AuthProvider = ({ children }) => {
     logout,
     isAdmin: isAdmin(),
     isResident: user?.role === 'Resident' || user?.roleCode === 74934,
+    // PSA Profile completion
+    showPsaWarningModal,
+    psaWarningData,
+    closePsaWarningModal,
+    checkPsaCompletionWarning,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -410,41 +410,47 @@ const AdminReports = () => {
   return (
     <div className="space-y-6 p-1">
       {/* Premium Header */}
-      <div className="relative overflow-hidden rounded-xl md:rounded-2xl p-4 md:p-8" style={{ background: "linear-gradient(135deg, #002366 0%, #334b9f 100%)" }}>
-        <div className="absolute inset-0 bg-grid-white/5"></div>
-        <div className="absolute top-0 right-0 w-48 md:w-96 h-48 md:h-96 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-32 md:w-64 h-32 md:h-64 bg-blue-300/10 rounded-full blur-3xl"></div>
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900">
+        {/* Dot Pattern Overlay */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0)`,
+            backgroundSize: "20px 20px"
+          }}></div>
+        </div>
+        <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
           <div>
-            <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-2">
-              <div className="p-1.5 md:p-2 bg-white/10 backdrop-blur-sm rounded-lg md:rounded-xl">
-                <FileText className="w-4 h-4 md:w-6 md:h-6 text-white" />
+            <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+              <div className="p-1.5 sm:p-2 bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
               </div>
-              <h1 className="text-xl md:text-3xl font-bold text-white tracking-tight">
+              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white tracking-tight">
                 Reports Management
               </h1>
             </div>
-            <p className="text-blue-200 text-xs md:text-sm max-w-lg">
+            <p className="text-blue-200 text-xs sm:text-sm max-w-lg">
               Monitor, manage and resolve resident reports efficiently.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => fetchReports(true)}
               disabled={refreshing}
-              className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm font-medium text-white bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg md:rounded-xl hover:bg-white/20 transition-all duration-200 disabled:opacity-50"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-xs sm:text-sm font-medium text-white bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg sm:rounded-xl hover:bg-white/20 transition-all duration-200 disabled:opacity-50"
             >
-              <RefreshCw className={`w-3.5 h-3.5 md:w-4 md:h-4 ${refreshing ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? "animate-spin" : ""}`} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
             <button
               onClick={exportToCSV}
               disabled={filteredReports.length === 0}
-              className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm font-medium text-blue-900 bg-white rounded-lg md:rounded-xl hover:bg-blue-50 transition-all duration-200 shadow-lg shadow-white/25 disabled:opacity-50"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-xs sm:text-sm font-medium text-blue-900 bg-white rounded-lg sm:rounded-xl hover:bg-blue-50 transition-all duration-200 shadow-lg shadow-white/25 disabled:opacity-50"
             >
-              <Download className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Export CSV</span>
             </button>
           </div>

@@ -195,32 +195,68 @@ const ActivityLogs = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 p-2.5 sm:p-4 md:p-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-blue-600" />
-            Activity Logs
-          </h1>
-          <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-            Track all admin actions and system activities
-          </p>
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 p-3 sm:p-4 md:p-6">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: "32px 32px"
+          }}></div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleRefresh}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            Export
-          </button>
+        
+        <div className="relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center">
+                <ClipboardList className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                  Activity Logs
+                </h1>
+                <p className="text-[10px] sm:text-xs md:text-sm text-blue-200">
+                  Track all admin actions and system activities
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleRefresh}
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-medium rounded-lg sm:rounded-xl transition-all border border-white/20"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
+                <span className="hidden xs:inline">Refresh</span>
+              </button>
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium rounded-lg sm:rounded-xl transition-all shadow-lg"
+              >
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden xs:inline">Export</span>
+              </button>
+            </div>
+          </div>
+          
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-4 sm:mt-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-white/10">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-white">{totalLogs}</p>
+              <p className="text-[10px] sm:text-xs text-blue-200">Total Logs</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-white/10">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-white">{logs.filter(l => l.action === 'create').length}</p>
+              <p className="text-[10px] sm:text-xs text-green-300">Create Actions</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-white/10">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-white">{logs.filter(l => l.action === 'update').length}</p>
+              <p className="text-[10px] sm:text-xs text-blue-300">Update Actions</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-white/10">
+              <p className="text-lg sm:text-xl md:text-2xl font-bold text-white">{logs.filter(l => l.action === 'delete').length}</p>
+              <p className="text-[10px] sm:text-xs text-red-300">Delete Actions</p>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -271,78 +271,92 @@ const TransparencyReport = () => {
 
   return (
     <div className="space-y-3 sm:space-y-4 md:space-y-6 p-2.5 sm:p-4 md:p-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        <div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
-            <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-green-600" />
-            Transparency Report
-          </h1>
-          <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
-            Financial transparency and income/expense tracking
-          </p>
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-lg sm:rounded-xl md:rounded-2xl bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 p-3 sm:p-4 md:p-6">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: "32px 32px"
+          }}></div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleExportPDF}
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
-          >
-            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Export PDF</span>
-          </button>
-          <button
-            onClick={() => {
-              resetForm();
-              setShowModal(true);
-            }}
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Add Transaction</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-2.5 sm:gap-3 md:gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4 md:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Total Income</p>
-              <p className="text-sm sm:text-lg md:text-2xl font-bold text-green-600 mt-0.5 sm:mt-1 truncate">
-                {formatCurrency(summary.totalIncome)}
-              </p>
+        
+        <div className="relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center">
+                <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                  Transparency Report
+                </h1>
+                <p className="text-[10px] sm:text-xs md:text-sm text-blue-200">
+                  Financial transparency and income/expense tracking
+                </p>
+              </div>
             </div>
-            <div className="hidden sm:block p-1.5 sm:p-2 md:p-3 bg-green-100 dark:bg-green-900/30 rounded-md sm:rounded-lg">
-              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-green-600" />
+            <div className="flex gap-2">
+              <button
+                onClick={handleExportPDF}
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-medium rounded-lg sm:rounded-xl transition-all border border-white/20"
+              >
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Export PDF</span>
+              </button>
+              <button
+                onClick={() => {
+                  resetForm();
+                  setShowModal(true);
+                }}
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-lg sm:rounded-xl transition-all shadow-lg"
+              >
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Add Transaction</span>
+              </button>
             </div>
           </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4 md:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Total Expenses</p>
-              <p className="text-sm sm:text-lg md:text-2xl font-bold text-red-600 mt-0.5 sm:mt-1 truncate">
-                {formatCurrency(summary.totalExpense)}
-              </p>
+          
+          {/* Summary Stats in Header */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mt-4 sm:mt-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="hidden sm:flex w-8 h-8 sm:w-10 sm:h-10 bg-green-500/20 rounded-lg items-center justify-center">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-300" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm sm:text-lg md:text-2xl font-bold text-white truncate">
+                    {formatCurrency(summary.totalIncome)}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-green-300">Total Income</p>
+                </div>
+              </div>
             </div>
-            <div className="hidden sm:block p-1.5 sm:p-2 md:p-3 bg-red-100 dark:bg-red-900/30 rounded-md sm:rounded-lg">
-              <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-red-600" />
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="hidden sm:flex w-8 h-8 sm:w-10 sm:h-10 bg-red-500/20 rounded-lg items-center justify-center">
+                  <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-red-300" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm sm:text-lg md:text-2xl font-bold text-white truncate">
+                    {formatCurrency(summary.totalExpense)}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-red-300">Total Expenses</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-2.5 sm:p-4 md:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Net Balance</p>
-              <p className={`text-sm sm:text-lg md:text-2xl font-bold mt-0.5 sm:mt-1 truncate ${summary.balance >= 0 ? "text-blue-600" : "text-red-600"}`}>
-                {formatCurrency(summary.balance)}
-              </p>
-            </div>
-            <div className="hidden sm:block p-1.5 sm:p-2 md:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-md sm:rounded-lg">
-              <PieChart className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-600" />
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="hidden sm:flex w-8 h-8 sm:w-10 sm:h-10 bg-blue-500/20 rounded-lg items-center justify-center">
+                  <PieChart className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className={`text-sm sm:text-lg md:text-2xl font-bold truncate ${summary.balance >= 0 ? "text-white" : "text-red-300"}`}>
+                    {formatCurrency(summary.balance)}
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-blue-300">Net Balance</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

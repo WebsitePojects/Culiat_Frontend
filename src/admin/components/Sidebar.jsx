@@ -23,8 +23,10 @@ import {
   LogOut,
   User,
   ClipboardList,
-  DollarSign,
+  Coins,
   MessageSquare,
+  ShieldCheck,
+  FileEdit,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -79,6 +81,16 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
           path: "/admin/terms-acceptances",
           icon: FileCheck,
         },
+        {
+          name: "PSA Verifications",
+          path: "/admin/profile-verifications",
+          icon: ShieldCheck,
+        },
+        {
+          name: "Profile Updates",
+          path: "/admin/profile-updates",
+          icon: FileEdit,
+        },
         { name: "Document Requests", path: "/admin/documents", icon: FolderOpen }, // Moved here
       ],
     },
@@ -106,7 +118,7 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
       items: [
         { name: "Reports", path: "/admin/reports", icon: FileText },
         { name: "Document History", path: "/admin/document-history", icon: ClipboardList }, // Document request tracking
-        { name: "Document Payments", path: "/admin/document-payments", icon: DollarSign }, // Income from document fees
+        { name: "Document Payments", path: "/admin/document-payments", icon: Coins }, // Income from document fees
         { name: "Feedback", path: "/admin/feedback", icon: MessageSquare }, // Website feedback
         { name: "Notifications", path: "/admin/notifications", icon: Bell },
       ],
@@ -293,15 +305,15 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
   const sidebarContent = (
     <>
       {/* Logo */}
-      <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-600 to-blue-700">
+      <div className="flex items-center justify-center h-14 sm:h-16 px-3 sm:px-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900">
         {isOpen || isMobileOpen ? (
           <div className="flex items-center space-x-2">
             <img
               src="/images/logo/brgy-culiat-logo.png"
               alt="Barangay Culiat Logo"
-              className="w-10 h-10 rounded-lg shadow-md bg-white p-0.5"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-md bg-white p-0.5"
             />
-            <span className="text-xl font-bold text-white">
+            <span className="text-base sm:text-lg md:text-xl font-bold text-white">
               Barangay Culiat
             </span>
           </div>
@@ -309,21 +321,21 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
           <img
             src="/images/logo/brgy-culiat-logo.png"
             alt="Barangay Culiat Logo"
-            className="w-10 h-10 rounded-lg shadow-md bg-white p-0.5"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg shadow-md bg-white p-0.5"
           />
         )}
         {isMobileOpen && (
           <button
             onClick={closeMobileMenu}
-            className="ml-auto p-1 text-white rounded-lg hover:bg-white/20 transition-colors"
+            className="ml-auto p-1.5 sm:p-2 text-white rounded-lg hover:bg-white/20 transition-colors"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         )}
       </div>
 
       {/* Navigation - flex-1 for growing, with overflow */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+      <nav className="flex-1 px-2 sm:px-3 py-3 sm:py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
         {menuGroups.map((group) => renderGroup(group))}
       </nav>
 
@@ -338,16 +350,16 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
               key={item.path}
               to={item.path}
               onClick={isMobileOpen ? closeMobileMenu : undefined}
-              className={`flex items-center px-4 py-3 text-sm font-medium transition-all duration-200 ${
+              className={`flex items-center px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium transition-all duration-200 ${
                 active
                   ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
                   : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
               } ${!isOpen && !isMobileOpen ? "justify-center" : ""}`}
               title={!isOpen && !isMobileOpen ? item.name : ""}
             >
-              <Icon className="flex-shrink-0 w-5 h-5" />
+              <Icon className="flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
               {(isOpen || isMobileOpen) && (
-                <span className="ml-3">{item.name}</span>
+                <span className="ml-2 sm:ml-3">{item.name}</span>
               )}
             </Link>
           );
@@ -355,20 +367,20 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
 
         {/* User Info (only when expanded) */}
         {(isOpen || isMobileOpen) && (
-          <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="px-3 sm:px-4 py-2.5 sm:py-3 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center">
               <img
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
                   user ? `${user.firstName} ${user.lastName}` : "Admin"
                 )}&background=3b82f6&color=fff`}
                 alt="Profile"
-                className="w-8 h-8 rounded-full ring-2 ring-blue-500"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full ring-2 ring-blue-500"
               />
-              <div className="ml-3 flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+              <div className="ml-2 sm:ml-3 flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
                   {user ? `${user.firstName} ${user.lastName}` : "Admin User"}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 truncate">
                   {user?.role || "Admin"}
                 </p>
               </div>
@@ -379,13 +391,13 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
         {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className={`flex items-center w-full px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-all duration-200 ${
+          className={`flex items-center w-full px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-all duration-200 ${
             !isOpen && !isMobileOpen ? "justify-center" : ""
           }`}
           title={!isOpen && !isMobileOpen ? "Logout" : ""}
         >
-          <LogOut className="flex-shrink-0 w-5 h-5" />
-          {(isOpen || isMobileOpen) && <span className="ml-3">Logout</span>}
+          <LogOut className="flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
+          {(isOpen || isMobileOpen) && <span className="ml-2 sm:ml-3">Logout</span>}
         </button>
       </div>
     </>
