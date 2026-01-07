@@ -45,30 +45,36 @@ const documentTypeLabels = {
 const ApprovedDocumentModal = ({ isOpen, onClose, approvedRequests = [] }) => {
   const navigate = useNavigate();
 
+  console.log('🔔 [ApprovedDocModal Component] Render - isOpen:', isOpen, 'approvedRequests:', approvedRequests?.length);
+
   // Filter to only show requests that need payment (approved + unpaid + not free)
   const pendingPaymentRequests = React.useMemo(() => {
-    if (!approvedRequests || !Array.isArray(approvedRequests)) return [];
-    return approvedRequests.filter((req) => {
+    console.log('🔔 [ApprovedDocModal Component] Computing pendingPaymentRequests...');
+    if (!approvedRequests || !Array.isArray(approvedRequests)) {
+      console.log('🔔 [ApprovedDocModal Component] approvedRequests is empty or not an array');
+      return [];
+    }
+    const filtered = approvedRequests.filter((req) => {
       const price = DOCUMENT_PRICES[req.documentType] || 0;
-      return (
+      const include = (
         req.status === "approved" &&
         req.paymentStatus === "unpaid" &&
         price > 0
       );
+      console.log(`🔔 [ApprovedDocModal Component] Request ${req._id}: include=${include}`);
+      return include;
     });
+    console.log('🔔 [ApprovedDocModal Component] Filtered result:', filtered.length);
+    return filtered;
   }, [approvedRequests]);
-
-  // Auto-close modal if no pending payments and modal is open
-  React.useEffect(() => {
-    if (isOpen && pendingPaymentRequests.length === 0) {
-      onClose();
-    }
-  }, [isOpen, pendingPaymentRequests.length, onClose]);
 
   // Don't render anything if not open or no pending payments
   if (!isOpen || pendingPaymentRequests.length === 0) {
+    console.log('🔔 [ApprovedDocModal Component] Not rendering - isOpen:', isOpen, 'pendingPayments:', pendingPaymentRequests.length);
     return null;
   }
+
+  console.log('🔔 [ApprovedDocModal Component] RENDERING MODAL!');
 
   const handlePayNow = (requestId) => {
     onClose();
@@ -86,7 +92,7 @@ const ApprovedDocumentModal = ({ isOpen, onClose, approvedRequests = [] }) => {
 
   return (
     <AnimatePresence mode="wait">
-      {isOpen && pendingPaymentRequests.length > 0 && (
+      {isOpen && (
         <motion.div
           key="approved-doc-modal-backdrop"
           initial={{ opacity: 0 }}

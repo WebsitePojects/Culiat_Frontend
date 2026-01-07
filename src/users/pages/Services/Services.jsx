@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import PersonalInfoTab from "./components/PersonalInfoTab";
 import EmergencyContactTab from "./components/EmergencyContactTab";
 import DocumentRequestTab from "./components/DocumentRequestTab";
 import FileUploadTab from "./components/FileUploadTab";
 import MyRequestsTab from "./components/MyRequestsTab";
-import { CheckCircle, AlertCircle, Loader2, FileText } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader2, FileText, Clock, Bell, ArrowRight, X, Sparkles } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -95,10 +96,11 @@ const initialForm = {
 };
 
 export default function Services() {
+  const navigate = useNavigate();
   const [active, setActive] = useState("request");
   const [formData, setFormData] = useState(initialForm);
   const [errors, setErrors] = useState({});
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -630,8 +632,8 @@ export default function Services() {
         }
       );
 
-      // Show success message
-      setShowSuccess(true);
+      // Show success modal
+      setShowSuccessModal(true);
       setShowError(false);
 
       // Reset form
@@ -640,11 +642,8 @@ export default function Services() {
       setHasLoadedData(false); // Allow auto-fill on next visit
       localStorage.removeItem("documentRequestForm"); // Clear saved form data
 
-      // Scroll to top to show success message
+      // Scroll to top
       window.scrollTo({ top: 0, behavior: "smooth" });
-
-      // Hide success message after 7 seconds
-      setTimeout(() => setShowSuccess(false), 7000);
     } catch (error) {
       console.error("Submit error:", error);
       setErrorMessage(
@@ -738,51 +737,195 @@ export default function Services() {
         </div>
       </motion.section>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 md:py-12">
-        {/* Success Toast */}
-        {showSuccess && (
-          <div className="mb-4">
-            <div
-              className="flex items-start bg-[var(--color-light)] border-l-4"
-              style={{ borderColor: "var(--color-primary)" }}
+      {/* Success Modal */}
+      <AnimatePresence>
+        {showSuccessModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowSuccessModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden"
             >
-              <div className="p-4 flex items-center">
-                <CheckCircle
-                  className="text-[var(--color-primary)]"
-                  size={24}
-                />
-              </div>
-              <div className="px-4 py-3">
-                <p className="font-semibold text-[var(--color-text-color)]">
-                  Request Submitted Successfully!
-                </p>
-                <p className="text-sm text-[var(--color-text-secondary)]">
-                  Your request was received. We'll email a confirmation shortly.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+              {/* Success Header with Gradient */}
+              <div className="relative bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 px-6 py-8 overflow-hidden">
+                {/* Background pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+                      backgroundSize: "20px 20px",
+                    }}
+                  />
+                </div>
 
+                {/* Sparkle effects */}
+                <motion.div
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.5, 1, 0.5],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
+                  className="absolute top-4 right-16"
+                >
+                  <Sparkles className="w-5 h-5 text-white/60" />
+                </motion.div>
+                <motion.div
+                  animate={{
+                    scale: [1, 1.3, 1],
+                    opacity: [0.3, 0.8, 0.3],
+                  }}
+                  transition={{
+                    duration: 2.5,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    delay: 0.5,
+                  }}
+                  className="absolute bottom-6 left-12"
+                >
+                  <Sparkles className="w-4 h-4 text-white/40" />
+                </motion.div>
+
+                {/* Close button */}
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                >
+                  <X className="w-5 h-5 text-white" />
+                </button>
+
+                {/* Success Icon */}
+                <div className="relative z-10 flex flex-col items-center text-center">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", delay: 0.2, stiffness: 200 }}
+                    className="w-20 h-20 rounded-full bg-white/20 backdrop-blur flex items-center justify-center mb-4"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", delay: 0.4, stiffness: 200 }}
+                    >
+                      <CheckCircle className="w-10 h-10 text-white" />
+                    </motion.div>
+                  </motion.div>
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    Request Submitted! 🎉
+                  </h3>
+                  <p className="text-green-100 text-sm">
+                    Your document request has been sent successfully
+                  </p>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-4">
+                {/* Processing time info */}
+                <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-800 flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-blue-900 dark:text-blue-100 text-sm">
+                      Processing Time
+                    </p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                      Your request will be reviewed within <strong>1-3 business days</strong>. 
+                      We'll process it as quickly as possible.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Notification info */}
+                <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+                  <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-800 flex items-center justify-center flex-shrink-0">
+                    <Bell className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-amber-900 dark:text-amber-100 text-sm">
+                      Stay Updated
+                    </p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                      Once your request is <strong>approved</strong>, you'll see a notification 
+                      when you log in. Keep checking the website for updates!
+                    </p>
+                  </div>
+                </div>
+
+                {/* What's next */}
+                <div className="pt-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                    You can track your request status anytime in "My Requests"
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Submit Another Request
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSuccessModal(false);
+                    setActive("my-requests");
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl transition-all shadow-lg shadow-green-600/25"
+                >
+                  View My Requests
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 md:py-12">
         {/* Error Toast */}
         {showError && (
           <div className="mb-4">
-            <div
-              className="flex items-start bg-[var(--color-light)] border-l-4"
-              style={{ borderColor: "#ef4444" }}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-start bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl overflow-hidden"
             >
-              <div className="p-4 flex items-center">
-                <AlertCircle className="text-red-500" size={24} />
+              <div className="p-4 flex items-center bg-red-100 dark:bg-red-800">
+                <AlertCircle className="text-red-600 dark:text-red-400" size={24} />
               </div>
-              <div className="px-4 py-3">
-                <p className="font-semibold text-[var(--color-text-color)]">
+              <div className="px-4 py-3 flex-1">
+                <p className="font-semibold text-red-800 dark:text-red-200">
                   Submission Failed
                 </p>
-                <p className="text-sm text-[var(--color-text-secondary)]">
+                <p className="text-sm text-red-600 dark:text-red-300">
                   {errorMessage}
                 </p>
               </div>
-            </div>
+              <button
+                onClick={() => setShowError(false)}
+                className="p-4 text-red-500 hover:text-red-700 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </motion.div>
           </div>
         )}
 

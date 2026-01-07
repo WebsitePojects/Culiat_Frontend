@@ -103,6 +103,11 @@ const AdminDocuments = () => {
     fetchRequests();
   }, []);
 
+  // Auto-refresh when filter changes
+  useEffect(() => {
+    fetchRequests();
+  }, [filter]);
+
   useEffect(() => {
     applyFilters();
   }, [filter, searchTerm, requests]);
