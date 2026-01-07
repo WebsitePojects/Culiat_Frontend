@@ -46,16 +46,26 @@ const ApprovedDocumentModal = ({ isOpen, onClose, approvedRequests = [] }) => {
   const navigate = useNavigate();
 
   // Filter to only show requests that need payment (approved + unpaid + not free)
-  const pendingPaymentRequests = approvedRequests.filter((req) => {
-    const price = DOCUMENT_PRICES[req.documentType] || 0;
-    return (
-      req.status === "approved" &&
-      req.paymentStatus === "unpaid" &&
-      price > 0
-    );
-  });
+  const pendingPaymentRequests = React.useMemo(() => {
+    if (!approvedRequests || !Array.isArray(approvedRequests)) return [];
+    return approvedRequests.filter((req) => {
+      const price = DOCUMENT_PRICES[req.documentType] || 0;
+      return (
+        req.status === "approved" &&
+        req.paymentStatus === "unpaid" &&
+        price > 0
+      );
+    });
+  }, [approvedRequests]);
 
-  // If no pending payments, don't show modal
+  // Auto-close modal if no pending payments and modal is open
+  React.useEffect(() => {
+    if (isOpen && pendingPaymentRequests.length === 0) {
+      onClose();
+    }
+  }, [isOpen, pendingPaymentRequests.length, onClose]);
+
+  // Don't render anything if not open or no pending payments
   if (!isOpen || pendingPaymentRequests.length === 0) {
     return null;
   }
@@ -75,9 +85,10 @@ const ApprovedDocumentModal = ({ isOpen, onClose, approvedRequests = [] }) => {
   }, 0);
 
   return (
-    <AnimatePresence>
-      {isOpen && (
+    <AnimatePresence mode="wait">
+      {isOpen && pendingPaymentRequests.length > 0 && (
         <motion.div
+          key="approved-doc-modal-backdrop"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -86,6 +97,7 @@ const ApprovedDocumentModal = ({ isOpen, onClose, approvedRequests = [] }) => {
           onClick={onClose}
         >
           <motion.div
+            key="approved-doc-modal-content"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}

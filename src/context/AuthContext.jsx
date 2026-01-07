@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -76,10 +76,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Close approved document modal
-  const closeApprovedDocModal = () => {
+  // Close approved document modal and clear data
+  const closeApprovedDocModal = useCallback(() => {
     setShowApprovedDocModal(false);
-  };
+    setApprovedDocRequests([]);
+  }, []);
 
   // Check if PSA warning modal should be shown
   const checkPsaCompletionWarning = (userData) => {
