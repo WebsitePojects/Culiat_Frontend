@@ -78,8 +78,7 @@ const GetInTouch = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitStatus({ type: "", message: "" });
+    e.preventDefault();    if (submitting) return; // Prevent duplicate submissions    setSubmitStatus({ type: "", message: "" });
 
     // Validation
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.subject || !formData.message) {

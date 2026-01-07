@@ -67,6 +67,7 @@ const NewReport = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // Prevent duplicate submissions
     setError("");
     setLoading(true);
 

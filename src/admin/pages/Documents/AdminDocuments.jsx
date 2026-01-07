@@ -28,6 +28,8 @@ import {
   ChevronLeft,
   ChevronRight,
   FolderOpen,
+  QrCode,
+  FileImage,
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 
@@ -48,6 +50,10 @@ const AdminDocuments = () => {
   const [generating, setGenerating] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(null);
   
+  // New state for tabs and preview
+  const [activeTab, setActiveTab] = useState("details");
+  const [previewData, setPreviewData] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   // New states like PendingRegistrations
   const [actionType, setActionType] = useState(null); // 'approve', 'reject', or null
   const [currentPage, setCurrentPage] = useState(1);
@@ -114,18 +120,25 @@ const AdminDocuments = () => {
     setCurrentPage(1);
   }, [filter, searchTerm]);
 
-  // Animation variants
+  // Animation variants - optimized for performance with large datasets
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 }
+      transition: { 
+        staggerChildren: 0.03, // Reduced from 0.1 for faster loading
+        delayChildren: 0,
+      }
     }
   };
 
   const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+    hidden: { opacity: 0, y: 10 },
+    show: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.2 } // Faster animation
+    }
   };
 
   const fetchRequests = async () => {
@@ -142,6 +155,30 @@ const AdminDocuments = () => {
       setLoading(false);
     }
   };
+
+  // Fetch document preview data
+  const fetchPreviewData = async (requestId) => {
+    try {
+      setPreviewLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_URL}/api/documents/preview/${requestId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPreviewData(response.data.data);
+    } catch (error) {
+      console.error("Error fetching preview:", error);
+      setPreviewData(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  // Fetch preview when switching to preview tab
+  useEffect(() => {
+    if (activeTab === "preview" && selectedRequest && !previewData) {
+      fetchPreviewData(selectedRequest._id);
+    }
+  }, [activeTab, selectedRequest]);
 
   const applyFilters = () => {
     let filtered = [...requests];
@@ -215,6 +252,8 @@ const AdminDocuments = () => {
     setShowModal(true);
     setActionReason("");
     setActionType(null);
+    setActiveTab("details"); // Reset to details tab
+    setPreviewData(null); // Reset preview data
   };
 
   const getStatusColor = (status) => {
@@ -544,9 +583,10 @@ const AdminDocuments = () => {
             variants={containerVariants}
             initial="hidden"
             animate="show"
+            key={`${filter}-${currentPage}`} // Force re-animate on filter/page change
             className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
           >
-            {paginatedRequests.map((request) => {
+            {paginatedRequests.map((request, index) => {
               const StatusIcon = getStatusIcon(request.status);
               const statusColors = {
                 pending: 'from-yellow-500 to-orange-500',
@@ -559,8 +599,8 @@ const AdminDocuments = () => {
                 <motion.div
                   key={request._id}
                   variants={cardVariants}
-                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-shadow"
+                  layout={false} // Disable layout animation for performance
+                  className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-shadow hover:-translate-y-1"
                 >
                   {/* Status Color Bar */}
                   <div className={`h-1.5 bg-gradient-to-r ${statusColors[request.status] || statusColors.pending}`}></div>
@@ -759,16 +799,43 @@ const AdminDocuments = () => {
                       setSelectedRequest(null);
                       setActionType(null);
                       setActionReason("");
+                      setActiveTab("details");
+                      setPreviewData(null);
                     }}
                     className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
                   >
                     <X className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </button>
                 </div>
+
+                {/* Tabs - like PendingRegistrations */}
+                <div className="relative z-[5] flex gap-1 mt-3 sm:mt-5 -mb-px overflow-x-auto scrollbar-hide">
+                  {[
+                    { id: "details", label: "Details", fullLabel: "Request Details", icon: FileText },
+                    { id: "preview", label: "Preview", fullLabel: "Document Preview", icon: FileImage },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+                        activeTab === tab.id
+                          ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-t-lg border-t border-l border-r border-gray-200 dark:border-gray-700"
+                          : "text-blue-200 hover:bg-white/10 rounded-t-lg"
+                      }`}
+                    >
+                      <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="sm:hidden">{tab.label}</span>
+                      <span className="hidden sm:inline">{tab.fullLabel}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Modal Content */}
               <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
+                {/* Details Tab Content */}
+                {activeTab === "details" && (
+                  <>
                 {/* Document Information */}
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl p-3 sm:p-4">
                   <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
@@ -979,6 +1046,192 @@ const AdminDocuments = () => {
                       <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Rejection Reason
                     </h4>
                     <p className="text-red-800 dark:text-red-200 text-xs sm:text-sm">{selectedRequest.rejectionReason}</p>
+                  </div>
+                )}
+                  </>
+                )}
+
+                {/* Preview Tab Content */}
+                {activeTab === "preview" && (
+                  <div className="space-y-4">
+                    {previewLoading ? (
+                      <div className="flex items-center justify-center py-20">
+                        <div className="text-center">
+                          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+                          <p className="text-gray-600 dark:text-gray-400">Loading document preview...</p>
+                        </div>
+                      </div>
+                    ) : previewData ? (
+                      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        {/* Certificate Preview Container */}
+                        <div className="p-6 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+                          {/* Certificate Header */}
+                          <div className="text-center mb-6 border-b-2 border-gray-200 dark:border-gray-700 pb-4">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Republic of the Philippines</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">City of Quezon</p>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-2">BARANGAY CULIAT</h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Office of the Punong Barangay</p>
+                          </div>
+
+                          {/* Document Title */}
+                          <div className="text-center mb-6">
+                            <h2 className="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                              {formatDocumentType(previewData.documentType)}
+                            </h2>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              Control No: <span className="font-semibold">{previewData.controlNumber}</span>
+                            </p>
+                          </div>
+
+                          {/* Main Content - Photo and Details */}
+                          <div className="flex flex-col md:flex-row gap-6 mb-6">
+                            {/* Photo Section */}
+                            <div className="flex flex-col items-center gap-3">
+                              <div className="w-32 h-40 rounded-lg border-2 border-gray-300 dark:border-gray-600 overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                {previewData.photo1x1 ? (
+                                  <img 
+                                    src={previewData.photo1x1} 
+                                    alt="1x1 Photo" 
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="text-center text-gray-400">
+                                    <User className="w-12 h-12 mx-auto mb-1" />
+                                    <span className="text-[10px]">1x1 Photo</span>
+                                  </div>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">PHOTO</span>
+                            </div>
+
+                            {/* Personal Details */}
+                            <div className="flex-1 space-y-3">
+                              <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div>
+                                  <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-medium">Full Name</label>
+                                  <p className="text-gray-900 dark:text-white font-semibold">{previewData.fullName}</p>
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-medium">Age</label>
+                                  <p className="text-gray-900 dark:text-white font-semibold">{previewData.age} years old</p>
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-medium">Date of Birth</label>
+                                  <p className="text-gray-900 dark:text-white">{previewData.dateOfBirth || "N/A"}</p>
+                                </div>
+                                <div>
+                                  <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-medium">Civil Status</label>
+                                  <p className="text-gray-900 dark:text-white">{previewData.civilStatus}</p>
+                                </div>
+                                <div className="col-span-2">
+                                  <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-medium">Address</label>
+                                  <p className="text-gray-900 dark:text-white">{previewData.fullAddress}</p>
+                                </div>
+                                {previewData.purposeOfRequest && (
+                                  <div className="col-span-2">
+                                    <label className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-medium">Purpose</label>
+                                    <p className="text-gray-900 dark:text-white">{previewData.purposeOfRequest}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Certificate Body Text */}
+                          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 mb-6 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                            <p className="text-center italic">
+                              This is to certify that <span className="font-semibold text-gray-900 dark:text-white">{previewData.fullName}</span>, 
+                              {previewData.age && <> <span className="font-semibold text-gray-900 dark:text-white">{previewData.age}</span> years old,</>} 
+                              {previewData.civilStatus && <> <span className="font-semibold text-gray-900 dark:text-white">{previewData.civilStatus}</span>,</>} 
+                              {" "}is a bonafide resident of <span className="font-semibold text-gray-900 dark:text-white">{previewData.fullAddress}</span>.
+                            </p>
+                          </div>
+
+                          {/* QR Code and Officials Section */}
+                          <div className="flex flex-col md:flex-row justify-between items-end gap-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            {/* QR Code */}
+                            <div className="flex flex-col items-center">
+                              {previewData.qrCodeDataUrl ? (
+                                <div className="p-2 bg-white rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
+                                  <img 
+                                    src={previewData.qrCodeDataUrl} 
+                                    alt="Verification QR Code" 
+                                    className="w-24 h-24"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+                                  <QrCode className="w-8 h-8 text-gray-400" />
+                                </div>
+                              )}
+                              <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 text-center">
+                                Scan to verify
+                              </span>
+                              {previewData.verificationToken && (
+                                <span className="text-[8px] text-gray-400 dark:text-gray-500 font-mono">
+                                  {previewData.verificationToken.slice(0, 12)}...
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Issue Date and Officials */}
+                            <div className="text-center flex-1">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                                Issued on: <span className="font-semibold text-gray-900 dark:text-white">{previewData.issueDate}</span>
+                              </p>
+                              <div className="space-y-4">
+                                <div>
+                                  <div className="w-48 mx-auto border-b border-gray-400 dark:border-gray-500 mb-1"></div>
+                                  <p className="font-semibold text-gray-900 dark:text-white text-sm">{previewData.barangayCaptain}</p>
+                                  <p className="text-[10px] text-gray-500 dark:text-gray-400">Punong Barangay</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Document Info */}
+                            <div className="text-right text-[10px] text-gray-500 dark:text-gray-400">
+                              <p>Ref No: {previewData.referenceNo}</p>
+                              <p>Doc File: {previewData.documentFileNo}</p>
+                              {previewData.validUntil && <p>Valid Until: {previewData.validUntil}</p>}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Preview Footer */}
+                        <div className="bg-gray-100 dark:bg-gray-800 px-4 py-3 flex items-center justify-between">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            <AlertCircle className="w-3.5 h-3.5 inline mr-1" />
+                            This is a preview. Generate the document to create the official DOCX file.
+                          </span>
+                          {(selectedRequest.status === "approved" || selectedRequest.status === "completed") && 
+                           (selectedRequest.paymentStatus === "paid" || selectedRequest.paymentStatus === "waived" || DOCUMENT_PRICES[selectedRequest.documentType] === 0) && (
+                            <button
+                              onClick={() => handleGenerateDocument(selectedRequest._id)}
+                              disabled={generating}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              {generating ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Download className="w-3.5 h-3.5" />
+                              )}
+                              Generate DOCX
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                        <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-600 dark:text-gray-400">Unable to load preview</p>
+                        <button
+                          onClick={() => fetchPreviewData(selectedRequest._id)}
+                          className="mt-3 px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                        >
+                          Try Again
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

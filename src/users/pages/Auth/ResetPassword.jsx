@@ -16,6 +16,7 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // Prevent duplicate submissions
 
     if (password !== confirmPassword) {
       return toast.error('Passwords do not match');

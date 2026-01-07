@@ -905,6 +905,7 @@ const Register = () => {
 
   // Actual registration function
   const performRegistration = async () => {
+    if (loading) return; // Prevent duplicate submissions
     setLoading(true);
     setError("");
 

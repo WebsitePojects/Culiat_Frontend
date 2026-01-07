@@ -366,6 +366,7 @@ export default function Services() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // Prevent duplicate submissions
     if (!validateAll()) {
       // Navigate to first error tab
       if (

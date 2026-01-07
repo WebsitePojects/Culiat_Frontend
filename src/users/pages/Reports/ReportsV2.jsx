@@ -211,18 +211,7 @@ const ReportsV2 = () => {
             <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
 
             <div className="relative max-w-6xl mx-auto px-6 pt-24 pb-20">
-               {/* Back Button */}
-               <motion.button
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  onClick={() => navigate("/dashboard")}
-                  className="flex items-center gap-2 text-white/80 hover:text-white mb-8 transition-colors"
-               >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span className="text-sm font-medium">Back to Dashboard</span>
-               </motion.button>
-
-               {/* Header Content */}
+               {/* Header Content */
                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
                   <motion.div
                      initial={{ opacity: 0, y: 20 }}

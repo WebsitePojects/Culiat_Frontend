@@ -93,6 +93,7 @@ const CMSAboutUs = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return; // Prevent duplicate submissions
     setSaving(true);
 
     try {

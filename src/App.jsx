@@ -56,6 +56,9 @@ import ResetPassword from "./users/pages/Auth/ResetPassword";
 import PaymentPage from "./users/pages/Payment/PaymentPage";
 import LegalPage from "./users/pages/Legal/LegalPage";
 
+// Document Verification (Public - QR Code scan)
+import VerificationPage from "./users/pages/Verification/VerificationPage";
+
 // Global click handler to dismiss toasts
 const ToastDismissWrapper = ({ children }) => {
   useEffect(() => {
@@ -219,6 +222,9 @@ function App() {
         <Routes>
           {/* Maintenance Bypass Route - Always accessible */}
           <Route path="/bypass" element={<BypassForm />} />
+          
+          {/* PUBLIC: Document Verification via QR Code */}
+          <Route path="/verify/:token" element={<VerificationPage />} />
           
           {/* Public Routes */}
           <Route path="/signin" element={<AdminLogin />} />

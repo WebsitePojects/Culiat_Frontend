@@ -172,6 +172,7 @@ const RegisterNew = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; // Prevent duplicate submissions
 
     if (!validateStep(4)) {
       return;
