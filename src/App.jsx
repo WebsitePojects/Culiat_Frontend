@@ -6,6 +6,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import MaintenancePage from "./components/MaintenancePage";
 import BypassForm from "./components/BypassForm";
 import ProfileWarningModal from "./components/ProfileWarningModal";
+import ApprovedDocumentModal from "./components/ApprovedDocumentModal";
 import AdminLogin from "./tailadminsrc/pages/AuthPages/SignIn";
 import Register from "./users/pages/Auth/Register";
 import RegistrationPending from "./users/pages/Auth/RegistrationPending";
@@ -98,6 +99,19 @@ const PsaWarningModalWrapper = () => {
       deadline={psaWarningData?.deadline}
       verificationStatus={psaWarningData?.verificationStatus}
       rejectionReason={psaWarningData?.rejectionReason}
+    />
+  );
+};
+
+// Approved Document Notification Modal Wrapper - uses auth context
+const ApprovedDocModalWrapper = () => {
+  const { showApprovedDocModal, approvedDocRequests, closeApprovedDocModal } = useAuth();
+  
+  return (
+    <ApprovedDocumentModal 
+      isOpen={showApprovedDocModal}
+      onClose={closeApprovedDocModal}
+      approvedRequests={approvedDocRequests}
     />
   );
 };
@@ -218,6 +232,9 @@ function App() {
 
         {/* PSA Profile Completion Warning Modal */}
         <PsaWarningModalWrapper />
+
+        {/* Approved Document Notification Modal */}
+        <ApprovedDocModalWrapper />
 
         <Routes>
           {/* Maintenance Bypass Route - Always accessible */}

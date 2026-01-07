@@ -253,7 +253,7 @@ const ReportsV2 = () => {
                      </motion.button>
                   )}
                </div>
-
+            }
                {/* Stats Cards */}
                <motion.div
                   initial={{ opacity: 0, y: 20 }}

@@ -6,6 +6,22 @@ const AuthContext = createContext();
 // API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+// Document prices for checking payment requirements
+const DOCUMENT_PRICES = {
+  indigency: 0,
+  residency: 50,
+  clearance: 100,
+  business_permit: 500,
+  business_clearance: 200,
+  good_moral: 75,
+  barangay_id: 150,
+  liquor_permit: 300,
+  missionary: 50,
+  rehab: 50,
+  ctc: 50,
+  building_permit: 500,
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -21,6 +37,49 @@ export const AuthProvider = ({ children }) => {
   // PSA Profile completion warning modal state
   const [showPsaWarningModal, setShowPsaWarningModal] = useState(false);
   const [psaWarningData, setPsaWarningData] = useState(null);
+
+  // Approved document notification modal state
+  const [showApprovedDocModal, setShowApprovedDocModal] = useState(false);
+  const [approvedDocRequests, setApprovedDocRequests] = useState([]);
+
+  // Check for approved document requests on login
+  const checkApprovedDocumentRequests = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get(`${API_URL}/api/document-requests/my-requests`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const requests = response.data.data || [];
+      
+      // Filter for approved requests that need payment (not free and not paid/waived)
+      const pendingPaymentRequests = requests.filter(req => {
+        const price = DOCUMENT_PRICES[req.documentType] || 0;
+        return (
+          req.status === 'approved' &&
+          req.paymentStatus === 'unpaid' &&
+          price > 0
+        );
+      });
+
+      if (pendingPaymentRequests.length > 0) {
+        setApprovedDocRequests(pendingPaymentRequests);
+        // Small delay to ensure PSA modal can show first if needed
+        setTimeout(() => {
+          setShowApprovedDocModal(true);
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error checking approved documents:', error);
+    }
+  };
+
+  // Close approved document modal
+  const closeApprovedDocModal = () => {
+    setShowApprovedDocModal(false);
+  };
 
   // Check if PSA warning modal should be shown
   const checkPsaCompletionWarning = (userData) => {
@@ -150,6 +209,11 @@ export const AuthProvider = ({ children }) => {
         // Check for PSA profile completion warning
         checkPsaCompletionWarning(fullUserData);
         
+        // Check for approved document requests needing payment (for Residents only)
+        if (fullUserData.roleName === 'Resident') {
+          checkApprovedDocumentRequests();
+        }
+        
         return { success: true, user: fullUserData };
       } catch (meError) {
         // Fallback to basic user data if /me fails
@@ -210,6 +274,9 @@ export const AuthProvider = ({ children }) => {
     // Clear PSA warning state
     setShowPsaWarningModal(false);
     setPsaWarningData(null);
+    // Clear approved document modal state
+    setShowApprovedDocModal(false);
+    setApprovedDocRequests([]);
   };
 
   // Close PSA warning modal
@@ -238,6 +305,11 @@ export const AuthProvider = ({ children }) => {
     psaWarningData,
     closePsaWarningModal,
     checkPsaCompletionWarning,
+    // Approved document notifications
+    showApprovedDocModal,
+    approvedDocRequests,
+    closeApprovedDocModal,
+    checkApprovedDocumentRequests,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
