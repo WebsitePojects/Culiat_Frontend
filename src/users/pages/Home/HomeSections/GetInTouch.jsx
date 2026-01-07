@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
-import { MapPin, Clock, FileText, Star, CheckCircle, AlertCircle, Loader } from "lucide-react";
+import { MapPin, Clock, FileText, Star, CheckCircle, AlertCircle, Loader, ExternalLink, Facebook } from "lucide-react";
+import { Link } from "react-router-dom";
 import Button from "../../../../tailadminsrc/components/ui/button/Button";
 import axios from "axios";
 
@@ -188,10 +189,10 @@ const GetInTouch = () => {
                     Address
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    {contactInfo.address?.street || "Barangay Hall, Culiat"}, {contactInfo.address?.municipality || "Quezon City"}
+                    {"467 Tandang Sora Ave"}, {"Quezon City"}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {contactInfo.address?.province || "Metro Manila"}, {contactInfo.address?.region || "Philippines"}
+                    {"1128 Metro Manila"}, {"Philippines"}
                   </p>
                 </div>
               </motion.div>
@@ -283,21 +284,36 @@ const GetInTouch = () => {
             <motion.div variants={fadeUp} custom={0.5} className="mt-8">
               <h3 className="text-xl font-bold mb-4">Quick Links</h3>
               <div className="grid grid-cols-2 gap-3">
-                {[
-                  "Transparency Report",
-                  "Privacy Policy",
-                  "Feedback Form",
-                  "FAQ",
-                ].map((link, i) => (
-                  <a
-                    key={i}
-                    href="#"
-                    className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
-                  >
-                    <FileText size={16} className="text-secondary" />
-                    <span>{link}</span>
-                  </a>
-                ))}
+                <a
+                  href="https://www.facebook.com/profile.php?id=100091344363854"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
+                >
+                  <Facebook size={16} className="text-secondary" />
+                  <span>Facebook Page</span>
+                </a>
+                <Link
+                  to="/legal#privacy"
+                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
+                >
+                  <FileText size={16} className="text-secondary" />
+                  <span>Privacy Policy</span>
+                </Link>
+                <Link
+                  to="/legal#terms"
+                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
+                >
+                  <FileText size={16} className="text-secondary" />
+                  <span>Terms & Conditions</span>
+                </Link>
+                <Link
+                  to="/about"
+                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
+                >
+                  <FileText size={16} className="text-secondary" />
+                  <span>About Us</span>
+                </Link>
               </div>
             </motion.div>
           </motion.div>

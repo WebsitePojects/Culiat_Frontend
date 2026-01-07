@@ -31,9 +31,9 @@ const Council = () => {
     try {
       const response = await axios.get(`${API_URL}/api/officials`);
       if (response.data.success) {
-        // Filter to get only active kagawads and other officials (not captain)
+        // Filter to get only active Barangay Kagawads (council members)
         const councilMembers = response.data.data.filter(
-          (official) => official.position !== "barangay_captain" && official.isActive
+          (official) => official.position === "barangay_kagawad" && official.isActive
         );
         setOfficials(councilMembers);
       }

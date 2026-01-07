@@ -21,6 +21,18 @@ import {
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 
+// Role codes mapping
+const ROLE_CODES = {
+  "SuperAdmin": 74932,
+  "Super Admin": 74932,
+  "Admin": 74933,
+  "Resident": 74934
+};
+
+const getRoleCode = (roleName) => {
+  return ROLE_CODES[roleName] || ROLE_CODES["Resident"];
+};
+
 const AdminUsers = () => {
   const { showSuccess, showError, showPromise } = useNotifications();
   const [filter, setFilter] = useState("all");
@@ -192,9 +204,15 @@ const AdminUsers = () => {
       setError("");
       const token = localStorage.getItem("token");
       
+      // Convert roleName to role code
+      const updateData = {
+        ...formData,
+        role: getRoleCode(formData.roleName)
+      };
+      
       const promise = axios.put(
         `${API_URL}/api/auth/users/${selectedUser._id}`,
-        formData,
+        updateData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -240,9 +258,16 @@ const AdminUsers = () => {
       setError("");
       const token = localStorage.getItem("token");
       
+      // Convert roleName to role code
+      const createData = {
+        ...formData,
+        role: getRoleCode(formData.roleName),
+        password: "TempPassword123!"
+      };
+      
       const promise = axios.post(
         `${API_URL}/api/auth/users`,
-        { ...formData, password: "TempPassword123!" }, // Temporary password
+        createData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       

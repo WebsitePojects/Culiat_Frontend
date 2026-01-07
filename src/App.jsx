@@ -54,6 +54,7 @@ import Achievements from "./users/pages/Achievements/Achievements";
 import ForgotPassword from "./users/pages/Auth/ForgotPassword";
 import ResetPassword from "./users/pages/Auth/ResetPassword";
 import PaymentPage from "./users/pages/Payment/PaymentPage";
+import LegalPage from "./users/pages/Legal/LegalPage";
 
 // Global click handler to dismiss toasts
 const ToastDismissWrapper = ({ children }) => {
@@ -393,6 +394,16 @@ function App() {
             element={
               <MainLayout>
                 <About />
+              </MainLayout>
+            }
+          />
+
+          {/* Legal Pages - Privacy Policy & Terms */}
+          <Route
+            path="/legal"
+            element={
+              <MainLayout>
+                <LegalPage />
               </MainLayout>
             }
           />

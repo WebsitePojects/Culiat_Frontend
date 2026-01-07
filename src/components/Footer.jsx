@@ -68,8 +68,10 @@ const Footer = () => {
     { title: "Announcements", url: "/announcements", isRoute: true },
     { title: "Achievements", url: "/achievements", isRoute: true },
     { title: "About Us", url: "/about", isRoute: true },
-    { title: "Privacy Policy", url: "#privacy", isRoute: false },
-    { title: "Terms of Service", url: "#terms", isRoute: false },
+    { title: "Facebook Page", url: "https://www.facebook.com/profile.php?id=100091344363854", isRoute: false, isExternal: true },
+    { title: "Terms & Conditions", url: "/legal#terms", isRoute: true },
+    { title: "Privacy Policy", url: "/legal#privacy", isRoute: true },
+    { title: "Contact Us", url: "/#contact", isRoute: false },
   ];
 
   const footer = settings?.footer || {
@@ -337,25 +339,27 @@ const Footer = () => {
                 </div>
               )}
             </div>
-            <div className="flex space-x-6 text-sm">
+            <div className="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6 text-sm">
               <Link
-                to="/about"
+                to="/legal#terms"
                 className="text-white/80 hover:text-white transition-colors"
               >
-                Terms of Service
+                Terms & Conditions
               </Link>
               <Link
-                to="/about"
+                to="/legal#privacy"
                 className="text-white/80 hover:text-white transition-colors"
               >
                 Privacy Policy
               </Link>
-              <Link
-                to="/about"
+              <a
+                href="https://www.facebook.com/profile.php?id=100091344363854"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-white/80 hover:text-white transition-colors"
               >
-                Accessibility
-              </Link>
+                Facebook
+              </a>
             </div>
           </div>
         </div>
