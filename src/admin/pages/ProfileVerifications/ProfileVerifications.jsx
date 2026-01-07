@@ -72,9 +72,18 @@ const ProfileVerifications = () => {
         ? '/api/profile-verification/admin/pending'
         : '/api/profile-verification/admin/history';
       
+      console.log('[ProfileVerifications] Fetching:', { endpoint, activeTab, currentPage });
+      
       const response = await axios.get(`${API_URL}${endpoint}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         params: { page: currentPage, limit: 10 },
+      });
+
+      console.log('[ProfileVerifications] Response:', {
+        success: response.data.success,
+        dataLength: response.data.data?.length,
+        data: response.data.data,
+        pagination: response.data.pagination
       });
 
       setVerifications(response.data.data || []);
@@ -85,7 +94,8 @@ const ProfileVerifications = () => {
         showSuccess('Verifications refreshed');
       }
     } catch (error) {
-      console.error('Error fetching verifications:', error);
+      console.error('[ProfileVerifications] Error fetching verifications:', error);
+      console.error('[ProfileVerifications] Error response:', error.response?.data);
       showError('Failed to fetch verifications');
     } finally {
       setLoading(false);
@@ -96,7 +106,7 @@ const ProfileVerifications = () => {
   useEffect(() => {
     fetchVerifications();
     fetchPendingCount();
-  }, [fetchVerifications, fetchPendingCount]);
+  }, [activeTab, currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter verifications by search term
   const filteredVerifications = verifications.filter(v => {
@@ -113,14 +123,17 @@ const ProfileVerifications = () => {
   // View verification details
   const handleViewDetails = async (verification) => {
     try {
+      console.log('[ProfileVerifications] Fetching details for:', verification._id);
       const response = await axios.get(
         `${API_URL}/api/profile-verification/admin/${verification._id}`,
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
+      console.log('[ProfileVerifications] Details response:', response.data);
       setSelectedVerification(response.data.data);
       setShowDetailModal(true);
     } catch (error) {
-      console.error('Error fetching verification details:', error);
+      console.error('[ProfileVerifications] Error fetching verification details:', error);
+      console.error('[ProfileVerifications] Error response:', error.response?.data);
       showError('Failed to load verification details');
     }
   };
@@ -439,14 +452,15 @@ const ProfileVerifications = () => {
                     <th className="px-4 lg:px-6 py-3 lg:py-4 text-left text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-4 lg:px-6 py-3 lg:py-4 text-right text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Actions
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {filteredVerifications.map((v) => (
-                    <tr key={v._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                    <tr
+                      key={v._id}
+                      onClick={() => handleViewDetails(v)}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer"
+                    >
                       <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2 sm:gap-3">
                           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-xs sm:text-sm">
@@ -471,15 +485,6 @@ const ProfileVerifications = () => {
                       <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
                         {getStatusBadge(v.status)}
                       </td>
-                      <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
-                        <button
-                          onClick={() => handleViewDetails(v)}
-                          className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                        >
-                          <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                          View
-                        </button>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -489,7 +494,11 @@ const ProfileVerifications = () => {
             {/* Mobile Cards */}
             <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-700">
               {filteredVerifications.map((v) => (
-                <div key={v._id} className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                <div
+                  key={v._id}
+                  onClick={() => handleViewDetails(v)}
+                  className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer"
+                >
                   <div className="flex items-start justify-between mb-2 sm:mb-3">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-[10px] sm:text-sm">
@@ -511,13 +520,6 @@ const ProfileVerifications = () => {
                         {v.submittedData?.certificateNumber || 'N/A'}
                       </span>
                     </div>
-                    <button
-                      onClick={() => handleViewDetails(v)}
-                      className="flex items-center gap-1 text-blue-600 font-medium text-xs"
-                    >
-                      <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                      View
-                    </button>
                   </div>
                   <p className="text-[10px] sm:text-xs text-gray-400 mt-1.5 sm:mt-2">
                     Submitted {formatDate(v.createdAt)}

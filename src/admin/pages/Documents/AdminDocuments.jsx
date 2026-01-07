@@ -58,6 +58,12 @@ const AdminDocuments = () => {
   const [actionType, setActionType] = useState(null); // 'approve', 'reject', or null
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(9);
+  
+  // Business permit specific fields
+  const [businessPermitData, setBusinessPermitData] = useState({
+    orNumber: "",
+    amountPaid: ""
+  });
 
   // Document type display names (security: don't expose DB field names)
   const DOCUMENT_TYPE_LABELS = {
@@ -221,12 +227,28 @@ const AdminDocuments = () => {
       const request = requests.find((r) => r._id === requestId);
       const documentType = formatDocumentType(request?.documentType);
 
+      // Prepare payload based on document type
+      const payload = {
+        status: action,
+        reason: reason || undefined,
+      };
+
+      // For business permits, include OR number and amount paid if provided
+      if (action === "approved" && (request.documentType === "business_permit" || request.documentType === "business_clearance")) {
+        if (businessPermitData.orNumber || businessPermitData.amountPaid) {
+          payload.businessInfo = {
+            ...request.businessInfo,
+            orNumber: businessPermitData.orNumber || request.businessInfo?.orNumber || ""
+          };
+          if (businessPermitData.amountPaid) {
+            payload.fees = parseFloat(businessPermitData.amountPaid) || 0;
+          }
+        }
+      }
+
       const promise = axios.patch(
         `${API_URL}/api/document-requests/${requestId}/status`,
-        {
-          status: action,
-          reason: reason || undefined,
-        },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -244,6 +266,7 @@ const AdminDocuments = () => {
       setSelectedRequest(null);
       setActionReason("");
       setActionType(null);
+      setBusinessPermitData({ orNumber: "", amountPaid: "" });
       await fetchRequests();
     } catch (error) {
       setError(error.response?.data?.message || `Failed to ${action} request`);
@@ -259,6 +282,7 @@ const AdminDocuments = () => {
     setActionType(null);
     setActiveTab("details"); // Reset to details tab
     setPreviewData(null); // Reset preview data
+    setBusinessPermitData({ orNumber: "", amountPaid: "" }); // Reset business permit data
   };
 
   const getStatusColor = (status) => {
@@ -756,6 +780,7 @@ const AdminDocuments = () => {
               setSelectedRequest(null);
               setActionType(null);
               setActionReason("");
+              setBusinessPermitData({ orNumber: "", amountPaid: "" });
             }}
           >
             <motion.div
@@ -806,6 +831,7 @@ const AdminDocuments = () => {
                       setActionReason("");
                       setActiveTab("details");
                       setPreviewData(null);
+                      setBusinessPermitData({ orNumber: "", amountPaid: "" });
                     }}
                     className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
                   >
@@ -1040,6 +1066,23 @@ const AdminDocuments = () => {
                         <label className="text-indigo-600 dark:text-indigo-300 font-medium text-[10px] sm:text-xs">Business Address</label>
                         <p className="text-indigo-900 dark:text-indigo-100">{formatAddress(selectedRequest.businessInfo.businessAddress)}</p>
                       </div>
+                      {/* OR Number and Amount Paid for Business Permits */}
+                      {(selectedRequest.documentType === "business_permit" || selectedRequest.documentType === "business_clearance") && (
+                        <>
+                          <div>
+                            <label className="text-indigo-600 dark:text-indigo-300 font-medium text-[10px] sm:text-xs">OR Number</label>
+                            <p className="text-indigo-900 dark:text-indigo-100 font-mono">
+                              {selectedRequest.businessInfo.orNumber || <span className="text-gray-400">Not set</span>}
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-indigo-600 dark:text-indigo-300 font-medium text-[10px] sm:text-xs">Amount Paid</label>
+                            <p className="text-indigo-900 dark:text-indigo-100 font-semibold">
+                              {selectedRequest.fees ? `₱${parseFloat(selectedRequest.fees).toFixed(2)}` : <span className="text-gray-400">Not set</span>}
+                            </p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1271,16 +1314,90 @@ const AdminDocuments = () => {
                     <p className="text-green-800 dark:text-green-200 mb-3 sm:mb-4 text-xs sm:text-sm">
                       Are you sure you want to approve this document request? The resident will be notified and may proceed with payment if required.
                     </p>
+                    
+                    {/* Business Permit/Clearance specific fields */}
+                    {(selectedRequest.documentType === "business_permit" || selectedRequest.documentType === "business_clearance") && (
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-3 space-y-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Briefcase className="w-4 h-4 text-blue-600" />
+                          <span className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100">
+                            Business {selectedRequest.documentType === "business_permit" ? "Permit" : "Clearance"} Details
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                              OR Number {selectedRequest.documentType === "business_permit" ? "*" : ""}
+                            </label>
+                            <input
+                              type="text"
+                              value={businessPermitData.orNumber}
+                              onChange={(e) => setBusinessPermitData(prev => ({ ...prev, orNumber: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs sm:text-sm"
+                              placeholder="e.g., OR-2026-00001"
+                            />
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+                              Official Receipt Number from payment
+                            </p>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                              Amount Paid (₱) {selectedRequest.documentType === "business_permit" ? "*" : ""}
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={businessPermitData.amountPaid}
+                              onChange={(e) => setBusinessPermitData(prev => ({ ...prev, amountPaid: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs sm:text-sm"
+                              placeholder="e.g., 500.00"
+                            />
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+                              Fee amount paid by applicant
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {selectedRequest.documentType === "business_permit" && (
+                          <div className="flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                            <p className="text-[10px] sm:text-xs text-blue-800 dark:text-blue-200">
+                              OR Number and Amount Paid are required for business permits and will be included in the generated certificate.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                       <button
-                        onClick={() => handleAction(selectedRequest._id, "approved")}
+                        onClick={() => {
+                          // Validate business permit fields if required
+                          if (selectedRequest.documentType === "business_permit") {
+                            if (!businessPermitData.orNumber?.trim()) {
+                              setError("OR Number is required for business permits");
+                              return;
+                            }
+                            if (!businessPermitData.amountPaid || parseFloat(businessPermitData.amountPaid) <= 0) {
+                              setError("Amount Paid must be greater than 0 for business permits");
+                              return;
+                            }
+                          }
+                          handleAction(selectedRequest._id, "approved");
+                        }}
                         disabled={updating}
                         className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                       >
                         {updating ? "Processing..." : "Confirm Approval"}
                       </button>
                       <button
-                        onClick={() => setActionType(null)}
+                        onClick={() => {
+                          setActionType(null);
+                          setBusinessPermitData({ orNumber: "", amountPaid: "" });
+                        }}
                         disabled={updating}
                         className="px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs sm:text-sm font-medium rounded-lg transition-colors"
                       >
@@ -1369,6 +1486,8 @@ const AdminDocuments = () => {
                       setShowModal(false);
                       setSelectedRequest(null);
                       setActionType(null);
+                      setBusinessPermitData({ orNumber: "", amountPaid: "" });
+                      setBusinessPermitData({ orNumber: "", amountPaid: "" });
                     }}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs sm:text-sm font-medium rounded-lg sm:rounded-xl transition-colors"
                   >

@@ -134,10 +134,6 @@ const ProfileUpdates = () => {
     rejected: XCircle,
   };
 
-  useEffect(() => {
-    fetchUpdates();
-  }, [filters.status, filters.updateType, filters.page]);
-
   const fetchUpdates = async () => {
     setLoading(true);
     try {
@@ -148,8 +144,18 @@ const ProfileUpdates = () => {
       params.append('page', filters.page);
       params.append('limit', filters.limit);
 
+      console.log('[ProfileUpdates] Fetching with params:', Object.fromEntries(params));
+
       const response = await axios.get(`${API_URL}/api/profile-update/admin/all?${params}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+
+      console.log('[ProfileUpdates] Response:', {
+        success: response.data.success,
+        dataLength: response.data.data?.length,
+        data: response.data.data,
+        stats: response.data.stats,
+        pagination: response.data.pagination
       });
 
       if (response.data.success) {
@@ -158,12 +164,17 @@ const ProfileUpdates = () => {
         setPagination(response.data.pagination);
       }
     } catch (err) {
-      console.error('Error fetching updates:', err);
+      console.error('[ProfileUpdates] Error fetching updates:', err);
+      console.error('[ProfileUpdates] Error response:', err.response?.data);
       showError('Failed to fetch profile updates');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUpdates();
+  }, [filters.status, filters.updateType, filters.page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -173,8 +184,13 @@ const ProfileUpdates = () => {
 
   const fetchUpdateDetail = async (id) => {
     try {
+      console.log('[ProfileUpdates] Fetching detail for:', id);
       const response = await axios.get(`${API_URL}/api/profile-update/admin/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      console.log('[ProfileUpdates] Detail response:', {
+        success: response.data.success,
+        data: response.data.data
       });
       if (response.data.success) {
         setSelectedUpdate(response.data.data);
@@ -182,7 +198,8 @@ const ProfileUpdates = () => {
         setShowDetailModal(true);
       }
     } catch (err) {
-      console.error('Error fetching update detail:', err);
+      console.error('[ProfileUpdates] Error fetching update detail:', err);
+      console.error('[ProfileUpdates] Error response:', err.response?.data);
       showError('Failed to fetch update details');
     }
   };
@@ -589,7 +606,11 @@ const ProfileUpdates = () => {
                 const TypeIcon = updateTypeIcons[update.updateType] || FileEdit;
                 const user = update.user || update.userDetails?.[0];
                 return (
-                  <div key={update._id} className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  <div
+                    key={update._id}
+                    onClick={() => fetchUpdateDetail(update._id)}
+                    className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                  >
                     <div className="flex items-start justify-between gap-3 mb-2 sm:mb-3">
                       <div className="flex items-center gap-2.5 sm:gap-3">
                         <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -610,7 +631,7 @@ const ProfileUpdates = () => {
                       </span>
                     </div>
 
-                    <div className="space-y-1.5 sm:space-y-2 mb-3">
+                    <div className="space-y-1.5 sm:space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-[10px] sm:text-xs">
                           <TypeIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -625,14 +646,6 @@ const ProfileUpdates = () => {
                         {formatDate(update.createdAt)}
                       </div>
                     </div>
-
-                    <button
-                      onClick={() => fetchUpdateDetail(update._id)}
-                      className="w-full py-2 sm:py-2.5 text-[10px] sm:text-xs font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      View Details
-                    </button>
                   </div>
                 );
               })}
@@ -648,7 +661,6 @@ const ProfileUpdates = () => {
                     <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Changes</th>
                     <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
                     <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Submitted</th>
-                    <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -657,7 +669,11 @@ const ProfileUpdates = () => {
                     const TypeIcon = updateTypeIcons[update.updateType] || FileEdit;
                     const user = update.user || update.userDetails?.[0];
                     return (
-                      <tr key={update._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                      <tr
+                        key={update._id}
+                        onClick={() => fetchUpdateDetail(update._id)}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                      >
                         <td className="px-4 lg:px-6 py-3 lg:py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
@@ -690,15 +706,6 @@ const ProfileUpdates = () => {
                         </td>
                         <td className="px-4 lg:px-6 py-3 lg:py-4 text-xs lg:text-sm text-gray-600 dark:text-gray-400">
                           {formatDate(update.createdAt)}
-                        </td>
-                        <td className="px-4 lg:px-6 py-3 lg:py-4 text-right">
-                          <button
-                            onClick={() => fetchUpdateDetail(update._id)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] lg:text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                          >
-                            <Eye className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
-                            View
-                          </button>
                         </td>
                       </tr>
                     );

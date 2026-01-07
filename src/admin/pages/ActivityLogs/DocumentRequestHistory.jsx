@@ -458,7 +458,11 @@ const DocumentRequestHistory = () => {
                 const statusConfig = getStatusConfig(request.status);
                 const StatusIcon = statusConfig.icon || Clock;
                 return (
-                  <div key={request._id} className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <div
+                    key={request._id}
+                    onClick={() => handleViewDetail(request)}
+                    className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                  >
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div>
                         <p className="text-xs sm:text-sm font-mono font-medium text-blue-600 dark:text-blue-400">
@@ -490,17 +494,9 @@ const DocumentRequestHistory = () => {
                           <span className="ml-1.5 text-[10px] text-green-600">Paid</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
-                          {formatDate(request.createdAt)}
-                        </span>
-                        <button
-                          onClick={() => handleViewDetail(request)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                        {formatDate(request.createdAt)}
+                      </span>
                     </div>
                   </div>
                 );
@@ -530,9 +526,6 @@ const DocumentRequestHistory = () => {
                     <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Date Requested
                     </th>
-                    <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Actions
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -542,7 +535,8 @@ const DocumentRequestHistory = () => {
                     return (
                       <tr
                         key={request._id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                        onClick={() => handleViewDetail(request)}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
                       >
                         <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-mono font-medium text-blue-600 dark:text-blue-400">
@@ -588,15 +582,6 @@ const DocumentRequestHistory = () => {
                         </td>
                         <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                           {formatDate(request.createdAt)}
-                        </td>
-                        <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-right">
-                          <button
-                            onClick={() => handleViewDetail(request)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                            title="View Details"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
                         </td>
                       </tr>
                     );

@@ -528,16 +528,14 @@ const AdminTermsAcceptances = () => {
                     <th className="px-4 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       Privacy
                     </th>
-                    <th className="px-4 sm:px-6 py-3 text-left text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Actions
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {paginatedResidents.map((resident) => (
                     <tr
                       key={resident._id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                      onClick={() => viewDetails(resident)}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
                     >
                       <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
@@ -570,15 +568,6 @@ const AdminTermsAcceptances = () => {
                           Consented
                         </span>
                       </td>
-                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => viewDetails(resident)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                        >
-                          <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          Details
-                        </button>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -597,7 +586,8 @@ const AdminTermsAcceptances = () => {
               <motion.div
                 key={resident._id}
                 variants={cardVariants}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+                onClick={() => viewDetails(resident)}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
               >
                 <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
                 <div className="p-4">
@@ -629,7 +619,7 @@ const AdminTermsAcceptances = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2">
                     <span className="px-2 py-1 inline-flex items-center gap-1 text-[10px] font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
                       <CheckCircle className="w-3 h-3" />
                       Terms v1.0
@@ -639,14 +629,6 @@ const AdminTermsAcceptances = () => {
                       Privacy
                     </span>
                   </div>
-
-                  <button
-                    onClick={() => viewDetails(resident)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xs sm:text-sm font-medium rounded-xl transition-all shadow-md hover:shadow-lg"
-                  >
-                    <Eye className="w-4 h-4" />
-                    View Acceptance Details
-                  </button>
                 </div>
               </motion.div>
             ))}

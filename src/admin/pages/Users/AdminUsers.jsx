@@ -50,11 +50,16 @@ const AdminUsers = () => {
     lastName: "",
     email: "",
     username: "",
-    phoneNumber: "",
+    phoneNumber: "+63",
     roleName: "Resident"
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  
+  // Validation states
+  const [validationErrors, setValidationErrors] = useState({});
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -184,6 +189,117 @@ const AdminUsers = () => {
     setError("");
   };
 
+  // Validation helper functions
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhoneNumber = (phone) => {
+    // Must be +639XXXXXXXXX (13 characters total)
+    const phoneRegex = /^\+639\d{9}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const checkUsernameAvailability = async (username) => {
+    if (!username || username.length < 3) {
+      setUsernameAvailable(null);
+      return;
+    }
+
+    try {
+      setIsCheckingUsername(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${API_URL}/api/auth/check-username/${username}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUsernameAvailable(response.data.available);
+    } catch (error) {
+      // If endpoint doesn't exist, check manually
+      const exists = users.some(u => u.username.toLowerCase() === username.toLowerCase());
+      setUsernameAvailable(!exists);
+    } finally {
+      setIsCheckingUsername(false);
+    }
+  };
+
+  // Debounced username check
+  useEffect(() => {
+    if (showCreateModal && formData.username) {
+      const timeoutId = setTimeout(() => {
+        checkUsernameAvailability(formData.username);
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setUsernameAvailable(null);
+    }
+  }, [formData.username, showCreateModal]);
+
+  // Handle phone number input with formatting
+  const handlePhoneNumberChange = (e) => {
+    let value = e.target.value;
+    
+    // Always keep +63 prefix
+    if (!value.startsWith("+63")) {
+      value = "+63";
+    }
+    
+    // Remove any non-digit characters after +63
+    const digitsOnly = value.slice(3).replace(/\D/g, "");
+    
+    // Enforce first digit must be 9
+    if (digitsOnly.length > 0 && digitsOnly[0] !== "9") {
+      return; // Don't update if first digit is not 9
+    }
+    
+    // Limit to 10 digits after +63
+    const limitedDigits = digitsOnly.slice(0, 10);
+    
+    setFormData({ ...formData, phoneNumber: "+63" + limitedDigits });
+    
+    // Validate phone number
+    if (limitedDigits.length === 10 && limitedDigits[0] === "9") {
+      setValidationErrors(prev => ({ ...prev, phoneNumber: "" }));
+    } else if (limitedDigits.length > 0) {
+      setValidationErrors(prev => ({ 
+        ...prev, 
+        phoneNumber: "Phone must be +639XXXXXXXXX (10 digits starting with 9)" 
+      }));
+    }
+  };
+
+  // Validate form before submission
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.firstName.trim()) errors.firstName = "First name is required";
+    if (!formData.lastName.trim()) errors.lastName = "Last name is required";
+    
+    if (!formData.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!validateEmail(formData.email)) {
+      errors.email = "Invalid email format";
+    }
+    
+    if (!formData.username.trim()) {
+      errors.username = "Username is required";
+    } else if (formData.username.length < 3) {
+      errors.username = "Username must be at least 3 characters";
+    } else if (usernameAvailable === false) {
+      errors.username = "Username is already taken";
+    }
+    
+    if (formData.phoneNumber && formData.phoneNumber !== "+63") {
+      if (!validatePhoneNumber(formData.phoneNumber)) {
+        errors.phoneNumber = "Phone must be +639XXXXXXXXX format";
+      }
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   // Open create modal
   const handleCreateClick = () => {
     setFormData({
@@ -191,11 +307,13 @@ const AdminUsers = () => {
       lastName: "",
       email: "",
       username: "",
-      phoneNumber: "",
+      phoneNumber: "+63",
       roleName: "Resident"
     });
     setShowCreateModal(true);
     setError("");
+    setValidationErrors({});
+    setUsernameAvailable(null);
   };
 
   // Update user
@@ -254,13 +372,20 @@ const AdminUsers = () => {
 
   // Create user
   const handleCreateUser = async () => {
+    // Validate form first
+    if (!validateForm()) {
+      setError("Please fix all validation errors before submitting");
+      return;
+    }
+
     try {
       setError("");
       const token = localStorage.getItem("token");
       
-      // Convert roleName to role code
+      // Prepare data, remove +63 prefix if phone is only +63
       const createData = {
         ...formData,
+        phoneNumber: formData.phoneNumber === "+63" ? "" : formData.phoneNumber,
         role: getRoleCode(formData.roleName),
         password: "TempPassword123!"
       };
@@ -932,9 +1057,21 @@ const AdminUsers = () => {
                     <input
                       type="text"
                       value={formData.firstName}
-                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-green-200 dark:border-green-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
+                      onChange={(e) => {
+                        setFormData({ ...formData, firstName: e.target.value });
+                        if (e.target.value.trim()) {
+                          setValidationErrors(prev => ({ ...prev, firstName: "" }));
+                        }
+                      }}
+                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${
+                        validationErrors.firstName 
+                          ? "border-red-500 focus:ring-red-500" 
+                          : "border-green-200 dark:border-green-700 focus:ring-green-500"
+                      }`}
                     />
+                    {validationErrors.firstName && (
+                      <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">{validationErrors.firstName}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-[10px] sm:text-xs font-medium text-green-700 dark:text-green-300 mb-1">
@@ -943,9 +1080,21 @@ const AdminUsers = () => {
                     <input
                       type="text"
                       value={formData.lastName}
-                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-green-200 dark:border-green-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
+                      onChange={(e) => {
+                        setFormData({ ...formData, lastName: e.target.value });
+                        if (e.target.value.trim()) {
+                          setValidationErrors(prev => ({ ...prev, lastName: "" }));
+                        }
+                      }}
+                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${
+                        validationErrors.lastName 
+                          ? "border-red-500 focus:ring-red-500" 
+                          : "border-green-200 dark:border-green-700 focus:ring-green-500"
+                      }`}
                     />
+                    {validationErrors.lastName && (
+                      <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">{validationErrors.lastName}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -963,20 +1112,72 @@ const AdminUsers = () => {
                     <input
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => {
+                        setFormData({ ...formData, email: e.target.value });
+                        if (validateEmail(e.target.value)) {
+                          setValidationErrors(prev => ({ ...prev, email: "" }));
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (e.target.value && !validateEmail(e.target.value)) {
+                          setValidationErrors(prev => ({ ...prev, email: "Invalid email format" }));
+                        }
+                      }}
+                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${
+                        validationErrors.email 
+                          ? "border-red-500 focus:ring-red-500" 
+                          : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
+                      }`}
+                      placeholder="user@example.com"
                     />
+                    {validationErrors.email && (
+                      <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">{validationErrors.email}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                       Username *
                     </label>
-                    <input
-                      type="text"
-                      value={formData.username}
-                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={formData.username}
+                        onChange={(e) => {
+                          setFormData({ ...formData, username: e.target.value });
+                          setValidationErrors(prev => ({ ...prev, username: "" }));
+                        }}
+                        className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${
+                          validationErrors.username 
+                            ? "border-red-500 focus:ring-red-500" 
+                            : usernameAvailable === true
+                            ? "border-green-500 focus:ring-green-500"
+                            : usernameAvailable === false
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
+                        }`}
+                        placeholder="username123"
+                      />
+                      {isCheckingUsername && (
+                        <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                      )}
+                      {!isCheckingUsername && usernameAvailable === true && formData.username.length >= 3 && (
+                        <CheckCircle className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
+                      )}
+                      {!isCheckingUsername && usernameAvailable === false && (
+                        <XCircle className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-red-600" />
+                      )}
+                    </div>
+                    {validationErrors.username && (
+                      <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">{validationErrors.username}</p>
+                    )}
+                    {!validationErrors.username && usernameAvailable === true && (
+                      <p className="text-[10px] text-green-600 dark:text-green-400 mt-1">Username is available</p>
+                    )}
+                    {!validationErrors.username && usernameAvailable === false && (
+                      <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">Username is already taken</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -994,9 +1195,21 @@ const AdminUsers = () => {
                     <input
                       type="text"
                       value={formData.phoneNumber}
-                      onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-purple-200 dark:border-purple-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
+                      onChange={handlePhoneNumberChange}
+                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${
+                        validationErrors.phoneNumber 
+                          ? "border-red-500 focus:ring-red-500" 
+                          : "border-purple-200 dark:border-purple-700 focus:ring-purple-500"
+                      }`}
+                      placeholder="+639XXXXXXXXX"
+                      maxLength={13}
                     />
+                    <p className="text-[10px] text-purple-600 dark:text-purple-400 mt-1">
+                      Format: +639XXXXXXXXX (10 digits starting with 9)
+                    </p>
+                    {validationErrors.phoneNumber && (
+                      <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">{validationErrors.phoneNumber}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-[10px] sm:text-xs font-medium text-purple-700 dark:text-purple-300 mb-1">

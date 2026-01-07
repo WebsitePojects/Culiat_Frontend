@@ -398,7 +398,8 @@ const DocumentPayments = () => {
               {payments.map((payment) => (
                 <div
                   key={payment._id}
-                  className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                  onClick={() => handleViewDetail(payment)}
+                  className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
@@ -421,21 +422,13 @@ const DocumentPayments = () => {
                       Payer: {payment.payer?.name}
                     </p>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                        {payment.paymentMethod}
-                      </span>
-                      <span className="text-[10px] sm:text-xs text-gray-500">
-                        {formatDate(payment.paymentDate)}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => handleViewDetail(payment)}
-                      className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"
-                    >
-                      <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    </button>
+                  <div className="flex items-center gap-2">
+                    <span className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                      {payment.paymentMethod}
+                    </span>
+                    <span className="text-[10px] sm:text-xs text-gray-500">
+                      {formatDate(payment.paymentDate)}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -467,16 +460,14 @@ const DocumentPayments = () => {
                     <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Date
                     </th>
-                    <th className="px-4 lg:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Action
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {payments.map((payment) => (
                     <tr
                       key={payment._id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                      onClick={() => handleViewDetail(payment)}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
                     >
                       <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
                         <span className="text-xs lg:text-sm font-mono font-medium text-green-600 dark:text-green-400">
@@ -504,15 +495,6 @@ const DocumentPayments = () => {
                       </td>
                       <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-500 dark:text-gray-400">
                         {formatDate(payment.paymentDate)}
-                      </td>
-                      <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right">
-                        <button
-                          onClick={() => handleViewDetail(payment)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                          title="View Receipt"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
                       </td>
                     </tr>
                   ))}
