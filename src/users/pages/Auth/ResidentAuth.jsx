@@ -38,9 +38,7 @@ export default function ResidentAuth() {
             navigate("/");
           }
         } else {
-          setError(
-            "This login is for residents only. Admins please use the admin portal."
-          );
+          setError("Invalid username or password");
         }
       } else {
         setError("Invalid username or password");
@@ -245,15 +243,6 @@ export default function ResidentAuth() {
               </form>
               <div className="mt-6 pt-4 border-t border-slate-200 text-center">
                 <p className="text-xs text-slate-500">
-                  Admin?{" "}
-                  <Link
-                    to="/signin"
-                    className="text-blue-600 hover:underline font-medium"
-                  >
-                    Sign in here
-                  </Link>
-                </p>
-                <p className="text-xs text-slate-500 mt-2">
                   Don't have an account?{" "}
                   <Link
                     to="/register"

@@ -43,12 +43,16 @@ const Navbar = () => {
          if (showUserMenu && !event.target.closest(".user-menu-container")) {
             setShowUserMenu(false);
          }
+         // Close mobile menu when clicking outside
+         if (isOpen && !event.target.closest(".mobile-menu-container") && !event.target.closest(".hamburger-button")) {
+            setIsOpen(false);
+         }
       };
 
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
          document.removeEventListener("mousedown", handleClickOutside);
-   }, [showUserMenu]);
+   }, [showUserMenu, isOpen]);
 
    const handleLogout = () => {
       logout();
@@ -154,7 +158,7 @@ const Navbar = () => {
                         </button>
 
                         {showUserMenu && (
-                           <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                           <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
                               <div className="px-4 py-3 border-b border-gray-200">
                                  <p className="text-sm font-semibold text-gray-900 truncate">
                                     {user.firstName} {user.lastName}
@@ -206,7 +210,7 @@ const Navbar = () => {
                {/* Mobile menu toggle */}
                <button
                   onClick={() => setIsOpen(!isOpen)}
-                  className="md:hidden focus:outline-none text-text-color-light mix-blend-difference cursor-pointer"
+                  className="hamburger-button md:hidden focus:outline-none text-text-color-light mix-blend-difference cursor-pointer"
                >
                   <AnimatePresence mode="wait" initial={false}>
                      {isOpen ? (
@@ -259,7 +263,7 @@ const Navbar = () => {
          {/* Mobile dropdown */}
 
          <div
-            className={`absolute top-full w-full md:hidden bg-light shadow-md px-4 space-y-4 font-medium overflow-hidden transition-all duration-600 ${
+            className={`mobile-menu-container absolute top-full w-full md:hidden bg-light shadow-md px-4 space-y-4 font-medium overflow-hidden transition-all duration-600 ${
                isOpen
                   ? "max-h-[500px] py-4 border-t border-text-color/30"
                   : "max-h-0"

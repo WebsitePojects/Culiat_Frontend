@@ -685,15 +685,15 @@ export default function Services() {
           ></div>
         </div>
 
-        <div className="relative max-w-6xl mx-auto px-6 pt-24 pb-16 sm:pt-28 sm:pb-20 md:pt-32 md:pb-28 text-center">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-12 sm:pt-28 sm:pb-16 md:pt-36 md:pb-28 text-center">
           {/* Animated Icon Badge */}
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-sm rounded-full mb-6"
+            className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-sm rounded-full mb-4 sm:mb-6"
           >
-            <FileText className="w-8 h-8 md:w-10 md:h-10" />
+            <FileText className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" />
           </motion.div>
 
           {/* Title */}
@@ -701,7 +701,7 @@ export default function Services() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-4 md:mb-6 max-w-3xl mx-auto"
+            className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-extrabold mb-3 sm:mb-4 md:mb-6 max-w-3xl mx-auto"
           >
             Barangay Services
           </motion.h1>
@@ -711,7 +711,7 @@ export default function Services() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed mx-auto"
+            className="text-sm sm:text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed mx-auto px-2"
           >
             Request your official barangay documents online quickly and
             securely. Fill out the form below and track your request status.
@@ -724,7 +724,7 @@ export default function Services() {
           style={{ transform: "rotate(180deg)" }}
         >
           <svg
-            className="relative block w-full h-12 md:h-20"
+            className="relative block w-full h-8 sm:h-12 md:h-20"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 1200 120"
             preserveAspectRatio="none"
@@ -898,7 +898,7 @@ export default function Services() {
         )}
       </AnimatePresence>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 md:py-12">
         {/* Error Toast */}
         {showError && (
           <div className="mb-4">
@@ -908,22 +908,22 @@ export default function Services() {
               exit={{ opacity: 0, y: -10 }}
               className="flex items-start bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl overflow-hidden"
             >
-              <div className="p-4 flex items-center bg-red-100 dark:bg-red-800">
-                <AlertCircle className="text-red-600 dark:text-red-400" size={24} />
+              <div className="p-3 sm:p-4 flex items-center bg-red-100 dark:bg-red-800">
+                <AlertCircle className="text-red-600 dark:text-red-400" size={20} />
               </div>
-              <div className="px-4 py-3 flex-1">
-                <p className="font-semibold text-red-800 dark:text-red-200">
+              <div className="px-3 sm:px-4 py-2 sm:py-3 flex-1">
+                <p className="font-semibold text-red-800 dark:text-red-200 text-sm sm:text-base">
                   Submission Failed
                 </p>
-                <p className="text-sm text-red-600 dark:text-red-300">
+                <p className="text-xs sm:text-sm text-red-600 dark:text-red-300">
                   {errorMessage}
                 </p>
               </div>
               <button
                 onClick={() => setShowError(false)}
-                className="p-4 text-red-500 hover:text-red-700 transition-colors"
+                className="p-3 sm:p-4 text-red-500 hover:text-red-700 transition-colors"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </motion.div>
           </div>
@@ -938,11 +938,11 @@ export default function Services() {
         >
           {/* Loading Overlay */}
           {showLoadingToast && (
-            <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-lg z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-white/95 backdrop-blur-sm rounded-lg z-50 flex items-center justify-center p-4">
               <div className="text-center">
                 <div className="relative inline-block">
                   {/* Animated spinner rings */}
-                  <div className="w-20 h-20 relative">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 relative">
                     <div className="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
                     <div className="absolute inset-0 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
                     <div
@@ -954,15 +954,15 @@ export default function Services() {
                     ></div>
                   </div>
                 </div>
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                <div className="mt-4 sm:mt-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">
                     Loading Your Information
                   </h3>
-                  <p className="text-sm text-gray-600 max-w-sm">
+                  <p className="text-xs sm:text-sm text-gray-600 max-w-sm px-2">
                     Please wait while we auto-fill your personal details from
                     your profile...
                   </p>
-                  <div className="flex items-center justify-center gap-1 mt-4">
+                  <div className="flex items-center justify-center gap-1 mt-3 sm:mt-4">
                     <div
                       className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
                       style={{ animationDelay: "0ms" }}
@@ -982,10 +982,10 @@ export default function Services() {
           )}
 
           {/* Step Progress Indicator */}
-          <div className="px-4 md:px-6 py-4 border-b border-[var(--color-neutral-active)] bg-gradient-to-r from-gray-50 to-white">
+          <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-b border-[var(--color-neutral-active)] bg-gradient-to-r from-gray-50 to-white">
             {/* Step Indicators for Request Flow */}
             {active !== "my-requests" && (
-              <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center justify-center mb-3 sm:mb-4 overflow-x-auto">
                 {tabs
                   .filter((t) => t.step > 0)
                   .map((t, index, arr) => {
@@ -996,20 +996,20 @@ export default function Services() {
 
                     return (
                       <React.Fragment key={t.id}>
-                        <div className="flex flex-col items-center">
+                        <div className="flex flex-col items-center flex-shrink-0">
                           <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all ${
                               isCompleted
                                 ? "bg-green-500 text-white"
                                 : isCurrent
-                                ? "bg-[var(--color-secondary)] text-white ring-4 ring-[var(--color-secondary)]/20"
+                                ? "bg-[var(--color-secondary)] text-white ring-2 sm:ring-4 ring-[var(--color-secondary)]/20"
                                 : "bg-gray-200 text-gray-500"
                             }`}
                           >
                             {isCompleted ? "✓" : t.step}
                           </div>
                           <span
-                            className={`text-xs mt-1 font-medium ${
+                            className={`text-[10px] sm:text-xs mt-1 font-medium text-center max-w-[60px] sm:max-w-none ${
                               isCurrent
                                 ? "text-[var(--color-secondary)]"
                                 : "text-gray-500"
@@ -1020,7 +1020,7 @@ export default function Services() {
                         </div>
                         {index < arr.length - 1 && (
                           <div
-                            className={`w-16 md:w-24 h-1 mx-2 rounded ${
+                            className={`w-8 sm:w-16 md:w-24 h-1 mx-1 sm:mx-2 rounded flex-shrink-0 ${
                               t.step < currentStep
                                 ? "bg-green-500"
                                 : "bg-gray-200"
@@ -1035,7 +1035,7 @@ export default function Services() {
 
             {/* Tab Buttons */}
             <nav
-              className="flex gap-2 justify-center flex-wrap"
+              className="flex gap-1.5 sm:gap-2 justify-center flex-wrap"
               role="tablist"
               aria-label="Form tabs"
             >
@@ -1050,7 +1050,7 @@ export default function Services() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.2 }}
-                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+                    className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
                       isActive
                         ? isMyRequests
                           ? "bg-blue-600 text-white shadow-md"
@@ -1062,7 +1062,8 @@ export default function Services() {
                     role="tab"
                     aria-selected={isActive}
                   >
-                    {t.label}
+                    <span className="hidden sm:inline">{t.label}</span>
+                    <span className="sm:hidden">{isMyRequests ? "Requests" : t.label.replace(/^\d+\.\s*/, "").split(" ")[0]}</span>
                   </motion.button>
                 );
               })}
@@ -1071,7 +1072,7 @@ export default function Services() {
 
           {/* Form Body */}
           <form onSubmit={handleSubmit}>
-            <div className="p-6">
+            <div className="p-3 sm:p-4 md:p-6">
               <AnimatePresence mode="wait">
                 {/* Step 1: Select Document */}
                 {active === "request" && (
@@ -1107,7 +1108,7 @@ export default function Services() {
                       setErrors={setErrors}
                     />
                     {/* Include Emergency Contact info in this step */}
-                    <div className="mt-6 pt-6 border-t">
+                    <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t">
                       <EmergencyContactTab
                         formData={formData}
                         setField={setField}
@@ -1155,8 +1156,8 @@ export default function Services() {
             </div>
 
             {/* Navigation Buttons */}
-            <div className="px-6 py-4 border-t border-[var(--color-neutral-active)] flex justify-between items-center bg-gray-50">
-              <div>
+            <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-[var(--color-neutral-active)] flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0 bg-gray-50">
+              <div className="w-full sm:w-auto">
                 {active !== "request" && active !== "my-requests" && (
                   <button
                     type="button"
@@ -1164,14 +1165,14 @@ export default function Services() {
                       if (active === "personal") setActive("request");
                       else if (active === "files") setActive("personal");
                     }}
-                    className="px-5 py-2.5 rounded-lg font-medium border-2 border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+                    className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-medium border-2 border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     <span>←</span> Back
                   </button>
                 )}
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
                 {active === "request" && (
                   <button
                     type="button"
@@ -1191,7 +1192,7 @@ export default function Services() {
                       }
                       setActive("personal");
                     }}
-                    className="px-5 py-2.5 rounded-lg font-semibold bg-[var(--color-secondary)] text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+                    className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold bg-[var(--color-secondary)] text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     Next Step <span>→</span>
                   </button>
@@ -1201,7 +1202,7 @@ export default function Services() {
                   <button
                     type="button"
                     onClick={() => setActive("files")}
-                    className="px-5 py-2.5 rounded-lg font-semibold bg-[var(--color-secondary)] text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+                    className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold bg-[var(--color-secondary)] text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     Next Step <span>→</span>
                   </button>
@@ -1211,7 +1212,7 @@ export default function Services() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-6 py-2.5 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="w-full sm:w-auto px-5 sm:px-6 py-2 sm:py-2.5 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     {loading ? (
                       <>
@@ -1229,7 +1230,7 @@ export default function Services() {
         </motion.div>
 
         {/* small help block */}
-        <div className="px-2 sm:p-0 text-center sm:text-left mt-4 text-sm text-[var(--color-text-secondary)]">
+        <div className="px-2 sm:p-0 text-center sm:text-left mt-3 sm:mt-4 text-xs sm:text-sm text-[var(--color-text-secondary)]">
           By submitting, you agree to our terms and privacy policy. Processing
           usually takes 3–5 business days.
         </div>

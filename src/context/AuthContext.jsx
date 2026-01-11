@@ -328,6 +328,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     isAdmin: isAdmin(),
+    isSuperAdmin: user?.role === 'SuperAdmin' || user?.roleCode === 74932,
     isResident: user?.role === 'Resident' || user?.roleCode === 74934,
     // PSA Profile completion
     showPsaWarningModal,

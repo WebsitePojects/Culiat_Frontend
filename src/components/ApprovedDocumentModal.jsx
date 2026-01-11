@@ -100,7 +100,7 @@ const ApprovedDocumentModal = ({ isOpen, onClose, approvedRequests = [] }) => {
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
           >
             {/* Header with gradient */}
             <div className="relative bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 px-6 py-5 overflow-hidden">

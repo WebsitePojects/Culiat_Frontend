@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FileText,
@@ -10,9 +10,14 @@ import {
   Download,
   Loader2,
   CreditCard,
-  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  History,
+  Inbox,
 } from "lucide-react";
 import axios from "axios";
+
+const ITEMS_PER_PAGE = 5;
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -106,14 +111,32 @@ const documentTypeLabels = {
 
 export default function MyRequestsTab() {
   const navigate = useNavigate();
+  const requestsTopRef = useRef(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [downloading, setDownloading] = useState(null);
+  const [activeTab, setActiveTab] = useState("active"); // "active" | "history"
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchMyRequests();
   }, []);
+
+  // Reset page when switching tabs
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
+  // Scroll to top of requests when page changes
+  useEffect(() => {
+    if (requestsTopRef.current) {
+      requestsTopRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start'
+      });
+    }
+  }, [currentPage]);
 
   const fetchMyRequests = async () => {
     try {
@@ -137,6 +160,24 @@ export default function MyRequestsTab() {
       setLoading(false);
     }
   };
+
+  // Separate requests into active and history
+  // Active: pending OR (approved AND unpaid)
+  const activeRequests = requests.filter(
+    (r) => r.status === "pending" || (r.status === "approved" && r.paymentStatus === "unpaid")
+  );
+  // History: completed (paid) OR rejected OR cancelled
+  const historyRequests = requests.filter(
+    (r) => r.status === "completed" || r.status === "rejected" || r.status === "cancelled" ||
+           (r.status === "approved" && (r.paymentStatus === "paid" || r.paymentStatus === "waived"))
+  );
+
+  const currentRequests = activeTab === "active" ? activeRequests : historyRequests;
+  const totalPages = Math.ceil(currentRequests.length / ITEMS_PER_PAGE);
+  const paginatedRequests = currentRequests.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const handleDownload = async (requestId, documentType) => {
     try {
@@ -217,31 +258,80 @@ export default function MyRequestsTab() {
     );
   }
 
-  if (requests.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <FileText className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          No Requests Yet
-        </h3>
-        <p className="text-gray-600">
-          You haven't submitted any document requests.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-medium">My Document Requests</h1>
+      <div ref={requestsTopRef}>
+        <h1 className="text-xl font-medium">My Requests</h1>
         <p className="text-sm text-[var(--color-text-secondary)] mt-1">
           Track the status of your submitted document requests
         </p>
       </div>
 
-      <div className="space-y-4">
-        {requests.map((request) => {
+      {/* Tab Buttons */}
+      <div className="flex gap-2 border-b border-gray-200 pb-2">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setActiveTab("active");
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === "active"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          Active ({activeRequests.length})
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setActiveTab("history");
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === "history"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <History className="w-4 h-4" />
+          History ({historyRequests.length})
+        </button>
+      </div>
+
+      {/* Empty State */}
+      {currentRequests.length === 0 ? (
+        <div className="text-center py-12">
+          {activeTab === "active" ? (
+            <>
+              <FileText className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No Active Requests
+              </h3>
+              <p className="text-gray-600">
+                You don't have any pending or approved requests.
+              </p>
+            </>
+          ) : (
+            <>
+              <Inbox className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No History Yet
+              </h3>
+              <p className="text-gray-600">
+                Completed and rejected requests will appear here.
+              </p>
+            </>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="space-y-4">
+            {paginatedRequests.map((request) => {
           const status = statusConfig[request.status] || statusConfig.pending;
           const StatusIcon = status.icon;
           const paymentStatus =
@@ -322,16 +412,6 @@ export default function MyRequestsTab() {
                   <p className="text-gray-600">Purpose</p>
                   <p className="font-medium text-gray-900">
                     {request.purposeOfRequest || "N/A"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Fee</p>
-                  <p className="font-medium text-gray-900">
-                    {isFree ? (
-                      <span className="text-green-600">FREE</span>
-                    ) : (
-                      `₱${price.toFixed(2)}`
-                    )}
                   </p>
                 </div>
                 <div>
@@ -437,7 +517,135 @@ export default function MyRequestsTab() {
             </div>
           );
         })}
-      </div>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t gap-4">
+              <p className="text-sm text-gray-600">
+                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} -{" "}
+                {Math.min(currentPage * ITEMS_PER_PAGE, currentRequests.length)} of{" "}
+                {currentRequests.length}
+              </p>
+              <div className="flex items-center gap-2">
+                {/* Previous Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCurrentPage((p) => Math.max(1, p - 1));
+                  }}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1 px-3 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline">Previous</span>
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {(() => {
+                    const pages = [];
+                    const maxVisible = 7; // Maximum number of page buttons to show
+                    
+                    if (totalPages <= maxVisible) {
+                      // Show all pages if total is small
+                      for (let i = 1; i <= totalPages; i++) {
+                        pages.push(i);
+                      }
+                    } else {
+                      // Always show first page
+                      pages.push(1);
+                      
+                      let startPage, endPage;
+                      
+                      if (currentPage <= 3) {
+                        // Near the start
+                        startPage = 2;
+                        endPage = 5;
+                      } else if (currentPage >= totalPages - 2) {
+                        // Near the end
+                        startPage = totalPages - 4;
+                        endPage = totalPages - 1;
+                      } else {
+                        // In the middle
+                        startPage = currentPage - 1;
+                        endPage = currentPage + 1;
+                      }
+                      
+                      // Add ellipsis after first page if needed
+                      if (startPage > 2) {
+                        pages.push('ellipsis-start');
+                      }
+                      
+                      // Add middle pages
+                      for (let i = startPage; i <= endPage; i++) {
+                        pages.push(i);
+                      }
+                      
+                      // Add ellipsis before last page if needed
+                      if (endPage < totalPages - 1) {
+                        pages.push('ellipsis-end');
+                      }
+                      
+                      // Always show last page
+                      pages.push(totalPages);
+                    }
+                    
+                    return pages.map((page, index) => {
+                      if (typeof page === 'string' && page.startsWith('ellipsis')) {
+                        return (
+                          <span
+                            key={page}
+                            className="w-8 h-8 flex items-center justify-center text-gray-500 text-sm"
+                          >
+                            ...
+                          </span>
+                        );
+                      }
+                      
+                      return (
+                        <button
+                          type="button"
+                          key={page}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setCurrentPage(page);
+                          }}
+                          className={`min-w-[2rem] h-8 px-2 text-sm font-medium rounded-lg transition-all ${
+                            currentPage === page
+                              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                              : "text-gray-700 hover:bg-gray-100 border border-gray-200"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCurrentPage((p) => Math.min(totalPages, p + 1));
+                  }}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1 px-3 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

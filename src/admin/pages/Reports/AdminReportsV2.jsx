@@ -82,10 +82,16 @@ const AdminReportsV2 = () => {
         const transformedReports = response.data.data.map((report) => ({
           id: report._id,
           title: report.title,
-          resident: report.reportedBy
-            ? `${report.reportedBy.firstName} ${report.reportedBy.lastName}`
-            : "Unknown",
-          residentEmail: report.reportedBy?.email || "",
+          resident: report.isAnonymous
+            ? "Anonymous"
+            : report.reportedBy
+              ? `${report.reportedBy.firstName} ${report.reportedBy.lastName}`
+              : "Unknown",
+          residentEmail: report.isAnonymous 
+            ? (report.anonymousContact || "No contact provided")
+            : (report.reportedBy?.email || ""),
+          isAnonymous: report.isAnonymous || false,
+          anonymousContact: report.anonymousContact || "",
           date: new Date(report.createdAt).toISOString().split("T")[0],
           createdAt: report.createdAt,
           status: report.status,

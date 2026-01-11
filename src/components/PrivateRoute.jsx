@@ -1,8 +1,8 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const PrivateRoute = ({ children, adminOnly = false }) => {
-  const { user, loading, isAdmin } = useAuth();
+const PrivateRoute = ({ children, adminOnly = false, superAdminOnly = false }) => {
+  const { user, loading, isAdmin, isSuperAdmin } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -24,6 +24,11 @@ const PrivateRoute = ({ children, adminOnly = false }) => {
   // Redirect to home if user is not admin but trying to access admin routes
   if (adminOnly && !isAdmin) {
     return <Navigate to="/" replace />;
+  }
+
+  // Redirect to 404 if user is not superadmin but trying to access superadmin-only routes
+  if (superAdminOnly && !isSuperAdmin) {
+    return <Navigate to="/404" replace />;
   }
 
   return children;

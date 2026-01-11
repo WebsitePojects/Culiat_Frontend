@@ -86,13 +86,13 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-secondary text-white py-12 px-4">
+    <footer className="bg-secondary text-white py-8 sm:py-12 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-6 sm:gap-8 mb-6 sm:mb-8">
           {/* Barangay Info - 3 columns */}
-          <div className="lg:col-span-3">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center overflow-hidden">
+          <div className="lg:col-span-3 text-center sm:text-left">
+            <div className="flex items-center justify-center sm:justify-start space-x-3 mb-3 sm:mb-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center overflow-hidden">
                 <img
                   src="/images/logo/brgy-culiat-logo.png"
                   alt={`${siteInfo.barangayName} Logo`}
@@ -100,17 +100,17 @@ const Footer = () => {
                 />
               </div>
               <div>
-                <h3 className="font-bold text-lg">
+                <h3 className="font-bold text-base sm:text-lg">
                   {siteInfo.barangayName?.toUpperCase()}
                 </h3>
-                <p className="text-xs text-white/80">{siteInfo.city}</p>
+                <p className="text-[10px] sm:text-xs text-white/80">{siteInfo.city}</p>
               </div>
             </div>
-            <p className="text-sm text-white/90 leading-relaxed mb-4">
+            <p className="text-xs sm:text-sm text-white/90 leading-relaxed mb-3 sm:mb-4">
               {footer.aboutText}
             </p>
             {socialMedia.facebook && (
-              <div className="flex space-x-3">
+              <div className="flex justify-center sm:justify-start space-x-3">
                 <a
                   href={socialMedia.facebook}
                   target="_blank"
@@ -176,9 +176,9 @@ const Footer = () => {
           </div>
 
           {/* Contact Information - 4 columns */}
-          <div className="lg:col-span-4">
-            <h4 className="font-bold text-lg mb-4">Contact Us</h4>
-            <div className="space-y-3 text-sm">
+          <div className="lg:col-span-4 text-center sm:text-left">
+            <h4 className="font-bold text-base sm:text-lg mb-3 sm:mb-4">Contact Us</h4>
+            <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
               <div className="flex items-start space-x-2">
                 <svg
                   className="w-4 h-4 mt-0.5 flex-shrink-0"
@@ -200,10 +200,10 @@ const Footer = () => {
                   />
                 </svg>
                 <div>
-                  <p className="text-white/90 font-semibold">
+                  <p className="text-white/90 font-semibold text-xs sm:text-sm">
                     {siteInfo.barangayName?.toUpperCase()}
                   </p>
-                  <p className="text-white/90">{contactInfo.officeAddress}</p>
+                  <p className="text-white/90 text-xs sm:text-sm">{contactInfo.officeAddress}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
@@ -271,22 +271,22 @@ const Footer = () => {
 
           {/* Location Map - 5 columns */}
           {footer.showMap && contactInfo.mapEmbedUrl && (
-            <div className="lg:col-span-5">
-              <h4 className="font-bold text-lg mb-4">Location Map</h4>
+            <div className="lg:col-span-5 sm:col-span-2 lg:col-span-5">
+              <h4 className="font-bold text-base sm:text-lg mb-3 sm:mb-4 text-center sm:text-left">Location Map</h4>
               <div className="bg-white/10 rounded-lg overflow-hidden mb-3">
                 <iframe
                   src={contactInfo.mapEmbedUrl}
                   width="100%"
-                  height="220"
+                  height="180"
                   allowFullScreen=""
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   title={`${siteInfo.barangayName} Location`}
-                  className="w-full"
+                  className="w-full sm:h-[220px]"
                 ></iframe>
               </div>
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <p className="text-sm text-white/90">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p className="text-xs sm:text-sm text-white/90 text-center sm:text-left">
                   Visit our barangay hall for in-person services and assistance.
                 </p>
                 {contactInfo.mapDirectionsUrl && (
@@ -294,7 +294,7 @@ const Footer = () => {
                     href={contactInfo.mapDirectionsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-white text-secondary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors inline-flex items-center space-x-2"
+                    className="bg-white text-secondary px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold hover:bg-gray-100 transition-colors inline-flex items-center space-x-2 w-full sm:w-auto justify-center"
                   >
                     <svg
                       className="w-4 h-4"
@@ -324,14 +324,14 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-white/20 pt-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex flex-col items-center md:items-start space-y-2">
-              <p className="text-sm text-white/80 text-center md:text-left">
+        <div className="border-t border-white/20 pt-4 sm:pt-6">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0">
+            <div className="flex flex-col items-center md:items-start space-y-1 sm:space-y-2">
+              <p className="text-xs sm:text-sm text-white/80 text-center md:text-left">
                 {footer.copyrightText}
               </p>
               {footer.poweredByText && (
-                <div className="flex items-center space-x-2 text-xs text-white/60">
+                <div className="flex items-center space-x-2 text-[10px] sm:text-xs text-white/60">
                   <span>Powered by</span>
                   <span className="font-bold text-white/80">
                     {footer.poweredByText}
@@ -339,7 +339,7 @@ const Footer = () => {
                 </div>
               )}
             </div>
-            <div className="flex flex-wrap justify-center md:justify-end gap-4 sm:gap-6 text-sm">
+            <div className="flex flex-wrap justify-center md:justify-end gap-3 sm:gap-6 text-xs sm:text-sm">
               <Link
                 to="/legal#terms"
                 className="text-white/80 hover:text-white transition-colors"

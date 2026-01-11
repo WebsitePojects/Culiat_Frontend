@@ -12,7 +12,7 @@ import OrganizationMembers from "./AboutSections/OrganizationMembers";
 
 const About = () => {
    return (
-      <div className="min-h-screen">
+      <div className="min-h-screen w-full overflow-x-hidden">
          <AboutHero />
 
          <Goals />

@@ -28,6 +28,11 @@ export const reportAPI = {
       'Content-Type': 'multipart/form-data',
     },
   }),
+  createAnonymous: (data) => axios.post(`${API_URL}/api/reports/anonymous`, data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
   getAll: () => api.get('/api/reports'),
   getMyReports: () => api.get('/api/reports/my-reports'),
   getById: (id) => api.get(`/api/reports/${id}`),

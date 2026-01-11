@@ -91,7 +91,7 @@ const Achievements = () => {
 
   return (
     <div
-       className="min-h-screen"
+       className="min-h-screen pt-16 sm:pt-0"
        style={{ backgroundColor: "var(--color-neutral)" }}
     >
       {/* Hero Section */}
@@ -348,7 +348,7 @@ const Achievements = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
             onClick={() => setSelectedAchievement(null)}
           >
             <motion.div
@@ -356,7 +356,7 @@ const Achievements = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
-              className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden"
+              className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden my-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header with Image */}
@@ -445,7 +445,7 @@ const Achievements = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+            className="fixed inset-0 z-[300] bg-black flex items-center justify-center"
             onClick={() => setImageGalleryOpen(false)}
           >
             {/* Close Button */}

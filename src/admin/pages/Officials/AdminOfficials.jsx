@@ -144,9 +144,15 @@ const AdminOfficials = () => {
       };
 
       const submitData = new FormData();
-      Object.keys(formData).forEach((key) => {
-        submitData.append(key, formData[key]);
-      });
+      
+      // Properly handle each field to ensure correct types
+      submitData.append("firstName", formData.firstName);
+      submitData.append("lastName", formData.lastName);
+      submitData.append("middleName", formData.middleName || "");
+      submitData.append("position", formData.position);
+      submitData.append("committee", formData.committee || "");
+      submitData.append("isActive", formData.isActive.toString());
+      submitData.append("displayOrder", formData.displayOrder.toString());
 
       if (selectedFile) {
         submitData.append("officialPhoto", selectedFile);
@@ -173,7 +179,7 @@ const AdminOfficials = () => {
       closeModal();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to save official");
-      console.error(error);
+      console.error("Error saving official:", error.response?.data || error);
     } finally {
       setSaving(false);
     }
@@ -359,8 +365,10 @@ const AdminOfficials = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={closeModal}></div>
+          <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
+            <div className="relative bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="flex justify-between items-center p-4 sm:p-6 border-b dark:border-gray-700">
               <h2 className="text-base sm:text-xl font-semibold text-gray-900 dark:text-white">
@@ -556,6 +564,7 @@ const AdminOfficials = () => {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

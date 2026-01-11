@@ -94,7 +94,7 @@ const Explore = () => {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.3 }}
-          className="flex flex-col sm:flex-col md:flex-row md:flex-wrap xl:flex-nowrap gap-6"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 md:gap-6"
         >
           {highlights.map((item, i) => {
             const Icon = item.icon;
@@ -111,20 +111,18 @@ const Explore = () => {
                   },
                 }}
                 whileTap={{ scale: 0.98 }}
-                className={`flex flex-col items-center text-center dark:bg-gray-800 rounded-xl  cursor-pointer transition-all duration-200 flex-1 ${
-                  i < 3 ? "md:basis-1/4" : "md:basis-1/3"
-                } xl:basis-1/5`}
+                className="flex flex-col items-center text-center dark:bg-gray-800 rounded-xl cursor-pointer transition-all duration-200 p-2 sm:p-3"
               >
-                <div className="p-3 mt-4 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <div className="p-2 sm:p-3 mt-2 sm:mt-4 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <Icon
                     className="text-blue-600 dark:text-blue-400"
-                    size={28}
+                    size={24}
                   />
                 </div>
-                <h4 className="mt-3 font-semibold text-text-color-light dark:text-gray-100">
+                <h4 className="mt-2 sm:mt-3 font-semibold text-text-color-light dark:text-gray-100 text-xs sm:text-sm md:text-base">
                   {item.title}
                 </h4>
-                <p className="mb-4 text-sm w-[70%] sm:w-auto text-neutral/70 dark:text-gray-400 leading-tight">
+                <p className="mb-2 sm:mb-4 text-[10px] sm:text-xs md:text-sm w-full text-neutral/70 dark:text-gray-400 leading-tight">
                   {item.desc}
                 </p>
               </motion.div>

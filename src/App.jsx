@@ -7,6 +7,7 @@ import MaintenancePage from "./components/MaintenancePage";
 import BypassForm from "./components/BypassForm";
 import ProfileWarningModal from "./components/ProfileWarningModal";
 import ApprovedDocumentModal from "./components/ApprovedDocumentModal";
+import ScrollToTop from "./components/ScrollToTop";
 import AdminLogin from "./tailadminsrc/pages/AuthPages/SignIn";
 import Register from "./users/pages/Auth/Register";
 import RegistrationPending from "./users/pages/Auth/RegistrationPending";
@@ -186,6 +187,7 @@ function App() {
   return (
     <>
       <AuthProvider>
+        <ScrollToTop />
         <ToastDismissWrapper>
         {/* Toast Notifications */}
         <Toaster
@@ -304,7 +306,14 @@ function App() {
             <Route path="announcements" element={<AdminAnnouncements />} />
             <Route path="achievements" element={<AdminAchievements />} />
             <Route path="documents" element={<AdminDocuments />} />
-            <Route path="users" element={<AdminUsers />} />
+            <Route 
+              path="users" 
+              element={
+                <PrivateRoute superAdminOnly={true}>
+                  <AdminUsers />
+                </PrivateRoute>
+              } 
+            />
             <Route
               path="pending-registrations"
               element={<PendingRegistrations />}
@@ -313,7 +322,14 @@ function App() {
               path="registration-history"
               element={<RegistrationHistory />}
             />
-            <Route path="settings" element={<SettingsPage />} />
+            <Route 
+              path="settings" 
+              element={
+                <PrivateRoute superAdminOnly={true}>
+                  <SettingsPage />
+                </PrivateRoute>
+              } 
+            />
             <Route path="officials" element={<AdminOfficials />} />
             <Route path="cms/services" element={<CMSServices />} />
             <Route path="cms/about-us" element={<CMSAboutUs />} />

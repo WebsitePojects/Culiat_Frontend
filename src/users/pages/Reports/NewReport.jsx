@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { reportAPI } from "../../services/api";
 import { motion } from "framer-motion";
-import { AlertTriangle, ArrowLeft, CheckCircle, Upload, X, Image } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle, Upload, X, Image, EyeOff, User } from "lucide-react";
 
 const NewReport = () => {
   const { user, logout } = useAuth();
@@ -14,11 +14,13 @@ const NewReport = () => {
     category: "infrastructure",
     location: "",
     priority: "medium",
+    anonymousContact: "",
   });
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(!user); // Default to anonymous if not logged in
 
   const handleChange = (e) => {
     setFormData({
@@ -85,7 +87,16 @@ const NewReport = () => {
         submitData.append('reportImages', image);
       });
 
-      await reportAPI.create(submitData);
+      // Use anonymous endpoint if anonymous mode or not logged in
+      if (isAnonymous || !user) {
+        if (formData.anonymousContact) {
+          submitData.append('anonymousContact', formData.anonymousContact);
+        }
+        await reportAPI.createAnonymous(submitData);
+      } else {
+        await reportAPI.create(submitData);
+      }
+      
       navigate("/reports");
     } catch (error) {
       setError(error.response?.data?.message || "Error creating report");
@@ -101,7 +112,7 @@ const NewReport = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--color-neutral)" }}>
+    <div className="min-h-screen pt-16 md:pt-20" style={{ backgroundColor: "var(--color-neutral)" }}>
       {/* Hero Section */}
       <motion.section
         initial={{ opacity: 0 }}
@@ -311,6 +322,74 @@ const NewReport = () => {
               />
             </motion.div>
 
+            {/* Anonymous Toggle */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.62 }}
+              className="border border-[var(--color-neutral-active)] rounded-lg p-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {isAnonymous ? (
+                    <EyeOff className="w-5 h-5 text-[var(--color-secondary)]" />
+                  ) : (
+                    <User className="w-5 h-5 text-[var(--color-primary)]" />
+                  )}
+                  <div>
+                    <p className="font-medium text-[var(--color-text-color)]">
+                      {isAnonymous ? "Anonymous Report" : "Report with Identity"}
+                    </p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      {isAnonymous 
+                        ? "Your identity will not be revealed to anyone" 
+                        : user 
+                          ? `Reporting as ${user.firstName} ${user.lastName}`
+                          : "Login to report with your identity"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAnonymous(!isAnonymous)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    isAnonymous ? "bg-[var(--color-secondary)]" : "bg-gray-300"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      isAnonymous ? "translate-x-6" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+              
+              {/* Optional Contact for Anonymous Reports */}
+              {isAnonymous && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-4 pt-4 border-t border-[var(--color-neutral-active)]"
+                >
+                  <label className="block text-sm font-semibold text-[var(--color-text-color)] mb-2">
+                    Contact Info (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="anonymousContact"
+                    value={formData.anonymousContact}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-[var(--color-neutral-active)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all outline-none"
+                    placeholder="Email or phone for follow-up (won't be shared)"
+                  />
+                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                    Only used for follow-up questions, not shared publicly
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
+
             {/* Image Upload Section */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -377,11 +456,22 @@ const NewReport = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
-              className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3"
+              className={`rounded-lg p-4 flex items-start gap-3 ${
+                isAnonymous 
+                  ? "bg-purple-50 border border-purple-200" 
+                  : "bg-blue-50 border border-blue-200"
+              }`}
             >
-              <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-800">
-                <strong>Privacy Notice:</strong> Your report will be kept private and will only be visible to you and barangay administrators.
+              {isAnonymous ? (
+                <EyeOff className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+              ) : (
+                <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              )}
+              <div className={`text-sm ${isAnonymous ? "text-purple-800" : "text-blue-800"}`}>
+                <strong>{isAnonymous ? "Anonymous Report:" : "Privacy Notice:"}</strong>{" "}
+                {isAnonymous 
+                  ? "Your identity will be completely hidden. Only the report content will be visible to administrators."
+                  : "Your report will be kept private and will only be visible to you and barangay administrators."}
               </div>
             </motion.div>
 

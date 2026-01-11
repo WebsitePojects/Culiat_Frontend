@@ -144,7 +144,7 @@ const GetInTouch = () => {
   };
 
   return (
-    <section className="py-16 px-4 bg-background text-foreground">
+    <section className="py-10 sm:py-16 px-4 bg-background text-foreground" id="contact">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
@@ -152,10 +152,10 @@ const GetInTouch = () => {
           whileInView="show"
           viewport={{ once: true }}
           variants={fadeUp}
-          className="text-center mb-12"
+          className="text-center mb-8 sm:mb-12"
         >
-          <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Get in Touch</h2>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
             Visit our office, call our hotlines, or reach out online. We're here
             to serve you
             <br className="hidden sm:block" />
@@ -163,7 +163,7 @@ const GetInTouch = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Contact Information */}
           <motion.div
             initial="hidden"
@@ -171,26 +171,27 @@ const GetInTouch = () => {
             viewport={{ once: true }}
             variants={fadeUp}
           >
-            <h3 className="text-xl font-bold mb-6">Contact Information</h3>
+            <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Contact Information</h3>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Address */}
               <motion.div
                 variants={fadeUp}
                 custom={0.1}
-                className="flex items-center space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
+                className="flex items-center space-x-3 sm:space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
               >
-                <div className="w-12 h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
-                  <MapPin size={24} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
+                  <MapPin size={20} className="sm:hidden" />
+                  <MapPin size={24} className="hidden sm:block" />
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1 text-foreground">
+                  <h4 className="font-semibold mb-0.5 sm:mb-1 text-foreground text-sm sm:text-base">
                     Address
                   </h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {"467 Tandang Sora Ave"}, {"Quezon City"}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {"1128 Metro Manila"}, {"Philippines"}
                   </p>
                 </div>
@@ -200,11 +201,11 @@ const GetInTouch = () => {
               <motion.div
                 variants={fadeUp}
                 custom={0.2}
-                className="flex items-center space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
+                className="flex items-center space-x-3 sm:space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
               >
-                <div className="w-12 h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -218,10 +219,10 @@ const GetInTouch = () => {
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1 text-foreground">
+                  <h4 className="font-semibold mb-0.5 sm:mb-1 text-foreground text-sm sm:text-base">
                     Phone Numbers
                   </h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Main Line: {contactInfo.contactInfo?.phoneNumber || "(02) 8123-4567"}
                   </p>
                 </div>
@@ -231,11 +232,11 @@ const GetInTouch = () => {
               <motion.div
                 variants={fadeUp}
                 custom={0.3}
-                className="flex items-center space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
+                className="flex items-center space-x-3 sm:space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
               >
-                <div className="w-12 h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
                   <svg
-                    className="w-6 h-6"
+                    className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -249,8 +250,8 @@ const GetInTouch = () => {
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1 text-foreground">Email</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <h4 className="font-semibold mb-0.5 sm:mb-1 text-foreground text-sm sm:text-base">Email</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     {contactInfo.contactInfo?.email || "info@barangayculiat.gov.ph"}
                   </p>
                 </div>
@@ -260,19 +261,20 @@ const GetInTouch = () => {
               <motion.div
                 variants={fadeUp}
                 custom={0.4}
-                className="flex items-center space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
+                className="flex items-center space-x-3 sm:space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
               >
-                <div className="w-12 h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
-                  <Clock size={24} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
+                  <Clock size={20} className="sm:hidden" />
+                  <Clock size={24} className="hidden sm:block" />
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1 text-foreground">
+                  <h4 className="font-semibold mb-0.5 sm:mb-1 text-foreground text-sm sm:text-base">
                     Office Hours
                   </h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Monday - Friday: 8:00 AM - 5:00 PM
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Saturday: 9:00 AM - 12:00 PM
                   </p>
                 </div>
@@ -475,11 +477,11 @@ const GetInTouch = () => {
                   className="text-sm text-muted-foreground"
                 >
                   I agree to the{" "}
-                  <a href="#" className="text-secondary hover:underline">
+                  <a href="/legal#privacy" className="text-secondary hover:underline">
                     privacy policy
                   </a>{" "}
                   and{" "}
-                  <a href="#" className="text-secondary hover:underline">
+                  <a href="/legal#terms" className="text-secondary hover:underline">
                     terms of service
                   </a>
                 </label>

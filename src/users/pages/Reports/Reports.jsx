@@ -195,7 +195,7 @@ const Reports = () => {
    };
 
    return (
-      <div className="min-h-screen" style={{ backgroundColor: "var(--color-neutral)" }}>
+      <div className="min-h-screen pt-16 sm:pt-0" style={{ backgroundColor: "var(--color-neutral)" }}>
          {/* Premium Hero Header */}
          <div className="relative overflow-hidden">
             <div

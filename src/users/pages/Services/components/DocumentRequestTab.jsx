@@ -68,6 +68,13 @@ export default function DocumentRequestTab({
   // State for custom purpose input
   const [showCustomPurpose, setShowCustomPurpose] = React.useState(false);
 
+  // Auto-fill purpose for Certificate of Residency
+  React.useEffect(() => {
+    if (formData.documentType === "residency" && !formData.purposeOfRequest) {
+      setField("purposeOfRequest", "City Hall Requirements");
+    }
+  }, [formData.documentType]);
+
   const handlePurposeChange = (e) => {
     const value = e.target.value;
     if (value === "Other") {

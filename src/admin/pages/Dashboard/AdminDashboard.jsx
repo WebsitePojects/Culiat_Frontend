@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../../../context/AuthContext";
 import * as XLSX from "xlsx";
 import {
   Users,
@@ -66,10 +67,11 @@ const StatCard = ({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden rounded-lg sm:rounded-xl bg-gradient-to-br ${colorClasses[color]} p-3 sm:p-4 md:p-5 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group`}
+      className={`relative rounded-lg sm:rounded-xl bg-gradient-to-br ${colorClasses[color]} p-3 sm:p-4 md:p-5 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group`}
+      style={{ overflow: 'visible' }}
     >
       {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
+      <div className="absolute inset-0 opacity-10 overflow-hidden">
         <div className="absolute -right-4 -top-4 w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-white/20"></div>
         <div className="absolute -right-8 -bottom-8 w-20 h-20 sm:w-32 sm:h-32 rounded-full bg-white/10"></div>
       </div>
@@ -94,31 +96,45 @@ const StatCard = ({
                 <ChevronDown className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               </button>
               {isOpen && (
-                <div className="absolute right-0 top-full mt-1 w-28 sm:w-36 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-48 overflow-y-auto">
-                  <button
+                <>
+                  {/* Backdrop */}
+                  <div 
+                    className="fixed inset-0 z-40" 
                     onClick={(e) => {
                       e.stopPropagation();
-                      onDropdownChange("all");
                       setIsOpen(false);
                     }}
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  />
+                  {/* Dropdown */}
+                  <div 
+                    className="absolute right-0 top-full mt-1 w-32 sm:w-40 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 max-h-[160px] overflow-y-auto"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    All Areas
-                  </button>
-                  {dropdownOptions.map((option) => (
                     <button
-                      key={option}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDropdownChange(option);
+                        onDropdownChange("all");
                         setIsOpen(false);
                       }}
                       className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
-                      {option}
+                      All Areas
                     </button>
-                  ))}
-                </div>
+                    {dropdownOptions.map((option) => (
+                      <button
+                        key={option}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDropdownChange(option);
+                          setIsOpen(false);
+                        }}
+                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -318,6 +334,8 @@ const StatusBadge = ({ status }) => {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'SuperAdmin' || user?.roleCode === 74932;
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [timeRange, setTimeRange] = useState("month");
@@ -737,7 +755,7 @@ const AdminDashboard = () => {
           dropdownOptions={areas}
           subtitle="registered users"
           loading={loading}
-          onClick={() => navigate("/admin/users")}
+          onClick={() => isSuperAdmin && navigate("/admin/users")}
         />
 
         <StatCard

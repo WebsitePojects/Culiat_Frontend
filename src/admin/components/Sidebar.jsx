@@ -35,10 +35,12 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
+  // Check if user is superadmin
+  const isSuperAdmin = user?.role === 'SuperAdmin' || user?.roleCode === 74932;
+
   // State for collapsible sections
   const [userManagementOpen, setUserManagementOpen] = useState(false);
   const [contentManagementOpen, setContentManagementOpen] = useState(false);
-  const [systemOpen, setSystemOpen] = useState(false);
   
   // State for collapsed sidebar hover submenu
   const [hoveredGroup, setHoveredGroup] = useState(null);
@@ -52,6 +54,38 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
   };
 
   // Grouped menu structure - Reorganized with Documents under User Management
+  // Filter items based on role
+  const userManagementItems = [
+    // Only SuperAdmin can see All Users
+    ...(isSuperAdmin ? [{ name: "All Users", path: "/admin/users", icon: Users }] : []),
+    {
+      name: "Pending Registrations",
+      path: "/admin/pending-registrations",
+      icon: UserCheck,
+    },
+    {
+      name: "Registration History",
+      path: "/admin/registration-history",
+      icon: History,
+    },
+    {
+      name: "Terms Acceptances",
+      path: "/admin/terms-acceptances",
+      icon: FileCheck,
+    },
+    {
+      name: "PSA Verifications",
+      path: "/admin/profile-verifications",
+      icon: ShieldCheck,
+    },
+    {
+      name: "Profile Updates",
+      path: "/admin/profile-updates",
+      icon: FileEdit,
+    },
+    { name: "Document Requests", path: "/admin/documents", icon: FolderOpen },
+  ];
+
   const menuGroups = [
     {
       id: "main",
@@ -64,35 +98,7 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
       collapsible: true,
       isOpen: userManagementOpen,
       setOpen: setUserManagementOpen,
-      items: [
-        { name: "All Users", path: "/admin/users", icon: Users },
-        {
-          name: "Pending Registrations",
-          path: "/admin/pending-registrations",
-          icon: UserCheck,
-        },
-        {
-          name: "Registration History",
-          path: "/admin/registration-history",
-          icon: History,
-        },
-        {
-          name: "Terms Acceptances",
-          path: "/admin/terms-acceptances",
-          icon: FileCheck,
-        },
-        {
-          name: "PSA Verifications",
-          path: "/admin/profile-verifications",
-          icon: ShieldCheck,
-        },
-        {
-          name: "Profile Updates",
-          path: "/admin/profile-updates",
-          icon: FileEdit,
-        },
-        { name: "Document Requests", path: "/admin/documents", icon: FolderOpen }, // Moved here
-      ],
+      items: userManagementItems,
     },
     {
       id: "content-management",
@@ -117,22 +123,13 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
       id: "operations",
       items: [
         { name: "Reports", path: "/admin/reports", icon: FileText },
-        { name: "Document History", path: "/admin/document-history", icon: ClipboardList }, // Document request tracking
-        { name: "Document Payments", path: "/admin/document-payments", icon: Coins }, // Income from document fees
-        { name: "Feedback", path: "/admin/feedback", icon: MessageSquare }, // Website feedback
+        { name: "Document History", path: "/admin/document-history", icon: ClipboardList },
+        { name: "Document Payments", path: "/admin/document-payments", icon: Coins },
+        { name: "Feedback", path: "/admin/feedback", icon: MessageSquare },
         { name: "Notifications", path: "/admin/notifications", icon: Bell },
-      ],
-    },
-    {
-      id: "system",
-      label: "System",
-      icon: Settings,
-      collapsible: true,
-      isOpen: systemOpen,
-      setOpen: setSystemOpen,
-      items: [
         { name: "Analytics", path: "/admin/analytics", icon: BarChart3 },
-        { name: "Settings", path: "/admin/settings", icon: Settings },
+        // Only SuperAdmin can see Settings
+        ...(isSuperAdmin ? [{ name: "Settings", path: "/admin/settings", icon: Settings }] : []),
       ],
     },
   ];
@@ -303,9 +300,9 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
   };
 
   const sidebarContent = (
-    <>
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Logo */}
-      <div className="flex items-center justify-center h-14 sm:h-16 px-3 sm:px-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900">
+      <div className="flex items-center justify-center h-14 sm:h-16 px-3 sm:px-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 flex-shrink-0">
         {isOpen || isMobileOpen ? (
           <div className="flex items-center space-x-2">
             <img
@@ -335,12 +332,12 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
       </div>
 
       {/* Navigation - flex-1 for growing, with overflow */}
-      <nav className="flex-1 px-2 sm:px-3 py-3 sm:py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+      <nav className="flex-1 px-2 sm:px-3 py-3 sm:py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-0">
         {menuGroups.map((group) => renderGroup(group))}
       </nav>
 
       {/* Sticky Bottom Section - Profile & Logout */}
-      <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 mt-auto">
+      <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0">
         {/* Profile Link */}
         {bottomItems.map((item) => {
           const Icon = item.icon;
@@ -400,7 +397,7 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
           {(isOpen || isMobileOpen) && <span className="ml-2 sm:ml-3">Logout</span>}
         </button>
       </div>
-    </>
+    </div>
   );
 
   return (
@@ -414,9 +411,17 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
         {sidebarContent}
       </aside>
 
+      {/* Mobile Sidebar Overlay */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={closeMobileMenu}
+        />
+      )}
+
       {/* Mobile Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 transition-transform duration-300 transform bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 lg:hidden shadow-2xl ${
+        className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] flex-shrink-0 transition-transform duration-300 transform bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 lg:hidden shadow-2xl flex flex-col h-full max-h-screen ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
