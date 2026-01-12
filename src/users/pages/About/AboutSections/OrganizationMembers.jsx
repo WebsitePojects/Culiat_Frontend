@@ -28,6 +28,9 @@ const getPositionLabel = (position) => {
       barangay_secretary: "Barangay Secretary",
       barangay_treasurer: "Barangay Treasurer",
       administrative_officer: "Administrative Officer",
+      admin_officer_internal: "Administrative Officer - Internal",
+      admin_officer_external: "Administrative Officer - External",
+      executive_officer: "Executive Officer (EX-O)",
       deputy_officer: "Deputy Officer",
       other: "Staff",
    };
