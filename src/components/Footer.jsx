@@ -86,7 +86,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-secondary text-white py-8 sm:py-12 px-4">
+    <footer className="bg-emerald-800 text-white py-8 sm:py-12 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-6 sm:gap-8 mb-6 sm:mb-8">
           {/* Barangay Info - 3 columns */}
@@ -294,7 +294,7 @@ const Footer = () => {
                     href={contactInfo.mapDirectionsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-white text-secondary px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold hover:bg-gray-100 transition-colors inline-flex items-center space-x-2 w-full sm:w-auto justify-center"
+                    className="bg-white text-primary-dark px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold hover:bg-gray-100 transition-colors inline-flex items-center space-x-2 w-full sm:w-auto justify-center"
                   >
                     <svg
                       className="w-4 h-4"

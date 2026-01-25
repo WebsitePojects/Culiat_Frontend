@@ -63,7 +63,7 @@ const AchievementSummary = () => {
     return (
       <section className="py-16 px-6 bg-white" id="achievements-summary">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
         </div>
       </section>
     );
@@ -108,41 +108,45 @@ const AchievementSummary = () => {
             <motion.div
               key={achievement._id || index}
               variants={item}
-              className="bg-gray-50 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
             >
-              {/* Image */}
-              <div className="relative h-40 overflow-hidden">
-                {getImageUrl(achievement) ? (
-                  <img
-                    src={getImageUrl(achievement)}
-                    alt={achievement.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-                    <Trophy className="w-16 h-16 text-white/50" />
-                  </div>
-                )}
-                {/* Category Badge */}
-                {achievement.category && (
-                  <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-                    {achievement.category}
-                  </span>
-                )}
-              </div>
+              <Link
+                to={`/achievements/${achievement._id}`}
+                className="block bg-gray-50 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
+              >
+                {/* Image */}
+                <div className="relative h-40 overflow-hidden">
+                  {getImageUrl(achievement) ? (
+                    <img
+                      src={getImageUrl(achievement)}
+                      alt={achievement.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
+                      <Trophy className="w-16 h-16 text-white/50" />
+                    </div>
+                  )}
+                  {/* Category Badge */}
+                  {achievement.category && (
+                    <span className="absolute top-2 left-2 bg-emerald-600 text-white text-xs px-2 py-1 rounded-full">
+                      {achievement.category}
+                    </span>
+                  )}
+                </div>
 
-              {/* Content */}
-              <div className="p-4">
-                <h3 className="font-semibold text-gray-800 text-sm line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
-                  {achievement.title}
-                </h3>
-                {achievement.date && (
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <Calendar className="w-3 h-3" />
-                    <span>{formatDate(achievement.date)}</span>
-                  </div>
-                )}
-              </div>
+                {/* Content */}
+                <div className="p-4">
+                  <h3 className="font-semibold text-gray-800 text-sm line-clamp-2 mb-2 group-hover:text-emerald-600 transition-colors">
+                    {achievement.title}
+                  </h3>
+                  {achievement.date && (
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Calendar className="w-3 h-3" />
+                      <span>{formatDate(achievement.date)}</span>
+                    </div>
+                  )}
+                </div>
+              </Link>
             </motion.div>
           ))}
         </motion.div>
@@ -157,7 +161,7 @@ const AchievementSummary = () => {
         >
           <Link
             to="/achievements"
-            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors"
           >
             View All Achievements
             <ArrowRight className="w-4 h-4" />

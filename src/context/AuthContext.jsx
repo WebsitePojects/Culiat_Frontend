@@ -1,10 +1,13 @@
-import { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
 
 // API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// Session timeout - 30 minutes in milliseconds (non-negotiable)
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
 // Document prices for checking payment requirements
 const DOCUMENT_PRICES = {
@@ -34,76 +37,110 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
+  // Session timeout refs and state
+  const sessionTimeoutRef = useRef(null);
+  const lastActivityRef = useRef(Date.now());
+  const [sessionExpired, setSessionExpired] = useState(false);
+  
   // PSA Profile completion warning modal state
   const [showPsaWarningModal, setShowPsaWarningModal] = useState(false);
   const [psaWarningData, setPsaWarningData] = useState(null);
+  const [pendingPsaModal, setPendingPsaModal] = useState(false); // Flag to show PSA modal after approved doc modal closes
 
   // Approved document notification modal state
   const [showApprovedDocModal, setShowApprovedDocModal] = useState(false);
   const [approvedDocRequests, setApprovedDocRequests] = useState([]);
 
-  // Check for approved document requests on login
-  const checkApprovedDocumentRequests = async () => {
-    console.log('🔔 [ApprovedDocModal] Starting check for approved document requests...');
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('🔔 [ApprovedDocModal] No token found, skipping check');
-        return;
-      }
+  // Session timeout logout function
+  const logoutDueToInactivity = useCallback(() => {
+    console.log('⏰ Session timeout: Logging out due to 30 minutes of inactivity');
+    setSessionExpired(true);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('documentRequestForm');
+    delete axios.defaults.headers.common['Authorization'];
+    setUser(null);
+    // Clear modal states
+    setShowPsaWarningModal(false);
+    setPsaWarningData(null);
+    setShowApprovedDocModal(false);
+    setApprovedDocRequests([]);
+  }, []);
 
-      console.log('🔔 [ApprovedDocModal] Fetching document requests from API...');
-      const response = await axios.get(`${API_URL}/api/document-requests/my-requests`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      const requests = response.data.data || [];
-      console.log('🔔 [ApprovedDocModal] Total requests fetched:', requests.length);
-      console.log('🔔 [ApprovedDocModal] All requests:', requests.map(r => ({
-        id: r._id,
-        type: r.documentType,
-        status: r.status,
-        paymentStatus: r.paymentStatus
-      })));
-      
-      // Filter for approved requests that need payment (not free and not paid/waived)
-      const pendingPaymentRequests = requests.filter(req => {
-        const price = DOCUMENT_PRICES[req.documentType] || 0;
-        const shouldInclude = (
-          req.status === 'approved' &&
-          req.paymentStatus === 'unpaid' &&
-          price > 0
-        );
-        console.log(`🔔 [ApprovedDocModal] Request ${req._id}: status=${req.status}, paymentStatus=${req.paymentStatus}, price=${price}, include=${shouldInclude}`);
-        return shouldInclude;
-      });
-
-      console.log('🔔 [ApprovedDocModal] Filtered pending payment requests:', pendingPaymentRequests.length);
-
-      if (pendingPaymentRequests.length > 0) {
-        console.log('🔔 [ApprovedDocModal] Setting approved doc requests state...');
-        setApprovedDocRequests(pendingPaymentRequests);
-        // Small delay to ensure PSA modal can show first if needed
-        console.log('🔔 [ApprovedDocModal] Will show modal in 500ms...');
-        setTimeout(() => {
-          console.log('🔔 [ApprovedDocModal] Now showing modal!');
-          setShowApprovedDocModal(true);
-        }, 500);
-      } else {
-        console.log('🔔 [ApprovedDocModal] No pending payment requests, not showing modal');
-      }
-    } catch (error) {
-      console.error('🔔 [ApprovedDocModal] Error checking approved documents:', error);
+  // Reset session timeout on activity
+  const resetSessionTimeout = useCallback(() => {
+    if (!user) return;
+    
+    lastActivityRef.current = Date.now();
+    
+    // Clear existing timeout
+    if (sessionTimeoutRef.current) {
+      clearTimeout(sessionTimeoutRef.current);
     }
-  };
+    
+    // Set new timeout for 30 minutes
+    sessionTimeoutRef.current = setTimeout(() => {
+      logoutDueToInactivity();
+    }, SESSION_TIMEOUT);
+  }, [user, logoutDueToInactivity]);
+
+  // Track user activity for session timeout
+  useEffect(() => {
+    if (!user) {
+      // Clear timeout if no user
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current);
+      }
+      return;
+    }
+
+    // Activity events to track
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    
+    // Throttled activity handler (only update every 60 seconds to avoid excessive updates)
+    let lastUpdate = 0;
+    const handleActivity = () => {
+      const now = Date.now();
+      if (now - lastUpdate > 60000) { // Only reset every 60 seconds
+        lastUpdate = now;
+        resetSessionTimeout();
+      }
+    };
+
+    // Add event listeners
+    activityEvents.forEach(event => {
+      window.addEventListener(event, handleActivity, { passive: true });
+    });
+
+    // Initial timeout setup
+    resetSessionTimeout();
+
+    // Cleanup
+    return () => {
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, handleActivity);
+      });
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current);
+      }
+    };
+  }, [user, resetSessionTimeout]);
 
   // Close approved document modal
   const closeApprovedDocModal = useCallback(() => {
     setShowApprovedDocModal(false);
-  }, []);
+    // If PSA modal is pending, show it now
+    if (pendingPsaModal) {
+      console.log('🔔 [ApprovedDocModal] Closed, now showing PSA modal...');
+      setTimeout(() => {
+        setShowPsaWarningModal(true);
+        setPendingPsaModal(false);
+      }, 300); // Small delay for smooth transition
+    }
+  }, [pendingPsaModal]);
 
   // Check if PSA warning modal should be shown
-  const checkPsaCompletionWarning = (userData) => {
+  const checkPsaCompletionWarning = (userData, hasApprovedDocs = false) => {
     console.log('PSA Warning check - userData:', userData?.psaCompletion);
     
     // Only for residents
@@ -132,15 +169,23 @@ export const AuthProvider = ({ children }) => {
       return;
     }
     
-    // ALWAYS show modal on every login if PSA profile is not complete
+    // Set PSA warning data
     setPsaWarningData({
       daysLeft,
       deadline: psaCompletion.deadline,
       verificationStatus: profileVerification?.status,
       rejectionReason: profileVerification?.rejectionReason,
     });
-    setShowPsaWarningModal(true);
-    console.log('PSA Warning modal triggered!');
+    
+    // If there are approved documents, mark PSA modal as pending and show it after
+    if (hasApprovedDocs) {
+      console.log('PSA Warning: Has approved docs, will show PSA modal after approved doc modal closes');
+      setPendingPsaModal(true);
+    } else {
+      // Show PSA modal immediately if no approved docs
+      console.log('PSA Warning: No approved docs, showing PSA modal immediately');
+      setShowPsaWarningModal(true);
+    }
   };
 
   // Check for existing session on mount
@@ -227,21 +272,34 @@ export const AuthProvider = ({ children }) => {
           }
         }
         
-        // Check for PSA profile completion warning
-        checkPsaCompletionWarning(fullUserData);
-        
-        // Check for approved document requests needing payment (for Residents only)
-        console.log('🔔 [Login] Checking if should call checkApprovedDocumentRequests...');
-        console.log('🔔 [Login] fullUserData.roleName:', fullUserData.roleName);
-        console.log('🔔 [Login] fullUserData.role:', fullUserData.role);
-        console.log('🔔 [Login] fullUserData.roleCode:', fullUserData.roleCode);
-        
+        // For Residents: Check approved documents first, then PSA warning
+        let hasApprovedDocs = false;
         if (fullUserData.roleName === 'Resident' || fullUserData.role === 'Resident' || fullUserData.roleCode === 74934) {
-          console.log('🔔 [Login] User is a Resident, calling checkApprovedDocumentRequests...');
-          checkApprovedDocumentRequests();
-        } else {
-          console.log('🔔 [Login] User is NOT a Resident, skipping checkApprovedDocumentRequests');
+          console.log('🔔 [Login] User is a Resident, checking for approved documents...');
+          try {
+            const response = await axios.get(`${API_URL}/api/document-requests/my-requests`, {
+              headers: { Authorization: `Bearer ${fullUserData.token}` }
+            });
+            const requests = response.data.data || [];
+            const pendingPaymentRequests = requests.filter(req => {
+              const price = DOCUMENT_PRICES[req.documentType] || 0;
+              return req.status === 'approved' && req.paymentStatus === 'unpaid' && price > 0;
+            });
+            
+            if (pendingPaymentRequests.length > 0) {
+              hasApprovedDocs = true;
+              setApprovedDocRequests(pendingPaymentRequests);
+              // Show approved doc modal immediately
+              console.log('🔔 [Login] Found approved docs, showing modal immediately');
+              setShowApprovedDocModal(true);
+            }
+          } catch (error) {
+            console.error('🔔 [Login] Error checking approved documents:', error);
+          }
         }
+        
+        // Check for PSA profile completion warning (will be queued if there are approved docs)
+        checkPsaCompletionWarning(fullUserData, hasApprovedDocs);
         
         return { success: true, user: fullUserData };
       } catch (meError) {
@@ -295,6 +353,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Clear session timeout
+    if (sessionTimeoutRef.current) {
+      clearTimeout(sessionTimeoutRef.current);
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('documentRequestForm'); // Clear saved form data
@@ -306,6 +368,13 @@ export const AuthProvider = ({ children }) => {
     // Clear approved document modal state
     setShowApprovedDocModal(false);
     setApprovedDocRequests([]);
+    // Clear session expired state
+    setSessionExpired(false);
+  };
+
+  // Clear session expired state (for use after redirect to login)
+  const clearSessionExpired = () => {
+    setSessionExpired(false);
   };
 
   // Close PSA warning modal
@@ -330,6 +399,9 @@ export const AuthProvider = ({ children }) => {
     isAdmin: isAdmin(),
     isSuperAdmin: user?.role === 'SuperAdmin' || user?.roleCode === 74932,
     isResident: user?.role === 'Resident' || user?.roleCode === 74934,
+    // Session management
+    sessionExpired,
+    clearSessionExpired,
     // PSA Profile completion
     showPsaWarningModal,
     psaWarningData,
@@ -339,7 +411,6 @@ export const AuthProvider = ({ children }) => {
     showApprovedDocModal,
     approvedDocRequests,
     closeApprovedDocModal,
-    checkApprovedDocumentRequests,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

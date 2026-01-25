@@ -25,7 +25,7 @@ const PaymentPage = () => {
   const { requestId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const [paymentDetails, setPaymentDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -80,7 +80,7 @@ const PaymentPage = () => {
         `${API_URL}/api/payments/verify/${requestId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       if (response.data.paid) {
         // Refresh payment details
         await fetchPaymentDetails();
@@ -96,7 +96,7 @@ const PaymentPage = () => {
     try {
       setProcessingPayment(true);
       const token = localStorage.getItem("token");
-      
+
       const response = await axios.post(
         `${API_URL}/api/payments/create-link`,
         { requestId },
@@ -112,7 +112,7 @@ const PaymentPage = () => {
       if (response.data.paymentLink) {
         // Open payment link in new tab
         window.open(response.data.paymentLink, '_blank');
-        
+
         // Refresh payment details to get reference number
         await fetchPaymentDetails();
       }
@@ -188,13 +188,13 @@ const PaymentPage = () => {
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: { bg: "bg-yellow-100", text: "text-yellow-800", icon: Clock },
-      approved: { bg: "bg-blue-100", text: "text-blue-800", icon: CheckCircle },
+      approved: { bg: "bg-emerald-100", text: "text-emerald-800", icon: CheckCircle },
       completed: { bg: "bg-green-100", text: "text-green-800", icon: CheckCircle },
       rejected: { bg: "bg-red-100", text: "text-red-800", icon: XCircle },
     };
     const config = statusConfig[status] || statusConfig.pending;
     const Icon = config.icon;
-    
+
     return (
       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${config.bg} ${config.text}`}>
         <Icon className="w-4 h-4" />
@@ -207,11 +207,11 @@ const PaymentPage = () => {
     const statusConfig = {
       unpaid: { bg: "bg-orange-100", text: "text-orange-800", icon: CreditCard },
       paid: { bg: "bg-green-100", text: "text-green-800", icon: CheckCircle },
-      waived: { bg: "bg-blue-100", text: "text-blue-800", icon: CheckCircle },
+      waived: { bg: "bg-emerald-100", text: "text-emerald-800", icon: CheckCircle },
     };
     const config = statusConfig[status] || statusConfig.unpaid;
     const Icon = config.icon;
-    
+
     return (
       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${config.bg} ${config.text}`}>
         <Icon className="w-4 h-4" />
@@ -225,7 +225,7 @@ const PaymentPage = () => {
       <div className="min-h-screen bg-gray-50 pt-24 pb-8 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <span className="ml-3 text-gray-600">Loading payment details...</span>
           </div>
         </div>
@@ -255,8 +255,8 @@ const PaymentPage = () => {
   }
 
   const canPay = paymentDetails?.status === 'approved' && paymentDetails?.paymentStatus === 'unpaid' && !paymentDetails?.isFree;
-  const canDownload = (paymentDetails?.status === 'approved' || paymentDetails?.status === 'completed') && 
-                       (paymentDetails?.paymentStatus === 'paid' || paymentDetails?.paymentStatus === 'waived' || paymentDetails?.isFree);
+  const canDownload = (paymentDetails?.status === 'approved' || paymentDetails?.status === 'completed') &&
+    (paymentDetails?.paymentStatus === 'paid' || paymentDetails?.paymentStatus === 'waived' || paymentDetails?.isFree);
   const isPending = paymentDetails?.status === 'pending';
   const isRejected = paymentDetails?.status === 'rejected';
 
@@ -274,14 +274,14 @@ const PaymentPage = () => {
 
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+          <div className="bg-gradient-to-r from-primary to-primary-dark p-6 text-white">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-white/20 rounded-lg">
                 <Shield className="w-8 h-8" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold">Secure Payment</h1>
-                <p className="text-blue-100">Document Request Payment Portal</p>
+                <p className="text-emerald-100">Document Request Payment Portal</p>
               </div>
             </div>
           </div>
@@ -298,7 +298,7 @@ const PaymentPage = () => {
             {/* Document Information */}
             <div className="border border-gray-200 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-600" />
+                <FileText className="w-5 h-5 text-primary" />
                 Document Details
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -333,7 +333,7 @@ const PaymentPage = () => {
             {/* Applicant Information */}
             <div className="border border-gray-200 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <User className="w-5 h-5 text-blue-600" />
+                <User className="w-5 h-5 text-primary" />
                 Applicant Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -371,12 +371,12 @@ const PaymentPage = () => {
             </div>
 
             {/* Payment Summary */}
-            <div className="border-2 border-blue-200 bg-blue-50 rounded-lg p-4">
+            <div className="border-2 border-emerald-200 bg-emerald-50 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-blue-600" />
+                <CreditCard className="w-5 h-5 text-primary" />
                 Payment Summary
               </h2>
-              <div className="flex justify-between items-center py-3 border-b border-blue-200">
+              <div className="flex justify-between items-center py-3 border-b border-emerald-200">
                 <span className="text-gray-600">Document Fee</span>
                 <span className="font-medium text-gray-900">
                   {paymentDetails?.isFree ? 'FREE' : formatCurrency(paymentDetails?.amount || 0)}
@@ -384,7 +384,7 @@ const PaymentPage = () => {
               </div>
               <div className="flex justify-between items-center pt-3">
                 <span className="text-lg font-semibold text-gray-900">Total Amount</span>
-                <span className="text-2xl font-bold text-blue-600">
+                <span className="text-2xl font-bold text-primary">
                   {paymentDetails?.isFree ? 'FREE' : formatCurrency(paymentDetails?.amount || 0)}
                 </span>
               </div>
@@ -428,14 +428,14 @@ const PaymentPage = () => {
             )}
 
             {paymentDetails?.paymentReference && paymentDetails?.paymentStatus === 'unpaid' && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-                <ExternalLink className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 flex items-start gap-3">
+                <ExternalLink className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
-                  <h3 className="font-medium text-blue-800">Payment in Progress</h3>
-                  <p className="text-sm text-blue-700 mt-1">
+                  <h3 className="font-medium text-emerald-800">Payment in Progress</h3>
+                  <p className="text-sm text-emerald-700 mt-1">
                     A payment link has been opened. Complete your payment in the new tab, then click "Verify Payment" below.
                   </p>
-                  <p className="text-xs text-blue-600 mt-2">
+                  <p className="text-xs text-primary mt-2">
                     Reference: {paymentDetails.paymentReference}
                   </p>
                 </div>
@@ -448,7 +448,7 @@ const PaymentPage = () => {
                 <button
                   onClick={handlePayment}
                   disabled={processingPayment}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {processingPayment ? (
                     <>

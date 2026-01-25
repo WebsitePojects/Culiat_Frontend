@@ -58,7 +58,7 @@ const ReportsV2 = () => {
          const response = isAdmin
             ? await reportAPI.getAll()
             : await reportAPI.getMyReports();
-         
+
          if (response.data.success) {
             setReports(response.data.data || []);
          } else {
@@ -81,10 +81,10 @@ const ReportsV2 = () => {
             gradient: "from-amber-500 to-orange-500",
          },
          "in-progress": {
-            color: "bg-blue-100 text-blue-800 border-blue-200",
+            color: "bg-emerald-100 text-emerald-800 border-emerald-200",
             icon: TrendingUp,
             label: "In Progress",
-            gradient: "from-blue-500 to-cyan-500",
+            gradient: "from-emerald-500 to-teal-500",
          },
          resolved: {
             color: "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -205,55 +205,55 @@ const ReportsV2 = () => {
                }}
             />
             <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(to_bottom,white,transparent)]" />
-            
+
             {/* Decorative Orbs */}
             <div className="absolute top-20 right-10 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
             <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
 
             <div className="relative max-w-6xl mx-auto px-6 pt-24 pb-20">
                {/* Header Content */
-               <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-                  <motion.div
-                     initial={{ opacity: 0, y: 20 }}
-                     animate={{ opacity: 1, y: 0 }}
-                     transition={{ duration: 0.5 }}
-                  >
-                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                           <ClipboardList className="w-7 h-7 text-white" />
-                        </div>
-                        <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium text-white">
-                           {reports.length} Total Reports
-                        </span>
-                     </div>
-                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
-                        {isAdmin ? "All Reports" : "My Reports"}
-                     </h1>
-                     <p className="text-white/80 text-lg max-w-lg">
-                        {isAdmin
-                           ? "Review and manage community reports from residents."
-                           : "Track your submitted reports and their resolution status."}
-                     </p>
-                  </motion.div>
-
-                  {!isAdmin && (
-                     <motion.button
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        onClick={() => navigate("/reports/newReport")}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="flex items-center gap-3 px-6 py-4 bg-white text-blue-900 rounded-xl font-semibold shadow-xl shadow-black/10 hover:shadow-2xl transition-all group"
+                  <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+                     <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
                      >
-                        <div className="p-2 rounded-lg group-hover:scale-110 transition-transform" style={{ background: "linear-gradient(135deg, #002366 0%, #334b9f 100%)" }}>
-                           <Plus className="w-5 h-5 text-white" />
+                        <div className="flex items-center gap-3 mb-4">
+                           <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                              <ClipboardList className="w-7 h-7 text-white" />
+                           </div>
+                           <span className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium text-white">
+                              {reports.length} Total Reports
+                           </span>
                         </div>
-                        <span>New Report</span>
-                     </motion.button>
-                  )}
-               </div>
-            }
+                        <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+                           {isAdmin ? "All Reports" : "My Reports"}
+                        </h1>
+                        <p className="text-white/80 text-lg max-w-lg">
+                           {isAdmin
+                              ? "Review and manage community reports from residents."
+                              : "Track your submitted reports and their resolution status."}
+                        </p>
+                     </motion.div>
+
+                     {!isAdmin && (
+                        <motion.button
+                           initial={{ opacity: 0, scale: 0.9 }}
+                           animate={{ opacity: 1, scale: 1 }}
+                           transition={{ duration: 0.5, delay: 0.2 }}
+                           onClick={() => navigate("/reports/newReport")}
+                           whileHover={{ scale: 1.02 }}
+                           whileTap={{ scale: 0.98 }}
+                           className="flex items-center gap-3 px-6 py-4 bg-white text-primary rounded-xl font-semibold shadow-xl shadow-black/10 hover:shadow-2xl transition-all group"
+                        >
+                           <div className="p-2 rounded-lg group-hover:scale-110 transition-transform" style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)" }}>
+                              <Plus className="w-5 h-5 text-white" />
+                           </div>
+                           <span>New Report</span>
+                        </motion.button>
+                     )}
+                  </div>
+               }
                {/* Stats Cards */}
                <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -262,9 +262,9 @@ const ReportsV2 = () => {
                   className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10"
                >
                   {[
-                     { key: "", label: "All Reports", count: statusCounts.all, icon: Inbox, gradient: "from-blue-600 to-blue-700" },
+                     { key: "", label: "All Reports", count: statusCounts.all, icon: Inbox, gradient: "from-emerald-600 to-emerald-700" },
                      { key: "pending", label: "Pending", count: statusCounts.pending, icon: Clock, gradient: "from-amber-500 to-orange-500" },
-                     { key: "in-progress", label: "In Progress", count: statusCounts["in-progress"], icon: TrendingUp, gradient: "from-cyan-500 to-blue-500" },
+                     { key: "in-progress", label: "In Progress", count: statusCounts["in-progress"], icon: TrendingUp, gradient: "from-teal-500 to-emerald-500" },
                      { key: "resolved", label: "Resolved", count: statusCounts.resolved, icon: CheckCircle, gradient: "from-emerald-500 to-green-500" },
                   ].map((stat, idx) => {
                      const Icon = stat.icon;
@@ -273,18 +273,17 @@ const ReportsV2 = () => {
                         <button
                            key={idx}
                            onClick={() => setFilter({ ...filter, status: stat.key })}
-                           className={`relative overflow-hidden p-4 rounded-xl text-left transition-all ${
-                              isActive
-                                 ? "bg-white shadow-xl ring-2 ring-white/50"
-                                 : "bg-white/10 backdrop-blur-sm hover:bg-white/20"
-                           }`}
+                           className={`relative overflow-hidden p-4 rounded-xl text-left transition-all ${isActive
+                              ? "bg-white shadow-xl ring-2 ring-white/50"
+                              : "bg-white/10 backdrop-blur-sm hover:bg-white/20"
+                              }`}
                         >
                            <div className="flex items-center justify-between">
                               <div>
-                                 <p className={`text-xs uppercase tracking-wider mb-1 ${isActive ? "text-blue-600" : "text-blue-200"}`}>
+                                 <p className={`text-xs uppercase tracking-wider mb-1 ${isActive ? "text-primary" : "text-emerald-200"}`}>
                                     {stat.label}
                                  </p>
-                                 <p className={`text-2xl font-bold ${isActive ? "text-blue-900" : "text-white"}`}>
+                                 <p className={`text-2xl font-bold ${isActive ? "text-primary-dark" : "text-white"}`}>
                                     {stat.count}
                                  </p>
                               </div>
@@ -332,7 +331,7 @@ const ReportsV2 = () => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Search reports by title, description, or location..."
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                      />
                   </div>
 
@@ -341,7 +340,7 @@ const ReportsV2 = () => {
                      <select
                         value={filter.category}
                         onChange={(e) => setFilter({ ...filter, category: e.target.value })}
-                        className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                        className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                      >
                         <option value="">All Categories</option>
                         <option value="infrastructure">Infrastructure</option>
@@ -362,7 +361,7 @@ const ReportsV2 = () => {
                      <button
                         onClick={() => fetchReports(true)}
                         disabled={refreshing}
-                        className="flex items-center gap-2 px-4 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-3 bg-emerald-50 text-primary rounded-xl hover:bg-emerald-100 transition-colors disabled:opacity-50"
                      >
                         <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
                         Refresh
@@ -374,9 +373,9 @@ const ReportsV2 = () => {
                <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
                   <div className="flex items-center gap-2 flex-wrap">
                      {filter.status && (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm">
                            Status: {filter.status}
-                           <button onClick={() => setFilter({ ...filter, status: "" })} className="ml-1 hover:text-blue-900">
+                           <button onClick={() => setFilter({ ...filter, status: "" })} className="ml-1 hover:text-emerald-900">
                               <X className="w-3 h-3" />
                            </button>
                         </span>
@@ -408,8 +407,8 @@ const ReportsV2 = () => {
             {loading && (
                <div className="flex flex-col items-center justify-center py-20">
                   <div className="relative">
-                     <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-pulse" />
-                     <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-blue-600 rounded-full animate-spin" />
+                     <div className="w-16 h-16 border-4 border-emerald-200 rounded-full animate-pulse" />
+                     <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-emerald-600 rounded-full animate-spin" />
                   </div>
                   <p className="mt-4 text-gray-500">Loading your reports...</p>
                </div>
@@ -464,23 +463,29 @@ const ReportsV2 = () => {
                            }}
                            className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-gray-200 transition-all cursor-pointer overflow-hidden"
                         >
-                           {/* Image Preview */}
-                           {report.images?.length > 0 && (
-                              <div className="relative h-44 overflow-hidden">
-                                 <img
-                                    src={report.images[0]}
-                                    alt=""
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                 />
-                                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                                 {report.images.length > 1 && (
-                                    <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-black/50 backdrop-blur-sm rounded-lg">
-                                       <Image className="w-3.5 h-3.5 text-white" />
-                                       <span className="text-xs text-white font-medium">+{report.images.length - 1}</span>
-                                    </div>
-                                 )}
-                              </div>
-                           )}
+                           {/* Image Preview or Placeholder */}
+                           <div className="relative h-44 overflow-hidden bg-gradient-to-br from-blue-100 to-blue-200">
+                              {report.images?.length > 0 ? (
+                                 <>
+                                    <img
+                                       src={report.images[0]}
+                                       alt=""
+                                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                                    {report.images.length > 1 && (
+                                       <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-black/50 backdrop-blur-sm rounded-lg">
+                                          <Image className="w-3.5 h-3.5 text-white" />
+                                          <span className="text-xs text-white font-medium">+{report.images.length - 1}</span>
+                                       </div>
+                                    )}
+                                 </>
+                              ) : (
+                                 <div className="w-full h-full flex items-center justify-center">
+                                    <ClipboardList className="w-20 h-20 text-blue-400" />
+                                 </div>
+                              )}
+                           </div>
 
                            <div className="p-5">
                               {/* Status & Priority */}
@@ -496,7 +501,7 @@ const ReportsV2 = () => {
                               </div>
 
                               {/* Title */}
-                              <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-emerald-600 transition-colors">
                                  {report.title}
                               </h3>
 
@@ -527,7 +532,7 @@ const ReportsV2 = () => {
                            </div>
 
                            {/* Hover Overlay */}
-                           <div className="absolute inset-0 border-2 border-transparent group-hover:border-blue-500/30 rounded-2xl pointer-events-none transition-colors" />
+                           <div className="absolute inset-0 border-2 border-transparent group-hover:border-emerald-500/30 rounded-2xl pointer-events-none transition-colors" />
                         </motion.div>
                      );
                   })}
@@ -562,7 +567,7 @@ const ReportsV2 = () => {
                                  className="w-full h-full object-cover"
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-                              
+
                               {/* View Gallery Button */}
                               <button
                                  onClick={() => openImageGallery(0)}
@@ -623,8 +628,8 @@ const ReportsV2 = () => {
                         {/* Info Grid */}
                         <div className="grid grid-cols-2 gap-4 mb-6">
                            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                              <div className="p-2 bg-blue-100 rounded-lg">
-                                 <Filter className="w-4 h-4 text-blue-600" />
+                              <div className="p-2 bg-emerald-100 rounded-lg">
+                                 <Filter className="w-4 h-4 text-primary" />
                               </div>
                               <div>
                                  <p className="text-xs text-gray-500">Category</p>
@@ -695,12 +700,12 @@ const ReportsV2 = () => {
 
                         {/* Admin Note / Assigned To */}
                         {selectedReport.assignedTo && (
-                           <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                              <div className="flex items-center gap-2 text-blue-700 mb-2">
+                           <div className="mt-6 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
+                              <div className="flex items-center gap-2 text-emerald-700 mb-2">
                                  <User className="w-4 h-4" />
                                  <span className="text-sm font-semibold">Assigned To</span>
                               </div>
-                              <p className="text-blue-900 font-medium">
+                              <p className="text-emerald-900 font-medium">
                                  {selectedReport.assignedTo.firstName} {selectedReport.assignedTo.lastName}
                               </p>
                            </div>
@@ -789,11 +794,10 @@ const ReportsV2 = () => {
                            <button
                               key={idx}
                               onClick={() => setCurrentImageIndex(idx)}
-                              className={`w-14 h-14 rounded-lg overflow-hidden transition-all ${
-                                 idx === currentImageIndex
-                                    ? "ring-2 ring-white scale-110"
-                                    : "opacity-60 hover:opacity-100"
-                              }`}
+                              className={`w-14 h-14 rounded-lg overflow-hidden transition-all ${idx === currentImageIndex
+                                 ? "ring-2 ring-white scale-110"
+                                 : "opacity-60 hover:opacity-100"
+                                 }`}
                            >
                               <img src={img} alt="" className="w-full h-full object-cover" />
                            </button>

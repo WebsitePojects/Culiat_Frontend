@@ -33,12 +33,12 @@ import {
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Reusable StatCard Component with Dropdown
-const StatCard = ({ 
-  title, 
-  value, 
-  change, 
-  trend = "up", 
-  icon: Icon, 
+const StatCard = ({
+  title,
+  value,
+  change,
+  trend = "up",
+  icon: Icon,
   color = "blue",
   onClick,
   dropdown,
@@ -82,7 +82,7 @@ const StatCard = ({
           <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg sm:rounded-xl bg-white/20 backdrop-blur-sm group-hover:scale-110 transition-transform">
             <Icon className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
           </div>
-          
+
           {dropdown && dropdownOptions.length > 0 && (
             <div className="relative">
               <button
@@ -98,15 +98,15 @@ const StatCard = ({
               {isOpen && (
                 <>
                   {/* Backdrop */}
-                  <div 
-                    className="fixed inset-0 z-40" 
+                  <div
+                    className="fixed inset-0 z-40"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsOpen(false);
                     }}
                   />
                   {/* Dropdown */}
-                  <div 
+                  <div
                     className="absolute right-0 top-full mt-1 w-32 sm:w-40 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 max-h-[160px] overflow-y-auto"
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -229,7 +229,7 @@ const ProgressBar = ({ label, value, total, color = "blue" }) => {
         <span className="font-semibold text-gray-900 dark:text-white">{value.toLocaleString()}</span>
       </div>
       <div className="h-1.5 sm:h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-        <div 
+        <div
           className={`h-full ${colorClasses[color]} transition-all duration-500 rounded-full`}
           style={{ width: `${percentage}%` }}
         ></div>
@@ -254,7 +254,7 @@ const DataTable = ({ title, columns, data, loading, emptyMessage, onViewAll }) =
           </button>
         )}
       </div>
-      
+
       {loading ? (
         <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
           {[1, 2, 3].map((i) => (
@@ -653,7 +653,7 @@ const AdminDashboard = () => {
         </div>
         <div className="absolute top-0 right-0 w-32 sm:w-48 md:w-64 h-32 sm:h-48 md:h-64 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-24 sm:w-32 md:w-48 h-24 sm:h-32 md:h-48 bg-cyan-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
-        
+
         <div className="relative z-10 flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 md:w-14 md:h-14 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
@@ -920,11 +920,10 @@ const AdminDashboard = () => {
               <button
                 key={item.area}
                 onClick={() => setSelectedArea(item.area)}
-                className={`p-2 sm:p-2.5 md:p-3 rounded-lg border transition-all ${
-                  selectedArea === item.area
+                className={`p-2 sm:p-2.5 md:p-3 rounded-lg border transition-all ${selectedArea === item.area
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
-                }`}
+                  }`}
               >
                 <p className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white">{item.count.toLocaleString()}</p>
                 <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-500 dark:text-gray-400 truncate">{item.area || "Unspecified"}</p>
@@ -1022,7 +1021,7 @@ const AdminDashboard = () => {
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center justify-end h-full">
                   <span className="text-[9px] sm:text-[10px] md:text-xs font-medium text-gray-900 dark:text-white mb-0.5 sm:mb-1">{item.count}</span>
-                  <div 
+                  <div
                     className="w-full bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-md transition-all duration-500 min-h-[8px]"
                     style={{ height: `${heightPx}px` }}
                   ></div>

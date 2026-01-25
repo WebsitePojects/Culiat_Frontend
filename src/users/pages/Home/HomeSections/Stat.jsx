@@ -74,7 +74,7 @@ const Stat = () => {
                       scale: 1.1,
                       transition: { duration: 0.4, ease: "easeInOut" },
                     }}
-                    className="w-12 h-12 sm:w-14 sm:h-14 bg-secondary rounded-full mx-auto mb-3 sm:mb-4 flex items-center justify-center"
+                    className="w-12 h-12 sm:w-14 sm:h-14 bg-primary rounded-full mx-auto mb-3 sm:mb-4 flex items-center justify-center"
                   >
                     <Icon
                       className="w-5 h-5 sm:w-6 sm:h-6 text-text-color-light"
@@ -124,7 +124,7 @@ const Stat = () => {
                       scale: 1.1,
                       transition: { duration: 0.4, ease: "easeInOut" },
                     }}
-                    className="w-16 h-16 bg-secondary rounded-full mx-auto mb-4 flex items-center justify-center"
+                    className="w-16 h-16 bg-primary rounded-full mx-auto mb-4 flex items-center justify-center"
                   >
                     <Icon
                       className="w-6 h-6 text-text-color-light"

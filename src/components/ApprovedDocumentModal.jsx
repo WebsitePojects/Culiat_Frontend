@@ -159,9 +159,9 @@ const ApprovedDocumentModal = ({ isOpen, onClose, approvedRequests = [] }) => {
             {/* Content */}
             <div className="p-6 space-y-4">
               {/* Info message */}
-              <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-blue-800 dark:text-blue-200">
+              <div className="flex items-start gap-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                <CheckCircle className="w-5 h-5 text-primary dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-emerald-800 dark:text-emerald-200">
                   {pendingPaymentRequests.length === 1
                     ? "Complete your payment to download your document."
                     : "Complete payments to download your approved documents."}
@@ -181,7 +181,7 @@ const ApprovedDocumentModal = ({ isOpen, onClose, approvedRequests = [] }) => {
                       className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center flex-shrink-0">
                           <FileText className="w-5 h-5 text-white" />
                         </div>
                         <div className="min-w-0">

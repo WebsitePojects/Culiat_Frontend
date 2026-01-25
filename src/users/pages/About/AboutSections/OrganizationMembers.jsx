@@ -52,7 +52,7 @@ const MemberCard = ({ member }) => {
       >
          <div className="relative h-full bg-white rounded-2xl shadow-sm group-hover:shadow-2xl border border-gray-100 overflow-hidden transition-shadow duration-300 flex flex-col">
             {/* Decorative Top Banner with Shine Effect */}
-            <div className="h-24 bg-gradient-to-r from-blue-900 to-blue-700 relative overflow-hidden">
+            <div className="h-24 bg-gradient-to-r from-emerald-700 to-emerald-500 relative overflow-hidden">
                {/* The Shine/Glint Animation */}
                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out skew-x-12" />
                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300" />
@@ -84,7 +84,7 @@ const MemberCard = ({ member }) => {
             {/* Content Body */}
             <div className="p-6 pt-3 text-center flex-grow flex flex-col justify-center relative z-10">
                <div>
-                  <h3 className="text-lg font-bold text-gray-800 leading-tight mb-1 group-hover:text-blue-800 transition-colors duration-300">
+                  <h3 className="text-lg font-bold text-gray-800 leading-tight mb-1 group-hover:text-emerald-700 transition-colors duration-300">
                      {fullName}
                   </h3>
                   {/* Position Text */}

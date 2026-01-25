@@ -2,7 +2,10 @@ import React from "react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 
-const ImageHover = () => {
+const ImageHover = ({ imageSrc, imageAlt = "Barangay Captain" }) => {
+  // Use provided image or fallback to default
+  const captainImage = imageSrc || "/images/brgy/captain-main.jpg";
+
   return (
     <div className="relative inline-block cursor-default">
       {/* Base Image */}
@@ -14,8 +17,8 @@ const ImageHover = () => {
       >
         <div className="relative rounded-xl overflow-hidden shadow-2xl max-h-[550px]">
           <img
-            src="/images/brgy/captain-main.jpg"
-            alt="Barangay Captain"
+            src={captainImage}
+            alt={imageAlt}
             className="w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>

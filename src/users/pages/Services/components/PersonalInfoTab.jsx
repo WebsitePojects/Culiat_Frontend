@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import DatePicker from "../../../../tailadminsrc/components/form/date-picker";
 
 export default function PersonalInfoTab({ formData, setField, errors, setErrors }) {

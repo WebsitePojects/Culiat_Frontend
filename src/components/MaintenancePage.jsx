@@ -7,7 +7,7 @@ const MaintenancePage = () => {
   const [showCountdown, setShowCountdown] = useState(true);
 
   // Get custom message from env
-  const customMessage = import.meta.env.VITE_MAINTENANCE_MESSAGE || 
+  const customMessage = import.meta.env.VITE_MAINTENANCE_MESSAGE ||
     "We're currently performing scheduled maintenance to improve your experience. Our system will be back online shortly. Thank you for your patience!";
 
   // Animated dots effect
@@ -27,7 +27,7 @@ const MaintenancePage = () => {
       // Parse environment variable date/time
       // Expected format: YYYY-MM-DD HH:MM or ISO string
       estimatedTime = new Date(endTimeEnv);
-      
+
       // Validate the date
       if (isNaN(estimatedTime.getTime())) {
         console.error("Invalid VITE_MAINTENANCE_END_TIME format. Using default 30 minutes.");
@@ -47,11 +47,11 @@ const MaintenancePage = () => {
       setShowCountdown(true);
       return;
     }
-    
+
     const interval = setInterval(() => {
       const now = new Date();
       const diff = estimatedTime - now;
-      
+
       if (diff <= 0) {
         setCountdown("Anytime now");
         clearInterval(interval);
@@ -59,7 +59,7 @@ const MaintenancePage = () => {
         const hours = Math.floor(diff / 3600000);
         const minutes = Math.floor((diff % 3600000) / 60000);
         const seconds = Math.floor((diff % 60000) / 1000);
-        
+
         if (hours > 0) {
           setCountdown(`${hours}h ${minutes}m ${seconds}s`);
         } else {
@@ -76,12 +76,12 @@ const MaintenancePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-3 sm:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-100 to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-3 sm:p-6">
       {/* Background Pattern */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 -right-32 w-56 h-56 sm:w-72 sm:h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute -top-32 -right-32 w-56 h-56 sm:w-72 sm:h-72 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
         <div className="absolute -bottom-32 -left-32 w-56 h-56 sm:w-72 sm:h-72 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-56 h-56 sm:w-72 sm:h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-56 h-56 sm:w-72 sm:h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
 
       {/* Main Content */}
@@ -90,8 +90,8 @@ const MaintenancePage = () => {
           {/* Icon Container */}
           <div className="flex justify-center mb-6 sm:mb-8">
             <div className="relative">
-              <div className="absolute inset-0 bg-blue-400 rounded-full blur-xl opacity-50 animate-pulse"></div>
-              <div className="relative bg-gradient-to-br from-blue-500 to-cyan-600 p-5 sm:p-6 rounded-full">
+              <div className="absolute inset-0 bg-emerald-400 rounded-full blur-xl opacity-50 animate-pulse"></div>
+              <div className="relative bg-gradient-to-br from-primary to-emerald-600 p-5 sm:p-6 rounded-full">
                 <Wrench className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-white animate-spin-slow" />
               </div>
             </div>
@@ -102,7 +102,7 @@ const MaintenancePage = () => {
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
               We'll Be Right Back
             </h1>
-            <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400">
+            <div className="flex items-center justify-center gap-2 text-primary dark:text-emerald-400">
               <AlertTriangle className="w-5 h-5" />
               <p className="text-lg sm:text-xl font-semibold">
                 System Under Maintenance{dots}
@@ -111,7 +111,7 @@ const MaintenancePage = () => {
           </div>
 
           {/* Description */}
-          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-gray-700 dark:to-gray-700 rounded-2xl p-5 sm:p-6 mb-6 sm:mb-8 border border-blue-100 dark:border-gray-600">
+          <div className="bg-gradient-to-r from-emerald-50 to-cyan-50 dark:from-gray-700 dark:to-gray-700 rounded-2xl p-5 sm:p-6 mb-6 sm:mb-8 border border-emerald-100 dark:border-gray-600">
             <p className="text-gray-700 dark:text-gray-300 text-center text-base sm:text-lg leading-relaxed">
               {customMessage}
             </p>
@@ -120,16 +120,16 @@ const MaintenancePage = () => {
           {/* Status Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 sm:mb-8">
             {/* Estimated Time */}
-            <div className="bg-blue-50 dark:bg-gray-700 rounded-xl p-4 sm:p-5 border border-blue-100 dark:border-gray-600">
+            <div className="bg-emerald-50 dark:bg-gray-700 rounded-xl p-4 sm:p-5 border border-emerald-100 dark:border-gray-600">
               <div className="flex items-start gap-3">
-                <div className="bg-blue-500 p-2 rounded-lg">
+                <div className="bg-emerald-500 p-2 rounded-lg">
                   <Clock className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                     Estimated Time
                   </p>
-                  <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  <p className="text-xl sm:text-2xl font-bold text-primary dark:text-emerald-400">
                     {countdown || "Calculating..."}
                   </p>
                 </div>
@@ -164,7 +164,7 @@ const MaintenancePage = () => {
                 </p>
                 <a
                   href="mailto:brgy.culiat@yahoo.com"
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                  className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
                 >
                   brgy.culiat@yahoo.com
                 </a>
@@ -176,7 +176,7 @@ const MaintenancePage = () => {
           <div className="text-center">
             <button
               onClick={handleRefresh}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold px-6 sm:px-8 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-sm sm:text-base"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-emerald-600 hover:from-primary-dark hover:to-emerald-700 text-white font-semibold px-6 sm:px-8 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-sm sm:text-base"
             >
               <RefreshCcw className="w-5 h-5" />
               Check Status
@@ -194,7 +194,7 @@ const MaintenancePage = () => {
         {/* Additional Info Cards */}
         <div className="mt-4 sm:mt-6 hidden sm:grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
           <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-gray-200 dark:border-gray-700">
-            <p className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+            <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">
               99.9%
             </p>
             <p className="text-xs text-gray-600 dark:text-gray-400">

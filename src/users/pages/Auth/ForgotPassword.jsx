@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, Mail, Loader2 } from 'lucide-react';
+import { ArrowLeft, Mail, Loader2, Info } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -71,7 +71,7 @@ const ForgotPassword = () => {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border"
+                    className="focus:ring-emerald-500 focus:border-emerald-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -81,7 +81,7 @@ const ForgotPassword = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
                 >
                   {loading ? (
                     <>
@@ -106,7 +106,7 @@ const ForgotPassword = () => {
               <div className="mt-6">
                 <button
                   onClick={() => setEmailSent(false)}
-                  className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                  className="text-sm font-medium text-emerald-600 hover:text-emerald-500"
                 >
                   Resend email
                 </button>
@@ -125,10 +125,27 @@ const ForgotPassword = () => {
             </div>
 
             <div className="mt-6 text-center">
-              <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500 flex items-center justify-center gap-2">
+              <Link to="/login" className="font-medium text-emerald-600 hover:text-emerald-500 flex items-center justify-center gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 Back to login
               </Link>
+            </div>
+          </div>
+
+          {/* Contact Barangay Note */}
+          <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex gap-3">
+              <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-amber-800 font-medium">
+                  Unable to access your email?
+                </p>
+                <p className="text-sm text-amber-700 mt-1">
+                  Please visit <strong>Barangay Culiat Hall</strong> personally or contact us at{' '}
+                  <a href="tel:+639625821531" className="text-amber-800 underline font-medium">+63 962-582-1531</a>{' '}
+                  for password assistance.
+                </p>
+              </div>
             </div>
           </div>
         </div>

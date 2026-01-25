@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import MaintenancePage from "./components/MaintenancePage";
+import MaintenanceGuard from "./components/MaintenanceGuard";
 import BypassForm from "./components/BypassForm";
 import ProfileWarningModal from "./components/ProfileWarningModal";
 import ApprovedDocumentModal from "./components/ApprovedDocumentModal";
@@ -53,6 +54,7 @@ import ProfileUpdates from "./admin/pages/ProfileUpdates/ProfileUpdates";
 import ResidentAuth from "./users/pages/Auth/ResidentAuth";
 import Profile from "./users/pages/Profile/Profile";
 import Achievements from "./users/pages/Achievements/Achievements";
+import AchievementDetail from "./users/pages/Achievements/AchievementDetail";
 import ForgotPassword from "./users/pages/Auth/ForgotPassword";
 import ResetPassword from "./users/pages/Auth/ResetPassword";
 import PaymentPage from "./users/pages/Payment/PaymentPage";
@@ -176,19 +178,18 @@ function App() {
       </MainLayout>
     ), []);
 
-  // Check if maintenance mode is enabled
+  // Check if maintenance mode is enabled via environment variable
   const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE === 'true';
 
-  // If maintenance mode is active and not on bypass page, show maintenance page
-  if (isMaintenanceMode && !maintenanceBypassActive && pathname !== '/bypass') {
-    return <MaintenancePage />;
-  }
+  // Note: Maintenance page display is now handled by MaintenanceGuard inside AuthProvider
+  // This allows admins to bypass maintenance mode when logged in
 
   return (
     <>
       <AuthProvider>
-        <ScrollToTop />
-        <ToastDismissWrapper>
+        <MaintenanceGuard isMaintenanceMode={isMaintenanceMode} maintenanceBypassActive={maintenanceBypassActive || pathname === '/bypass'}>
+          <ScrollToTop />
+          <ToastDismissWrapper>
         {/* Toast Notifications */}
         <Toaster
           position="top-right"
@@ -406,6 +407,14 @@ function App() {
             }
           />
           <Route
+            path="/achievements/:id"
+            element={
+              <MainLayout>
+                <AchievementDetail />
+              </MainLayout>
+            }
+          />
+          <Route
             path="/services/"
             element={
               <PrivateRoute>
@@ -449,8 +458,9 @@ function App() {
 
           {/* Catch-all route for 404 Not Found */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
-        </ToastDismissWrapper>
+          </Routes>
+          </ToastDismissWrapper>
+        </MaintenanceGuard>
       </AuthProvider>
     </>
   );

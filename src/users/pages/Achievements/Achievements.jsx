@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
-import { Trophy, Calendar, Award, Handshake, Filter, Search, X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
+import { Trophy, Calendar, Award, Handshake, Filter, Search, X, ZoomIn, Image } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Achievements = () => {
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedAchievement, setSelectedAchievement] = useState(null);
-  const [imageGalleryOpen, setImageGalleryOpen] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -37,6 +36,28 @@ const Achievements = () => {
     return achievement.image.includes("http")
       ? achievement.image
       : `${API_URL}/uploads/achievements/${achievement.image}`;
+  };
+  
+  // Helper function to get all images for an achievement
+  const getAllImages = (achievement) => {
+    if (!achievement) return [];
+    const images = [];
+    
+    // Add images array if exists
+    if (achievement.images && achievement.images.length > 0) {
+      achievement.images.forEach(img => {
+        const url = img.includes("http") ? img : `${API_URL}/uploads/achievements/${img}`;
+        images.push(url);
+      });
+    } else if (achievement.image && achievement.image !== "no-photo.jpg") {
+      // Fallback to single image
+      const url = achievement.image.includes("http") 
+        ? achievement.image 
+        : `${API_URL}/uploads/achievements/${achievement.image}`;
+      images.push(url);
+    }
+    
+    return images;
   };
 
   const filteredAchievements = useMemo(() => {
@@ -99,7 +120,10 @@ const Achievements = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="relative bg-gradient-to-br from-[#1e3a8a] via-[#3b82f6] to-[#60a5fa] text-white overflow-hidden"
+        className="relative text-white overflow-hidden"
+        style={{
+           background: "linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 50%, var(--color-primary-glow) 100%)",
+        }}
       >
         {/* Decorative Background Pattern */}
         <div className="absolute inset-0 opacity-10">
@@ -182,7 +206,7 @@ const Achievements = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search achievements..."
-                className="w-full pl-12 pr-10 py-3 text-sm border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all"
+                className="w-full pl-12 pr-10 py-3 text-sm border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 focus:border-transparent focus:bg-white transition-all"
               />
               {searchTerm && (
                 <button
@@ -209,7 +233,7 @@ const Achievements = () => {
                     whileTap={{ scale: 0.98 }}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                       activeCategory === category
-                        ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                        ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                   >
@@ -232,7 +256,7 @@ const Achievements = () => {
                   setSearchTerm("");
                   setActiveCategory("All");
                 }}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium hover:underline"
               >
                 Clear filters
               </button>
@@ -245,7 +269,7 @@ const Achievements = () => {
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
           </div>
         ) : (
           <motion.div 
@@ -257,56 +281,68 @@ const Achievements = () => {
             {filteredAchievements.map((achievement) => {
               const imageUrl = getImageUrl(achievement);
               const categoryConfig = getCategoryConfig(achievement.category);
+              const allImages = getAllImages(achievement);
               
               return (
                 <motion.div
                   key={achievement._id}
                   variants={fadeUp}
                   whileHover={{ y: -8 }}
-                  onClick={() => setSelectedAchievement(achievement)}
-                  className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100"
+                  className="group"
                 >
-                  <div className="h-56 bg-gray-100 relative overflow-hidden">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={achievement.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-                        <Trophy size={64} className="text-blue-300" />
+                  <Link
+                    to={`/achievements/${achievement._id}`}
+                    className="block bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100"
+                  >
+                    <div className="h-56 bg-gray-100 relative overflow-hidden">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={achievement.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-emerald-100">
+                          <Trophy size={64} className="text-emerald-300" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className={`absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5 ${categoryConfig.color}`}>
+                        {getCategoryIcon(achievement.category)}
+                        {achievement.category}
                       </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className={`absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5 ${categoryConfig.color}`}>
-                      {getCategoryIcon(achievement.category)}
-                      {achievement.category}
-                    </div>
-                    {/* View Overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium text-gray-900 shadow-lg">
-                        <ZoomIn className="w-4 h-4" />
-                        View Details
+                      {/* Multiple Images Indicator */}
+                      {allImages.length > 1 && (
+                        <div className="absolute bottom-4 left-4 flex items-center gap-1.5 px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+                          <Image className="w-3 h-3" />
+                          {allImages.length} Photos
+                        </div>
+                      )}
+                      {/* View Overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full text-sm font-medium text-gray-900 shadow-lg">
+                          <ZoomIn className="w-4 h-4" />
+                          View Details
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center text-gray-500 text-xs mb-3">
-                      <Calendar size={14} className="mr-1.5" />
-                      {new Date(achievement.date).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                    <div className="p-6">
+                      <div className="flex items-center text-gray-500 text-xs mb-3">
+                        <Calendar size={14} className="mr-1.5" />
+                        {new Date(achievement.date).toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                        {achievement.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed">
+                        {achievement.description || "No description available"}
+                      </p>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                      {achievement.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed">
-                      {achievement.description || "No description available"}
-                    </p>
-                  </div>
+                  </Link>
                 </motion.div>
               );
             })}
@@ -319,8 +355,8 @@ const Achievements = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-16 bg-white rounded-2xl shadow-lg border border-gray-100"
           >
-            <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-              <Trophy className="text-blue-400 w-10 h-10" />
+            <div className="bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+              <Trophy className="text-emerald-400 w-10 h-10" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No achievements found</h3>
             <p className="text-gray-500 mb-4">
@@ -332,7 +368,7 @@ const Achievements = () => {
                   setSearchTerm("");
                   setActiveCategory("All");
                 }}
-                className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors"
               >
                 Clear all filters
               </button>
@@ -340,144 +376,6 @@ const Achievements = () => {
           </motion.div>
         )}
       </div>
-
-      {/* View Achievement Modal */}
-      <AnimatePresence>
-        {selectedAchievement && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-            onClick={() => setSelectedAchievement(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.2 }}
-              className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden my-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Modal Header with Image */}
-              <div className="relative">
-                {getImageUrl(selectedAchievement) ? (
-                  <div className="relative h-48 md:h-72 overflow-hidden">
-                    <img
-                      src={getImageUrl(selectedAchievement)}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
-                    
-                    {/* View Full Image Button */}
-                    <button
-                      onClick={() => setImageGalleryOpen(true)}
-                      className="absolute bottom-4 right-4 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-sm font-medium text-gray-900 hover:bg-white transition-colors shadow-lg"
-                    >
-                      <ZoomIn className="w-4 h-4" />
-                      View Full Image
-                    </button>
-                  </div>
-                ) : (
-                  <div className="h-32 bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                    <Trophy className="w-16 h-16 text-white/30" />
-                  </div>
-                )}
-
-                <button
-                  onClick={() => setSelectedAchievement(null)}
-                  className="absolute top-4 right-4 p-2 bg-black/30 backdrop-blur-sm text-white rounded-full hover:bg-black/50 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Modal Content */}
-              <div className="p-6 md:p-8 overflow-y-auto max-h-[calc(90vh-18rem)]">
-                {/* Category Badge */}
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold mb-4 ${getCategoryConfig(selectedAchievement.category).color}`}>
-                  {getCategoryIcon(selectedAchievement.category)}
-                  {selectedAchievement.category}
-                </div>
-
-                {/* Title */}
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                  {selectedAchievement.title}
-                </h2>
-
-                {/* Date */}
-                <div className="flex items-center gap-2 text-gray-500 text-sm mb-6">
-                  <Calendar className="w-4 h-4" />
-                  {new Date(selectedAchievement.date).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </div>
-
-                {/* Description */}
-                <div className="prose prose-gray max-w-none">
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {selectedAchievement.description || "No description available for this achievement."}
-                  </p>
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="p-4 md:p-6 border-t border-gray-100 bg-gray-50 flex justify-end">
-                <button
-                  onClick={() => setSelectedAchievement(null)}
-                  className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
-                >
-                  Close
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Full Screen Image Gallery */}
-      <AnimatePresence>
-        {imageGalleryOpen && selectedAchievement && getImageUrl(selectedAchievement) && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[300] bg-black flex items-center justify-center"
-            onClick={() => setImageGalleryOpen(false)}
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setImageGalleryOpen(false)}
-              className="absolute top-4 right-4 z-10 p-3 bg-white/10 backdrop-blur-sm text-white rounded-full hover:bg-white/20 transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            {/* Image Title */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 bg-white/10 backdrop-blur-sm text-white text-sm rounded-full max-w-xs md:max-w-md truncate">
-              {selectedAchievement.title}
-            </div>
-
-            {/* Main Image */}
-            <motion.div 
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              className="relative w-full h-full flex items-center justify-center p-8 md:p-16"
-            >
-              <img
-                src={getImageUrl(selectedAchievement)}
-                alt=""
-                className="max-w-full max-h-full object-contain"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

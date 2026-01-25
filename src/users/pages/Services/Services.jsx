@@ -648,8 +648,8 @@ export default function Services() {
       console.error("Submit error:", error);
       setErrorMessage(
         error.response?.data?.message ||
-          error.response?.data?.error ||
-          "Failed to submit request. Please try again."
+        error.response?.data?.error ||
+        "Failed to submit request. Please try again."
       );
       setShowError(true);
       setTimeout(() => setShowError(false), 5000);
@@ -671,7 +671,7 @@ export default function Services() {
         className="relative text-white overflow-hidden"
         style={{
           background:
-            "linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-glow) 100%)",
+            "linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 50%, var(--color-primary-glow) 100%)",
         }}
       >
         {/* Decorative Background Pattern */}
@@ -835,16 +835,16 @@ export default function Services() {
               {/* Content */}
               <div className="p-6 space-y-4">
                 {/* Processing time info */}
-                <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-800 flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-start gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-5 h-5 text-primary dark:text-emerald-400" />
                   </div>
                   <div>
-                    <p className="font-semibold text-blue-900 dark:text-blue-100 text-sm">
+                    <p className="font-semibold text-emerald-900 dark:text-emerald-100 text-sm">
                       Processing Time
                     </p>
-                    <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                      Your request will be reviewed within <strong>1-3 business days</strong>. 
+                    <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-1">
+                      Your request will be reviewed within <strong>1-3 business days</strong>.
                       We'll process it as quickly as possible.
                     </p>
                   </div>
@@ -860,7 +860,7 @@ export default function Services() {
                       Stay Updated
                     </p>
                     <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                      Once your request is <strong>approved</strong>, you'll see a notification 
+                      Once your request is <strong>approved</strong>, you'll see a notification
                       when you log in. Keep checking the website for updates!
                     </p>
                   </div>
@@ -943,10 +943,10 @@ export default function Services() {
                 <div className="relative inline-block">
                   {/* Animated spinner rings */}
                   <div className="w-16 h-16 sm:w-20 sm:h-20 relative">
-                    <div className="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
-                    <div className="absolute inset-0 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 border-4 border-emerald-200 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
                     <div
-                      className="absolute inset-2 border-4 border-transparent border-t-blue-400 rounded-full animate-spin"
+                      className="absolute inset-2 border-4 border-transparent border-t-emerald-400 rounded-full animate-spin"
                       style={{
                         animationDuration: "1.5s",
                         animationDirection: "reverse",
@@ -964,15 +964,15 @@ export default function Services() {
                   </p>
                   <div className="flex items-center justify-center gap-1 mt-3 sm:mt-4">
                     <div
-                      className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                      className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce"
                       style={{ animationDelay: "0ms" }}
                     ></div>
                     <div
-                      className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                      className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce"
                       style={{ animationDelay: "150ms" }}
                     ></div>
                     <div
-                      className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                      className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce"
                       style={{ animationDelay: "300ms" }}
                     ></div>
                   </div>
@@ -998,33 +998,30 @@ export default function Services() {
                       <React.Fragment key={t.id}>
                         <div className="flex flex-col items-center flex-shrink-0">
                           <div
-                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all ${
-                              isCompleted
-                                ? "bg-green-500 text-white"
-                                : isCurrent
-                                ? "bg-[var(--color-secondary)] text-white ring-2 sm:ring-4 ring-[var(--color-secondary)]/20"
+                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all ${isCompleted
+                              ? "bg-green-500 text-white"
+                              : isCurrent
+                                ? "bg-emerald-600 text-white ring-2 sm:ring-4 ring-emerald-600/20"
                                 : "bg-gray-200 text-gray-500"
-                            }`}
+                              }`}
                           >
                             {isCompleted ? "✓" : t.step}
                           </div>
                           <span
-                            className={`text-[10px] sm:text-xs mt-1 font-medium text-center max-w-[60px] sm:max-w-none ${
-                              isCurrent
-                                ? "text-[var(--color-secondary)]"
-                                : "text-gray-500"
-                            }`}
+                            className={`text-[10px] sm:text-xs mt-1 font-medium text-center max-w-[60px] sm:max-w-none ${isCurrent
+                              ? "text-emerald-600"
+                              : "text-gray-500"
+                              }`}
                           >
                             {t.label.replace(/^\d+\.\s*/, "")}
                           </span>
                         </div>
                         {index < arr.length - 1 && (
                           <div
-                            className={`w-8 sm:w-16 md:w-24 h-1 mx-1 sm:mx-2 rounded flex-shrink-0 ${
-                              t.step < currentStep
-                                ? "bg-green-500"
-                                : "bg-gray-200"
-                            }`}
+                            className={`w-8 sm:w-16 md:w-24 h-1 mx-1 sm:mx-2 rounded flex-shrink-0 ${t.step < currentStep
+                              ? "bg-green-500"
+                              : "bg-gray-200"
+                              }`}
                           />
                         )}
                       </React.Fragment>
@@ -1050,15 +1047,14 @@ export default function Services() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     transition={{ duration: 0.2 }}
-                    className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${
-                      isActive
-                        ? isMyRequests
-                          ? "bg-blue-600 text-white shadow-md"
-                          : "bg-[var(--color-secondary)] text-white shadow-md"
-                        : isMyRequests
-                        ? "bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200"
+                    className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-all ${isActive
+                      ? isMyRequests
+                        ? "bg-primary text-white shadow-md"
+                        : "bg-emerald-600 text-white shadow-md"
+                      : isMyRequests
+                        ? "bg-emerald-50 text-primary hover:bg-emerald-100 border border-emerald-200"
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
+                      }`}
                     role="tab"
                     aria-selected={isActive}
                   >
@@ -1192,7 +1188,7 @@ export default function Services() {
                       }
                       setActive("personal");
                     }}
-                    className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold bg-[var(--color-secondary)] text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm sm:text-base"
+                    className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     Next Step <span>→</span>
                   </button>
@@ -1202,7 +1198,7 @@ export default function Services() {
                   <button
                     type="button"
                     onClick={() => setActive("files")}
-                    className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold bg-[var(--color-secondary)] text-white hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm sm:text-base"
+                    className="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     Next Step <span>→</span>
                   </button>

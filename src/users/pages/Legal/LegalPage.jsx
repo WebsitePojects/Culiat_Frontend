@@ -68,9 +68,9 @@ const LegalPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-16 sm:pt-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pt-16 sm:pt-20">
       {/* Header */}
-      <div className="bg-gradient-to-r from-secondary via-secondary/95 to-secondary/90 text-white">
+      <div className="bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-500 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -118,7 +118,7 @@ const LegalPage = () => {
                   onClick={() => handleTabChange(tab.id)}
                   className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-medium transition-all duration-300 whitespace-nowrap text-sm sm:text-base ${
                     activeTab === tab.id
-                      ? "bg-secondary text-white shadow-lg shadow-secondary/25"
+                      ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/25"
                       : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
                 >
@@ -143,7 +143,7 @@ const LegalPage = () => {
       </div>
 
       {/* Contact Section */}
-      <div className="bg-gradient-to-r from-secondary/5 via-secondary/10 to-secondary/5 dark:from-secondary/10 dark:via-secondary/20 dark:to-secondary/10 border-t border-gray-200 dark:border-gray-700">
+      <div className="bg-gradient-to-r from-emerald-50 via-emerald-100/50 to-emerald-50 dark:from-emerald-900/10 dark:via-emerald-900/20 dark:to-emerald-900/10 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           <motion.div
             initial="hidden"
@@ -171,14 +171,14 @@ const LegalPage = () => {
             >
               <a
                 href="mailto:brgy.culiat@yahoo.com"
-                className="flex items-center gap-2 text-secondary hover:text-secondary/80 transition-colors text-sm sm:text-base"
+                className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-colors text-sm sm:text-base"
               >
                 <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>brgy.culiat@yahoo.com</span>
               </a>
               <a
                 href="tel:+639625821531"
-                className="flex items-center gap-2 text-secondary hover:text-secondary/80 transition-colors text-sm sm:text-base"
+                className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-colors text-sm sm:text-base"
               >
                 <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>+63 962-582-1531</span>
@@ -327,8 +327,8 @@ const PrivacyPolicy = () => {
             className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700"
           >
             <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <div className="p-2.5 sm:p-3 bg-secondary/10 rounded-xl sm:rounded-2xl flex-shrink-0">
-                <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />
+              <div className="p-2.5 sm:p-3 bg-emerald-100 rounded-xl sm:rounded-2xl flex-shrink-0">
+                <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
               </div>
               <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
                 {section.title}
@@ -351,10 +351,10 @@ const PrivacyPolicy = () => {
       })}
 
       {/* Data Retention */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-blue-100 dark:border-blue-800">
+      <div className="bg-gradient-to-br from-emerald-50 to-indigo-50 dark:from-emerald-900/20 dark:to-indigo-900/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-emerald-100 dark:border-emerald-800">
         <div className="flex items-start gap-3 sm:gap-4">
-          <div className="p-2.5 sm:p-3 bg-blue-500/10 rounded-xl sm:rounded-2xl flex-shrink-0">
-            <Database className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+          <div className="p-2.5 sm:p-3 bg-emerald-500/10 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <Database className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
           </div>
           <div>
             <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
@@ -491,8 +491,8 @@ const TermsConditions = () => {
             className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700"
           >
             <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <div className="p-2.5 sm:p-3 bg-secondary/10 rounded-xl sm:rounded-2xl flex-shrink-0">
-                <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-secondary" />
+              <div className="p-2.5 sm:p-3 bg-emerald-100 rounded-xl sm:rounded-2xl flex-shrink-0">
+                <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
               </div>
               <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
                 {section.title}
@@ -503,7 +503,7 @@ const TermsConditions = () => {
                 <ul className="space-y-2 sm:space-y-3">
                   {section.content.map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2 sm:gap-3">
-                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0 mt-0.5" />
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
                       <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
                         {item}
                       </span>
@@ -572,13 +572,13 @@ const TermsConditions = () => {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div className="flex items-center gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
-            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
+            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 flex-shrink-0" />
             <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
               467 Tandang Sora Ave, Quezon City
             </span>
           </div>
           <div className="flex items-center gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
-            <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-secondary flex-shrink-0" />
+            <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 flex-shrink-0" />
             <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
               brgy.culiat@yahoo.com
             </span>

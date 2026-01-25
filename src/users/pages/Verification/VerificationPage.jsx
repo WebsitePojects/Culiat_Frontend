@@ -56,7 +56,7 @@ const VerificationPage = () => {
 
       try {
         setVerificationStatus('loading');
-        
+
         const response = await fetch(`${API_URL}/api/verify/${token}`);
         const data = await response.json();
 
@@ -110,7 +110,7 @@ const VerificationPage = () => {
   // Loading State
   if (verificationStatus === 'loading') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-primary via-primary-dark to-neutral-dark flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -121,7 +121,7 @@ const VerificationPage = () => {
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
             className="w-16 h-16 mx-auto mb-6"
           >
-            <Loader2 className="w-16 h-16 text-blue-600" />
+            <Loader2 className="w-16 h-16 text-primary" />
           </motion.div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Verifying Document</h2>
           <p className="text-gray-600">Please wait while we verify your document...</p>
@@ -145,7 +145,7 @@ const VerificationPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="mb-4"
           >
-            <Link 
+            <Link
               to="/"
               className="inline-flex items-center gap-2 text-white/90 hover:text-white transition-colors text-sm font-medium"
             >
@@ -161,14 +161,14 @@ const VerificationPage = () => {
             className="bg-white rounded-3xl overflow-hidden shadow-2xl"
           >
             {/* Success Header */}
-            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-6 relative overflow-hidden">
+            <div className={`${documentData.isExpired ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-emerald-500 to-teal-500'} p-6 relative overflow-hidden`}>
               {/* Background Pattern */}
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute inset-0" style={{
                   backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                 }} />
               </div>
-              
+
               <div className="relative flex items-center gap-4">
                 <motion.div
                   initial={{ scale: 0 }}
@@ -180,10 +180,12 @@ const VerificationPage = () => {
                 </motion.div>
                 <div>
                   <h1 className="text-2xl font-bold text-white">
-                    Document Verified ✓
+                    {documentData.isExpired ? 'Document Expired' : 'Document Verified ✓'}
                   </h1>
                   <p className="text-white/90 text-sm">
-                    This document is authentic and officially issued
+                    {documentData.isExpired
+                      ? 'This document has passed its validity period'
+                      : 'This document is authentic and officially issued'}
                   </p>
                 </div>
               </div>
@@ -191,13 +193,35 @@ const VerificationPage = () => {
 
             {/* Document Details */}
             <div className="p-6 space-y-5">
+              {/* Expired Document Warning */}
+              {documentData.isExpired && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-red-50 border-2 border-red-200 rounded-2xl p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <XCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-red-700 font-bold text-lg">This Document Has Expired</h3>
+                      <p className="text-red-600 text-sm mt-1">
+                        This document expired on <span className="font-semibold">{formatDate(documentData.expirationDate)}</span>. 
+                        Please request a new document from Barangay Culiat.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Document Type Badge */}
               <div className="flex items-center justify-center">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full"
+                  className={`inline-flex items-center gap-2 ${documentData.isExpired ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'} px-4 py-2 rounded-full`}
                 >
                   <Award className="w-5 h-5" />
                   <span className="font-semibold">{documentData.documentTypeLabel}</span>
@@ -209,10 +233,10 @@ const VerificationPage = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-200"
+                className={`${documentData.isExpired ? 'bg-gradient-to-r from-red-50 to-red-100 border-red-200' : 'bg-gradient-to-r from-emerald-50 to-emerald-100 border-primary/20'} rounded-2xl p-4 border`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                  <div className={`w-12 h-12 ${documentData.isExpired ? 'bg-red-500' : 'bg-primary'} rounded-xl flex items-center justify-center`}>
                     <Hash className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -257,16 +281,34 @@ const VerificationPage = () => {
                     </div>
                   </div>
 
-                  {/* Status */}
+                  {/* Status / Expiration Grid */}
                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
-                        <CheckCircle2 className="w-5 h-5 text-white" />
+                    <div className="flex flex-col sm:flex-row gap-4 justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 ${documentData.isExpired ? 'bg-red-500' : 'bg-emerald-500'} rounded-lg flex items-center justify-center`}>
+                          {documentData.isExpired ? <XCircle className="w-5 h-5 text-white" /> : <CheckCircle2 className="w-5 h-5 text-white" />}
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs font-medium">Status</p>
+                          <p className={`${documentData.isExpired ? 'text-red-600' : 'text-emerald-600'} font-semibold text-sm capitalize`}>
+                            {documentData.isExpired ? 'EXPIRED' : documentData.status}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-gray-500 text-xs font-medium">Status</p>
-                        <p className="text-emerald-600 font-semibold text-sm capitalize">{documentData.status}</p>
-                      </div>
+
+                      {documentData.expirationDate && (
+                        <div className="flex items-center gap-3 border-t sm:border-t-0 sm:border-l border-gray-200 pt-3 sm:pt-0 sm:pl-4">
+                          <div className={`w-10 h-10 ${documentData.isExpired ? 'bg-red-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center`}>
+                            <Clock className={`w-5 h-5 ${documentData.isExpired ? 'text-red-600' : 'text-emerald-600'}`} />
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs font-medium">Valid Until</p>
+                            <p className={`${documentData.isExpired ? 'text-red-600 font-bold' : 'text-gray-900 font-medium'} text-sm`}>
+                              {formatDate(documentData.expirationDate)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -326,7 +368,7 @@ const VerificationPage = () => {
                   className="bg-slate-100 rounded-2xl p-4 border border-slate-200"
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <Shield className="w-5 h-5 text-blue-600" />
+                    <Shield className="w-5 h-5 text-secondary" />
                     <h3 className="text-gray-800 font-semibold text-sm">Issuing Authority</h3>
                   </div>
                   <div className="grid gap-2 text-sm">
@@ -341,7 +383,7 @@ const VerificationPage = () => {
                     {issuerData.website && (
                       <div className="flex items-center gap-2 text-gray-700">
                         <Globe className="w-4 h-4 text-gray-500" />
-                        <a href={issuerData.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        <a href={issuerData.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                           {issuerData.website.replace('https://', '')}
                         </a>
                       </div>
@@ -368,7 +410,7 @@ const VerificationPage = () => {
                   <div>
                     <p className="text-emerald-700 font-semibold text-sm mb-1">Digital Authentication</p>
                     <p className="text-emerald-600 text-xs leading-relaxed">
-                      {verificationInfo?.securityNote || 
+                      {verificationInfo?.securityNote ||
                         'This document has been digitally verified through the Barangay Culiat Document Verification System.'}
                     </p>
                   </div>
@@ -467,7 +509,7 @@ const VerificationPage = () => {
         <p className="text-gray-600 mb-6">
           {error || 'We could not verify this document. It may not exist or the QR code may be invalid.'}
         </p>
-        
+
         <div className="space-y-4">
           <p className="text-gray-500 text-sm">
             If you believe this is an error, please contact <span className="font-medium text-gray-700">Barangay Culiat</span> with your document details.

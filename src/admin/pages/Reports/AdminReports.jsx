@@ -640,23 +640,29 @@ const AdminReports = () => {
                   />
                 </div>
 
-                {/* Image Preview */}
-                {report.images?.length > 0 && (
-                  <div className="relative h-28 sm:h-32 md:h-40 overflow-hidden rounded-t-lg md:rounded-t-xl">
-                    <img
-                      src={report.images[0]}
-                      alt=""
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    {report.images.length > 1 && (
-                      <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-md flex items-center gap-1">
-                        <Image className="w-3 h-3 text-white" />
-                        <span className="text-xs text-white font-medium">+{report.images.length - 1}</span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                  </div>
-                )}
+                {/* Image Preview or Placeholder */}
+                <div className="relative h-28 sm:h-32 md:h-40 overflow-hidden rounded-t-lg md:rounded-t-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/20 dark:to-blue-800/20">
+                  {report.images?.length > 0 ? (
+                    <>
+                      <img
+                        src={report.images[0]}
+                        alt=""
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      {report.images.length > 1 && (
+                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-md flex items-center gap-1">
+                          <Image className="w-3 h-3 text-white" />
+                          <span className="text-xs text-white font-medium">+{report.images.length - 1}</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <FileText className="w-12 h-12 md:w-16 md:h-16 text-blue-400 dark:text-blue-500" />
+                    </div>
+                  )}
+                </div>
 
                 <div className="p-3 md:p-4">
                   {/* Header */}

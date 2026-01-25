@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, memo } from 'react';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import {
-  FileText, ChevronDown, ChevronUp, Upload, Loader2, CheckCircle, 
+  FileText, ChevronDown, ChevronUp, Upload, Loader2, CheckCircle,
   User, Users, Heart, AlertCircle, FileSignature
 } from 'lucide-react';
 
@@ -20,7 +20,7 @@ const InputField = memo(({ label, name, value, onChange, type = 'text', required
           name={name}
           value={value || ''}
           onChange={onChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
           required={required}
         >
           <option value="">Select...</option>
@@ -31,7 +31,7 @@ const InputField = memo(({ label, name, value, onChange, type = 'text', required
       </div>
     );
   }
-  
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -42,7 +42,7 @@ const InputField = memo(({ label, name, value, onChange, type = 'text', required
         name={name}
         value={value || ''}
         onChange={onChange}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
         placeholder={placeholder}
         required={required}
       />
@@ -60,7 +60,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [documentFile, setDocumentFile] = useState(null);
   const [filePreview, setFilePreview] = useState(existingData?.documentUrl || null);
-  
+
   // Collapsible section states
   const [sections, setSections] = useState({
     certificate: true,
@@ -79,7 +79,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
     placeIssued: '',
     province: '',
     cityMunicipality: '',
-    
+
     // Your Information (the registered person)
     yourInfo: {
       firstName: '',
@@ -96,7 +96,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
       birthOrder: '',
       birthWeight: '',
     },
-    
+
     // Mother's Information
     mother: {
       maidenName: {
@@ -120,7 +120,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
       childrenStillLiving: '',
       childrenNowDead: '',
     },
-    
+
     // Father's Information
     father: {
       name: {
@@ -141,7 +141,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
         country: 'Philippines',
       },
     },
-    
+
     // Parents Marriage
     parentsMarriage: {
       dateOfMarriage: '',
@@ -151,7 +151,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
         country: 'Philippines',
       },
     },
-    
+
     // Remarks
     remarks: '',
   });
@@ -193,22 +193,22 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
   // Handle input change with nested object support
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
-    
+
     setFormData(prev => {
       const keys = name.split('.');
       if (keys.length === 1) {
         return { ...prev, [name]: value };
       }
-      
+
       // Deep clone and update nested value
       const newData = JSON.parse(JSON.stringify(prev));
       let current = newData;
-      
+
       for (let i = 0; i < keys.length - 1; i++) {
         if (!current[keys[i]]) current[keys[i]] = {};
         current = current[keys[i]];
       }
-      
+
       current[keys[keys.length - 1]] = value;
       return newData;
     });
@@ -233,7 +233,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
         return;
       }
       setDocumentFile(file);
-      
+
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onloadend = () => setFilePreview(reader.result);
@@ -247,13 +247,13 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
   // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (!formData.certificateNumber || !formData.registryNumber) {
       toast.error('Certificate Number and Registry Number are required');
       return;
     }
-    
+
     if (!documentFile && !filePreview) {
       toast.error('Please upload your PSA Birth Certificate document');
       return;
@@ -264,17 +264,17 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
       toast.error('Mother\'s maiden name is required');
       return;
     }
-    
+
     if (!formData.father?.name?.firstName || !formData.father?.name?.lastName) {
       toast.error('Father\'s name is required');
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const submitData = new FormData();
-      
+
       // For initial submission (profile-verification), send flat fields that backend expects
       if (!isUpdate) {
         // Certificate details
@@ -282,13 +282,13 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
         submitData.append('registryNumber', formData.registryNumber || '');
         submitData.append('dateIssued', formData.dateIssued || '');
         submitData.append('placeOfRegistration', `${formData.cityMunicipality || ''}, ${formData.province || ''}`);
-        
+
         // Father's info - flat fields as backend expects
         submitData.append('fatherFirstName', formData.father?.name?.firstName || '');
         submitData.append('fatherMiddleName', formData.father?.name?.middleName || '');
         submitData.append('fatherLastName', formData.father?.name?.lastName || '');
         submitData.append('fatherNationality', formData.father?.citizenship || 'Filipino');
-        
+
         // Mother's info - flat fields as backend expects
         submitData.append('motherFirstName', formData.mother?.maidenName?.firstName || '');
         submitData.append('motherMiddleName', formData.mother?.maidenName?.middleName || '');
@@ -297,7 +297,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
       } else {
         // For updates (profile-update), send nested structure
         submitData.append('updateType', 'birth_certificate');
-        
+
         // Flatten nested objects for FormData
         const flattenObject = (obj, prefix = '') => {
           const flattened = {};
@@ -305,7 +305,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
             const value = obj[key];
             // Map 'yourInfo' back to 'child' for backend compatibility
             const newKey = prefix ? `${prefix}.${key}` : (key === 'yourInfo' ? 'child' : key);
-            
+
             if (value instanceof Object && !Array.isArray(value) && !(value instanceof File)) {
               Object.assign(flattened, flattenObject(value, newKey));
             } else if (value !== '' && value !== null && value !== undefined) {
@@ -314,15 +314,15 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
           }
           return flattened;
         };
-        
+
         const flatData = flattenObject(formData);
-        
+
         // Append all data to FormData
         for (const [key, value] of Object.entries(flatData)) {
           submitData.append(key, value);
         }
       }
-      
+
       // Append file if new one selected, otherwise send existing document URL
       if (documentFile) {
         submitData.append('birthCertificate', documentFile);
@@ -332,7 +332,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
       }
 
       // Choose endpoint based on whether this is an update or initial submission
-      const endpoint = isUpdate 
+      const endpoint = isUpdate
         ? `${API_URL}/api/profile-update/submit`
         : `${API_URL}/api/profile-verification/submit`;
 
@@ -344,8 +344,8 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
       });
 
       if (response.data.success) {
-        toast.success(isUpdate 
-          ? 'Update request submitted for admin review!' 
+        toast.success(isUpdate
+          ? 'Update request submitted for admin review!'
           : 'PSA verification submitted successfully!'
         );
         onSuccess?.();
@@ -359,78 +359,73 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
   };
 
   // Section header component
-  const SectionHeader = ({ title, icon: Icon, section, color = 'blue' }) => (
+  const SectionHeader = ({ title, icon: Icon, section, color = 'primary' }) => (
     <button
       type="button"
       onClick={() => toggleSection(section)}
-      className={`w-full flex items-center justify-between p-4 rounded-lg transition-colors ${
-        color === 'blue' ? 'bg-blue-50 hover:bg-blue-100' :
-        color === 'pink' ? 'bg-pink-50 hover:bg-pink-100' :
-        color === 'purple' ? 'bg-purple-50 hover:bg-purple-100' :
-        color === 'indigo' ? 'bg-indigo-50 hover:bg-indigo-100' :
-        color === 'rose' ? 'bg-rose-50 hover:bg-rose-100' :
-        color === 'teal' ? 'bg-teal-50 hover:bg-teal-100' :
-        'bg-gray-50 hover:bg-gray-100'
-      }`}
+      className={`w-full flex items-center justify-between p-4 rounded-lg transition-colors ${color === 'primary' ? 'bg-emerald-50 hover:bg-emerald-100' :
+          color === 'pink' ? 'bg-pink-50 hover:bg-pink-100' :
+            color === 'purple' ? 'bg-purple-50 hover:bg-purple-100' :
+              color === 'indigo' ? 'bg-indigo-50 hover:bg-indigo-100' :
+                color === 'rose' ? 'bg-rose-50 hover:bg-rose-100' :
+                  color === 'teal' ? 'bg-teal-50 hover:bg-teal-100' :
+                    'bg-gray-50 hover:bg-gray-100'
+        }`}
     >
       <div className="flex items-center gap-3">
-        <Icon className={`w-5 h-5 ${
-          color === 'blue' ? 'text-blue-600' :
-          color === 'pink' ? 'text-pink-600' :
-          color === 'purple' ? 'text-purple-600' :
-          color === 'indigo' ? 'text-indigo-600' :
-          color === 'rose' ? 'text-rose-600' :
-          color === 'teal' ? 'text-teal-600' :
-          'text-gray-600'
-        }`} />
-        <span className={`font-semibold ${
-          color === 'blue' ? 'text-blue-800' :
-          color === 'pink' ? 'text-pink-800' :
-          color === 'purple' ? 'text-purple-800' :
-          color === 'indigo' ? 'text-indigo-800' :
-          color === 'rose' ? 'text-rose-800' :
-          color === 'teal' ? 'text-teal-800' :
-          'text-gray-800'
-        }`}>{title}</span>
+        <Icon className={`w-5 h-5 ${color === 'primary' ? 'text-primary' :
+            color === 'pink' ? 'text-pink-600' :
+              color === 'purple' ? 'text-purple-600' :
+                color === 'indigo' ? 'text-indigo-600' :
+                  color === 'rose' ? 'text-rose-600' :
+                    color === 'teal' ? 'text-teal-600' :
+                      'text-gray-600'
+          }`} />
+        <span className={`font-semibold ${color === 'primary' ? 'text-emerald-800' :
+            color === 'pink' ? 'text-pink-800' :
+              color === 'purple' ? 'text-purple-800' :
+                color === 'indigo' ? 'text-indigo-800' :
+                  color === 'rose' ? 'text-rose-800' :
+                    color === 'teal' ? 'text-teal-800' :
+                      'text-gray-800'
+          }`}>{title}</span>
       </div>
       {sections[section] ? (
-        <ChevronUp className={`w-5 h-5 ${
-          color === 'blue' ? 'text-blue-600' :
-          color === 'pink' ? 'text-pink-600' :
-          color === 'purple' ? 'text-purple-600' :
-          color === 'indigo' ? 'text-indigo-600' :
-          color === 'rose' ? 'text-rose-600' :
-          color === 'teal' ? 'text-teal-600' :
-          'text-gray-600'
-        }`} />
+        <ChevronUp className={`w-5 h-5 ${color === 'primary' ? 'text-primary' :
+            color === 'pink' ? 'text-pink-600' :
+              color === 'purple' ? 'text-purple-600' :
+                color === 'indigo' ? 'text-indigo-600' :
+                  color === 'rose' ? 'text-rose-600' :
+                    color === 'teal' ? 'text-teal-600' :
+                      'text-gray-600'
+          }`} />
       ) : (
-        <ChevronDown className={`w-5 h-5 ${
-          color === 'blue' ? 'text-blue-600' :
-          color === 'pink' ? 'text-pink-600' :
-          color === 'purple' ? 'text-purple-600' :
-          color === 'indigo' ? 'text-indigo-600' :
-          color === 'rose' ? 'text-rose-600' :
-          color === 'teal' ? 'text-teal-600' :
-          'text-gray-600'
-        }`} />
+        <ChevronDown className={`w-5 h-5 ${color === 'primary' ? 'text-primary' :
+            color === 'pink' ? 'text-pink-600' :
+              color === 'purple' ? 'text-purple-600' :
+                color === 'indigo' ? 'text-indigo-600' :
+                  color === 'rose' ? 'text-rose-600' :
+                    color === 'teal' ? 'text-teal-600' :
+                      'text-gray-600'
+          }`} />
       )}
     </button>
   );
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+      <div className="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
           <FileText className="w-6 h-6" />
           PSA Birth Certificate Information
         </h2>
-        <p className="text-blue-100 text-sm mt-1">
-          {isUpdate 
+        <p className="text-emerald-100 text-sm mt-1">
+          {isUpdate
             ? 'Update your birth certificate information. Changes will require admin approval.'
             : 'Complete all required fields based on your PSA Birth Certificate.'}
         </p>
       </div>
-      
+
       {isUpdate && (
         <div className="bg-amber-50 border-b border-amber-200 px-6 py-3">
           <div className="flex items-center gap-2 text-amber-700">
@@ -470,21 +465,21 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
                 <InputField label="Last Name" name="yourInfo.lastName" value={getNestedValue(formData, 'yourInfo.lastName')} onChange={handleInputChange} required />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <InputField 
-                  label="Sex" 
-                  name="yourInfo.sex" 
+                <InputField
+                  label="Sex"
+                  name="yourInfo.sex"
                   value={getNestedValue(formData, 'yourInfo.sex')}
                   onChange={handleInputChange}
                   options={[
                     { value: 'Male', label: 'Male' },
                     { value: 'Female', label: 'Female' },
                   ]}
-                  required 
+                  required
                 />
                 <InputField label="Date of Birth" name="yourInfo.dateOfBirth" value={getNestedValue(formData, 'yourInfo.dateOfBirth')} onChange={handleInputChange} type="date" required />
-                <InputField 
-                  label="Type of Birth" 
-                  name="yourInfo.typeOfBirth" 
+                <InputField
+                  label="Type of Birth"
+                  name="yourInfo.typeOfBirth"
                   value={getNestedValue(formData, 'yourInfo.typeOfBirth')}
                   onChange={handleInputChange}
                   options={[
@@ -593,7 +588,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
             name="remarks"
             value={formData.remarks}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
             rows={3}
             placeholder="Any additional remarks or annotations on the certificate..."
           />
@@ -602,7 +597,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
         {/* Document Upload Section */}
         <div className="border-t pt-6 mt-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Upload className="w-5 h-5 text-blue-600" />
+            <Upload className="w-5 h-5 text-primary" />
             Upload PSA Birth Certificate <span className="text-red-500">*</span>
           </h3>
           <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -610,7 +605,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
               {filePreview ? (
                 filePreview === 'pdf' ? (
                   <div className="flex items-center gap-2">
-                    <FileText className="w-10 h-10 text-blue-600" />
+                    <FileText className="w-10 h-10 text-primary" />
                     <div>
                       <p className="text-sm font-medium text-gray-700">
                         {documentFile?.name || 'PDF Document Uploaded'}
@@ -620,9 +615,9 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
                   </div>
                 ) : (
                   <div className="relative">
-                    <img 
-                      src={filePreview} 
-                      alt="Preview" 
+                    <img
+                      src={filePreview}
+                      alt="Preview"
                       className="max-h-28 object-contain rounded"
                     />
                     <p className="text-xs text-gray-500 text-center mt-2">Click to change</p>
@@ -654,7 +649,7 @@ const PSABirthCertificateForm = ({ existingData = null, onSuccess, isUpdate = fa
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>

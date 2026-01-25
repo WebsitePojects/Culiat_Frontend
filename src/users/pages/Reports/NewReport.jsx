@@ -352,13 +352,13 @@ const NewReport = () => {
                 <button
                   type="button"
                   onClick={() => setIsAnonymous(!isAnonymous)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                  className={`relative w-12 h-6 rounded-full transition-colors overflow-hidden ${
                     isAnonymous ? "bg-[var(--color-secondary)]" : "bg-gray-300"
                   }`}
                 >
                   <span
-                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                      isAnonymous ? "translate-x-6" : "translate-x-0.5"
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      isAnonymous ? "translate-x-6" : "translate-x-0"
                     }`}
                   />
                 </button>
@@ -459,15 +459,15 @@ const NewReport = () => {
               className={`rounded-lg p-4 flex items-start gap-3 ${
                 isAnonymous 
                   ? "bg-purple-50 border border-purple-200" 
-                  : "bg-blue-50 border border-blue-200"
+                  : "bg-emerald-50 border border-emerald-200"
               }`}
             >
               {isAnonymous ? (
                 <EyeOff className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
               ) : (
-                <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
               )}
-              <div className={`text-sm ${isAnonymous ? "text-purple-800" : "text-blue-800"}`}>
+              <div className={`text-sm ${isAnonymous ? "text-purple-800" : "text-emerald-800"}`}>
                 <strong>{isAnonymous ? "Anonymous Report:" : "Privacy Notice:"}</strong>{" "}
                 {isAnonymous 
                   ? "Your identity will be completely hidden. Only the report content will be visible to administrators."

@@ -1,19 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
-import { Eye, EyeOff, Lock, User, ArrowLeft, Home, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, User, ArrowLeft, Home, Mail, Clock } from "lucide-react";
 
 export default function ResidentAuth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const { login, sessionExpired, clearSessionExpired } = useAuth();
   const navigate = useNavigate();
 
   const [loginData, setLoginData] = useState({
     username: "",
     password: "",
   });
+
+  // Show session expired message if applicable
+  useEffect(() => {
+    if (sessionExpired) {
+      setError("Your session has expired due to inactivity. Please log in again.");
+      clearSessionExpired();
+    }
+  }, [sessionExpired, clearSessionExpired]);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -54,10 +62,10 @@ export default function ResidentAuth() {
 
   return (
     <div className="h-screen flex bg-slate-50 overflow-hidden">
-      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative bg-gradient-to-br from-[#133b1b] via-[#1e293b] to-[#0f2a17] overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
-        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-20 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-emerald-600/5 rounded-full blur-3xl"></div>
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20 text-white">
           <Link
             to="/"
@@ -67,7 +75,7 @@ export default function ResidentAuth() {
             Back to Home
           </Link>
           <div className="mb-6">
-            <div className="w-20 h-20 bg-white/95 rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-blue-500/30 mb-4">
+            <div className="w-20 h-20 bg-white/95 rounded-2xl flex items-center justify-center shadow-2xl ring-4 ring-emerald-500/30 mb-4">
               <img
                 src="/images/logo/brgy-culiat-logo.svg"
                 alt="Barangay Culiat Logo"
@@ -89,7 +97,7 @@ export default function ResidentAuth() {
             <div className="space-y-3">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                 <h3 className="font-bold text-base mb-1.5 flex items-center gap-2">
-                  <div className="w-7 h-7 bg-blue-500/30 rounded-lg flex items-center justify-center">
+                  <div className="w-7 h-7 bg-emerald-500/30 rounded-lg flex items-center justify-center">
                     <Home className="w-4 h-4" />
                   </div>
                   Community Services
@@ -101,7 +109,7 @@ export default function ResidentAuth() {
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                 <h3 className="font-bold text-base mb-1.5 flex items-center gap-2">
-                  <div className="w-7 h-7 bg-blue-500/30 rounded-lg flex items-center justify-center">
+                  <div className="w-7 h-7 bg-emerald-500/30 rounded-lg flex items-center justify-center">
                     <Mail className="w-4 h-4" />
                   </div>
                   Stay Informed
@@ -124,12 +132,12 @@ export default function ResidentAuth() {
           Back
         </Link>
         <div className="lg:hidden absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full opacity-20 blur-3xl"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-100 rounded-full opacity-20 blur-3xl"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-slate-100 rounded-full opacity-20 blur-3xl"></div>
         </div>
         <div className="w-full max-w-md relative my-auto">
           <div className="lg:hidden text-center mb-6 mt-12">
-            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-xl ring-2 ring-blue-500/30">
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-xl ring-2 ring-emerald-500/30">
               <img
                 src="/images/logo/brgy-culiat-logo.svg"
                 alt="Barangay Culiat Logo"
@@ -166,7 +174,7 @@ export default function ResidentAuth() {
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                      <User className="h-4 w-4 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                     </div>
                     <input
                       type="text"
@@ -175,7 +183,7 @@ export default function ResidentAuth() {
                         setLoginData({ ...loginData, username: e.target.value })
                       }
                       required
-                      className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm"
+                      className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm"
                       placeholder="Enter your username"
                     />
                   </div>
@@ -186,7 +194,7 @@ export default function ResidentAuth() {
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                      <Lock className="h-4 w-4 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                     </div>
                     <input
                       type={showPassword ? "text" : "password"}
@@ -195,7 +203,7 @@ export default function ResidentAuth() {
                         setLoginData({ ...loginData, password: e.target.value })
                       }
                       required
-                      className="block w-full pl-10 pr-10 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm"
+                      className="block w-full pl-10 pr-10 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm"
                       placeholder="Enter your password"
                     />
                     <button
@@ -217,7 +225,7 @@ export default function ResidentAuth() {
                       id="remember-me"
                       name="remember-me"
                       type="checkbox"
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
                     />
                     <label
                       htmlFor="remember-me"
@@ -228,7 +236,7 @@ export default function ResidentAuth() {
                   </div>
                   <Link
                     to="/forgot-password"
-                    className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                    className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
                   >
                     Forgot password?
                   </Link>
@@ -236,7 +244,7 @@ export default function ResidentAuth() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-[#1a73e8] to-[#1557b0] hover:from-[#1557b0] hover:to-[#0d47a1] text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-[1.01] active:scale-[0.99] mt-4 text-sm tracking-wide"
+                  className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed transform hover:scale-[1.01] active:scale-[0.99] mt-4 text-sm tracking-wide"
                 >
                   {loading ? "Signing in..." : "Sign In"}
                 </button>
@@ -246,7 +254,7 @@ export default function ResidentAuth() {
                   Don't have an account?{" "}
                   <Link
                     to="/register"
-                    className="text-blue-600 hover:underline font-medium"
+                    className="text-emerald-600 hover:underline font-medium"
                   >
                     Register here
                   </Link>

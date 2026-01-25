@@ -47,8 +47,24 @@ const SettingsPage = () => {
       });
       const data = response.data.data;
       setSettings(data);
+      
+      // Ensure all system settings have proper boolean values
+      const systemSettings = data.system || {};
       setFormData({
-        system: data.system || {},
+        system: {
+          maintenanceMode: systemSettings.maintenanceMode ?? false,
+          maintenanceMessage: systemSettings.maintenanceMessage || "System is currently under maintenance. Please try again later.",
+          emailNotificationsEnabled: systemSettings.emailNotificationsEnabled ?? true,
+          registrationEnabled: systemSettings.registrationEnabled ?? true,
+          documentRequestEnabled: systemSettings.documentRequestEnabled ?? true,
+          reportingEnabled: systemSettings.reportingEnabled ?? true,
+          profileUpdateEnabled: systemSettings.profileUpdateEnabled ?? true,
+          autoApproveResidents: systemSettings.autoApproveResidents ?? false,
+          sessionTimeout: systemSettings.sessionTimeout || 30,
+          maxLoginAttempts: systemSettings.maxLoginAttempts || 5,
+          maxFileSize: systemSettings.maxFileSize || 5,
+          allowedFileTypes: systemSettings.allowedFileTypes || ["pdf", "jpg", "jpeg", "png", "doc", "docx"],
+        },
       });
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -224,7 +240,7 @@ const SettingsPage = () => {
               <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                 <input
                   type="checkbox"
-                  checked={formData.system.emailNotificationsEnabled || false}
+                  checked={formData.system.emailNotificationsEnabled === true}
                   onChange={(e) =>
                       handleInputChange(
                         "system",
@@ -268,7 +284,7 @@ const SettingsPage = () => {
                 <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                   <input
                     type="checkbox"
-                    checked={formData.system.maintenanceMode || false}
+                    checked={formData.system.maintenanceMode === true}
                     onChange={(e) =>
                       handleInputChange(
                         "system",
@@ -281,22 +297,6 @@ const SettingsPage = () => {
                   <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 dark:peer-focus:ring-amber-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-amber-500"></div>
                 </label>
               </div>
-              {formData.system.maintenanceMode && (
-                <div className="mt-4 pt-4 border-t border-amber-200 dark:border-amber-700">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Maintenance Message
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={formData.system.maintenanceMessage || ""}
-                    onChange={(e) =>
-                      handleInputChange("system", "maintenanceMessage", e.target.value)
-                    }
-                    className="w-full px-4 py-2 text-sm border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 dark:bg-gray-700 dark:border-amber-600 dark:text-white"
-                    placeholder="Message to display during maintenance"
-                  />
-                </div>
-              )}
             </div>
 
             {/* Feature Controls Grid */}
@@ -320,7 +320,7 @@ const SettingsPage = () => {
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData.system.registrationEnabled || false}
+                      checked={formData.system.registrationEnabled === true}
                       onChange={(e) => handleInputChange("system", "registrationEnabled", e.target.checked)}
                       className="sr-only peer"
                     />
@@ -342,7 +342,7 @@ const SettingsPage = () => {
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData.system.documentRequestEnabled || false}
+                      checked={formData.system.documentRequestEnabled === true}
                       onChange={(e) => handleInputChange("system", "documentRequestEnabled", e.target.checked)}
                       className="sr-only peer"
                     />
@@ -364,7 +364,7 @@ const SettingsPage = () => {
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData.system.reportingEnabled || false}
+                      checked={formData.system.reportingEnabled === true}
                       onChange={(e) => handleInputChange("system", "reportingEnabled", e.target.checked)}
                       className="sr-only peer"
                     />
@@ -386,7 +386,7 @@ const SettingsPage = () => {
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData.system.profileUpdateEnabled !== false}
+                      checked={formData.system.profileUpdateEnabled === true}
                       onChange={(e) => handleInputChange("system", "profileUpdateEnabled", e.target.checked)}
                       className="sr-only peer"
                     />
@@ -408,81 +408,12 @@ const SettingsPage = () => {
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={formData.system.autoApproveResidents || false}
+                      checked={formData.system.autoApproveResidents === true}
                       onChange={(e) => handleInputChange("system", "autoApproveResidents", e.target.checked)}
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
                   </label>
-                </div>
-              </div>
-            </div>
-
-            {/* Security & Limits */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Lock className="w-4 h-4" />
-                Security & Limits
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Clock className="w-5 h-5 text-blue-600" />
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Session Timeout
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="5"
-                      max="120"
-                      value={formData.system.sessionTimeout || 30}
-                      onChange={(e) => handleInputChange("system", "sessionTimeout", parseInt(e.target.value))}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                    <span className="text-sm text-gray-500 whitespace-nowrap">minutes</span>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Lock className="w-5 h-5 text-blue-600" />
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Max Login Attempts
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="3"
-                      max="10"
-                      value={formData.system.maxLoginAttempts || 5}
-                      onChange={(e) => handleInputChange("system", "maxLoginAttempts", parseInt(e.target.value))}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                    <span className="text-sm text-gray-500 whitespace-nowrap">attempts</span>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
-                  <div className="flex items-center gap-2 mb-3">
-                    <HardDrive className="w-5 h-5 text-blue-600" />
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Max File Size
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="1"
-                      max="50"
-                      value={formData.system.maxFileSize || 5}
-                      onChange={(e) => handleInputChange("system", "maxFileSize", parseInt(e.target.value))}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    />
-                    <span className="text-sm text-gray-500 whitespace-nowrap">MB</span>
-                  </div>
                 </div>
               </div>
             </div>

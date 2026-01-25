@@ -82,7 +82,7 @@ const Announcements = () => {
       return (
          <section className="py-8 px-4 sm:px-6 md:px-8 mb-12 md:mb-[7em] bg-neutral">
             <div className="max-w-6xl mx-auto flex items-center justify-center py-20">
-               <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+               <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
             </div>
          </section>
       );
@@ -135,7 +135,7 @@ const Announcements = () => {
                </div>
                <Link
                   to="/announcements"
-                  className="text-blue-600 hover:text-blue-700 hover:underline text-nowrap font-medium"
+                  className="text-emerald-600 hover:text-emerald-700 hover:underline text-nowrap font-medium"
                >
                   See all
                </Link>
@@ -150,7 +150,7 @@ const Announcements = () => {
                {main && (
                   <motion.div variants={fadeUp} className="md:col-span-3">
                      <Link
-                        to={`/announcements/${main.slug || main._id}`}
+                        to={`/announcements/${main.slug && main.slug.trim() !== '' ? main.slug : main._id}`}
                         className="group rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 block"
                      >
                         <div className="relative h-full w-full">
@@ -161,12 +161,12 @@ const Announcements = () => {
                                  className="w-full lg:max-h-[450px] min-h-[350px] h-full object-cover"
                               />
                            ) : (
-                              <div className="w-full lg:max-h-[450px] min-h-[350px] h-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+                              <div className="w-full lg:max-h-[450px] min-h-[350px] h-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
                                  <Megaphone className="w-24 h-24 text-white/30" />
                               </div>
                            )}
                            <div className="absolute h-full inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-6">
-                              <span className="bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full w-fit mb-3">
+                              <span className="bg-emerald-600 text-white text-xs font-semibold px-3 py-1 rounded-full w-fit mb-3">
                                  {main.category}
                               </span>
                               <h3 className="text-white text-xl sm:text-3xl font-bold mb-2">
@@ -176,7 +176,7 @@ const Announcements = () => {
                               <p className="text-gray-200 text-sm mb-2 flex gap-2">
                                  <span className="flex items-center">
                                     <CalendarDays
-                                       className="w-4 h-4 inline-block mr-1 text-blue-400"
+                                       className="w-4 h-4 inline-block mr-1 text-emerald-400"
                                        strokeWidth={3}
                                     />
                                     {formatDate(main.eventDate || main.createdAt)}
@@ -186,7 +186,7 @@ const Announcements = () => {
                                        |
                                        <span className="flex items-center">
                                           <MapPin
-                                             className="w-4 h-4 inline-block mr-1 text-blue-400"
+                                             className="w-4 h-4 inline-block mr-1 text-emerald-400"
                                              strokeWidth={3}
                                           />
                                           {main.location}
@@ -203,42 +203,63 @@ const Announcements = () => {
                   </motion.div>
                )}
 
-               {/* SIDE ARTICLES */}
+               {/* SIDE ARTICLES - Clickable cards with images */}
                <motion.div
                   variants={staggerContainer}
-                  className="flex flex-col gap-6 md:justify-around"
+                  className="flex flex-col gap-4"
                >
-                  {side.map((item) => (
+                  {side.map((item, index) => (
                      <motion.div key={item._id} variants={fadeUp}>
                         <Link
-                           to={`/announcements/${item.slug || item._id}`}
-                           className="h-fit transition-all duration-300 block hover:translate-x-1"
+                           to={`/announcements/${item.slug && item.slug.trim() !== '' ? item.slug : item._id}`}
+                           className="group flex gap-4 p-3 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-300"
                         >
-                           <p className="text-xs text-blue-600 font-semibold uppercase mb-1">
-                              {item.category}
-                           </p>
-                           <h4 className="text-lg font-semibold text-text-color mb-2 leading-snug hover:text-blue-600 transition-colors">
-                              {item.title}
-                           </h4>
-                           <div className="mb-2 flex gap-1 text-xs">
-                              <p className="text-text-secondary line-clamp-1">
-                                 {formatDate(item.eventDate || item.createdAt)}
-                              </p>
-                              {item.location && (
-                                 <>
-                                    <span>|</span>
-                                    <p className="text-text-secondary line-clamp-1 flex-1">
-                                       {item.location}
-                                    </p>
-                                 </>
+                           {/* Thumbnail Image */}
+                           <div className="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-700">
+                              {item.image ? (
+                                 <img
+                                    src={item.image}
+                                    alt={item.title}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                 />
+                              ) : (
+                                 <div className="w-full h-full flex items-center justify-center">
+                                    <Megaphone className="w-8 h-8 text-white/50" />
+                                 </div>
                               )}
                            </div>
-                           <p className="text-sm text-gray-700 line-clamp-3">
-                              {item.content}
-                           </p>
+                           
+                           {/* Content */}
+                           <div className="flex-1 min-w-0 flex flex-col justify-center">
+                              <span className="text-xs text-emerald-600 font-semibold uppercase mb-1">
+                                 {item.category}
+                              </span>
+                              <h4 className="text-sm font-semibold text-text-color mb-1 leading-snug line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                                 {item.title}
+                              </h4>
+                              <div className="flex items-center gap-1 text-xs text-text-secondary">
+                                 <CalendarDays className="w-3 h-3 text-emerald-500" />
+                                 <span className="line-clamp-1">
+                                    {formatDate(item.eventDate || item.createdAt)}
+                                 </span>
+                              </div>
+                           </div>
                         </Link>
                      </motion.div>
                   ))}
+                  
+                  {/* View All Button at bottom */}
+                  <motion.div variants={fadeUp}>
+                     <Link
+                        to="/announcements"
+                        className="flex items-center justify-center gap-2 p-3 rounded-xl bg-emerald-50 text-emerald-700 font-medium text-sm hover:bg-emerald-100 transition-colors"
+                     >
+                        View All Announcements
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                           <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                     </Link>
+                  </motion.div>
                </motion.div>
             </motion.div>
          </motion.div>

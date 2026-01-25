@@ -53,12 +53,19 @@ const AdminAchievements = () => {
   // Image gallery states
   const [imageGalleryOpen, setImageGalleryOpen] = useState(false);
 
+  // Hashtags state
+  const [availableHashtags, setAvailableHashtags] = useState([]);
+  const [hashtagSearch, setHashtagSearch] = useState("");
+  const [showHashtagDropdown, setShowHashtagDropdown] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     category: "Awards",
     description: "",
     date: new Date().toISOString().split("T")[0],
-    image: null,
+    images: [],        // New: multiple images (File objects)
+    existingImages: [], // New: existing image URLs (for edit mode)
+    hashtags: [],      // Hashtags for the achievement
   });
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -67,7 +74,45 @@ const AdminAchievements = () => {
 
   useEffect(() => {
     fetchAchievements();
+    fetchHashtags();
   }, []);
+
+  const fetchHashtags = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/hashtags`);
+      if (response.data.success) {
+        const hashtags = response.data.data || [];
+        setAvailableHashtags(hashtags);
+        
+        // If no hashtags exist, automatically seed default ones
+        if (hashtags.length === 0) {
+          console.log('No hashtags found, seeding default hashtags...');
+          await seedHashtags();
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching hashtags:", error);
+    }
+  };
+
+  const seedHashtags = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(`${API_URL}/api/hashtags/seed`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        console.log('Default hashtags seeded successfully');
+        // Refetch hashtags to update the list
+        const hashtagsResponse = await axios.get(`${API_URL}/api/hashtags`);
+        if (hashtagsResponse.data.success) {
+          setAvailableHashtags(hashtagsResponse.data.data || []);
+        }
+      }
+    } catch (error) {
+      console.error("Error seeding hashtags:", error);
+    }
+  };
 
   const fetchAchievements = async (isRefresh = false) => {
     try {
@@ -139,9 +184,13 @@ const AdminAchievements = () => {
       category: "Awards",
       description: "",
       date: new Date().toISOString().split("T")[0],
-      image: null,
+      images: [],
+      existingImages: [],
+      hashtags: [],
     });
     setImagePreview(null);
+    setHashtagSearch("");
+    setShowHashtagDropdown(false);
     setIsEditMode(false);
     setSelectedAchievement(null);
     setError("");
@@ -154,18 +203,34 @@ const AdminAchievements = () => {
 
   const handleEditClick = (achievement) => {
     setSelectedAchievement(achievement);
+    
+    // Collect all existing images
+    const existingImgs = [];
+    if (achievement.images && achievement.images.length > 0) {
+      existingImgs.push(...achievement.images);
+    } else if (achievement.image && achievement.image !== "no-photo.jpg") {
+      existingImgs.push(achievement.image);
+    }
+    
     setFormData({
       title: achievement.title,
       category: achievement.category || "Awards",
       description: achievement.description || "",
       date: achievement.date ? achievement.date.split("T")[0] : new Date().toISOString().split("T")[0],
-      image: null,
+      images: [],
+      existingImages: existingImgs,
+      hashtags: achievement.hashtags || [],
     });
-    // Handle both cloudinary URLs and local paths
-    if (achievement.image && achievement.image !== "no-photo.jpg") {
-      const imageUrl = achievement.image.includes("http")
-        ? achievement.image
-        : `${API_URL}/uploads/achievements/${achievement.image}`;
+    
+    setHashtagSearch("");
+    setShowHashtagDropdown(false);
+    
+    // Set preview to first image
+    if (existingImgs.length > 0) {
+      const firstImg = existingImgs[0];
+      const imageUrl = firstImg.includes("http")
+        ? firstImg
+        : `${API_URL}/uploads/achievements/${firstImg}`;
       setImagePreview(imageUrl);
     } else {
       setImagePreview(null);
@@ -185,15 +250,40 @@ const AdminAchievements = () => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({ ...formData, image: file });
+    const files = Array.from(e.target.files);
+    const maxImages = 6;
+    const currentCount = formData.images.length + formData.existingImages.length;
+    
+    if (currentCount + files.length > maxImages) {
+      showError(`Maximum ${maxImages} images allowed. You can add ${maxImages - currentCount} more.`);
+      return;
+    }
+    
+    // Add new files to existing
+    setFormData(prev => ({ ...prev, images: [...prev.images, ...files] }));
+    
+    // Update preview to first image if not set
+    if (!imagePreview && files.length > 0) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(files[0]);
     }
+  };
+  
+  const handleRemoveNewImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+  
+  const handleRemoveExistingImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      existingImages: prev.existingImages.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -209,8 +299,20 @@ const AdminAchievements = () => {
       submitData.append("category", formData.category);
       submitData.append("description", formData.description);
       submitData.append("date", formData.date);
-      if (formData.image) {
-        submitData.append("achievementImage", formData.image);
+      
+      // Append hashtags
+      if (formData.hashtags.length > 0) {
+        submitData.append("hashtags", JSON.stringify(formData.hashtags));
+      }
+      
+      // Append all new images
+      formData.images.forEach((image) => {
+        submitData.append("achievementImages", image);
+      });
+      
+      // If editing, also pass existing images to keep
+      if (isEditMode && formData.existingImages.length > 0) {
+        submitData.append("existingImages", JSON.stringify(formData.existingImages));
       }
 
       const config = {
@@ -873,41 +975,211 @@ const AdminAchievements = () => {
                 />
               </div>
 
+              {/* Hashtags Selection */}
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Image
+                  Hashtags <span className="text-gray-400">(Optional)</span>
                 </label>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                  <label className="flex-1 w-full flex flex-col items-center px-4 py-4 sm:py-6 bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 border-dashed cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <Upload className="w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2" />
-                    <span className="text-xs sm:text-sm">Click to upload</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </label>
-                  {imagePreview && (
-                    <div className="relative">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600"
-                      />
+                
+                {/* Selected Hashtags */}
+                {formData.hashtags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {formData.hashtags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full text-xs font-medium"
+                      >
+                        #{tag}
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({
+                            ...prev,
+                            hashtags: prev.hashtags.filter((_, i) => i !== idx)
+                          }))}
+                          className="hover:text-emerald-900 dark:hover:text-emerald-100"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Hashtag Search/Select */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={hashtagSearch}
+                    onChange={(e) => {
+                      setHashtagSearch(e.target.value);
+                      setShowHashtagDropdown(true);
+                    }}
+                    onFocus={() => setShowHashtagDropdown(true)}
+                    placeholder="Search or add hashtags..."
+                    className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                  />
+                  
+                  {showHashtagDropdown && (
+                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {/* Filtered hashtags from database */}
+                      {availableHashtags
+                        .filter(h => 
+                          h.name.toLowerCase().includes(hashtagSearch.toLowerCase()) &&
+                          !formData.hashtags.includes(h.name)
+                        )
+                        .slice(0, 10)
+                        .map((hashtag) => (
+                          <button
+                            key={hashtag._id}
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                hashtags: [...prev.hashtags, hashtag.name]
+                              }));
+                              setHashtagSearch("");
+                              setShowHashtagDropdown(false);
+                            }}
+                            className="w-full px-3 py-2 text-left text-xs sm:text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between"
+                          >
+                            <span className="text-emerald-600 dark:text-emerald-400">#{hashtag.name}</span>
+                            <span className="text-xs text-gray-400">{hashtag.category}</span>
+                          </button>
+                        ))
+                      }
+                      
+                      {/* Option to add custom hashtag */}
+                      {hashtagSearch.trim() && !availableHashtags.some(h => 
+                        h.name.toLowerCase() === hashtagSearch.toLowerCase().replace(/^#/, '').replace(/\s+/g, '')
+                      ) && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const cleanTag = hashtagSearch.trim().replace(/^#/, '').replace(/\s+/g, '');
+                            if (cleanTag && !formData.hashtags.includes(cleanTag)) {
+                              // Add to form
+                              setFormData(prev => ({
+                                ...prev,
+                                hashtags: [...prev.hashtags, cleanTag]
+                              }));
+                              // Save to database
+                              try {
+                                const token = localStorage.getItem("token");
+                                await axios.post(`${API_URL}/api/hashtags`, 
+                                  { name: cleanTag, category: 'Custom' },
+                                  { headers: { Authorization: `Bearer ${token}` } }
+                                );
+                                // Refresh hashtags list
+                                fetchHashtags();
+                              } catch (error) {
+                                console.log('Hashtag may already exist or failed to save:', error);
+                              }
+                            }
+                            setHashtagSearch("");
+                            setShowHashtagDropdown(false);
+                          }}
+                          className="w-full px-3 py-2 text-left text-xs sm:text-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-t border-gray-200 dark:border-gray-700"
+                        >
+                          + Add "#{hashtagSearch.trim().replace(/^#/, '').replace(/\s+/g, '')}"
+                        </button>
+                      )}
+                      
+                      {availableHashtags.length === 0 && !hashtagSearch.trim() && (
+                        <div className="px-3 py-2 text-xs text-gray-400">
+                          Type to search or add hashtags
+                        </div>
+                      )}
+                      
                       <button
                         type="button"
-                        onClick={() => {
-                          setImagePreview(null);
-                          setFormData({ ...formData, image: null });
-                        }}
-                        className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                        onClick={() => setShowHashtagDropdown(false)}
+                        className="w-full px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 border-t border-gray-200 dark:border-gray-700"
                       >
-                        <X className="w-3 h-3 sm:w-4 sm:h-4" />
+                        Close
                       </button>
                     </div>
                   )}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                  Images <span className="text-gray-400 font-normal">(up to 6)</span>
+                </label>
+                
+                {/* Image count indicator */}
+                <div className="text-xs text-gray-500 mb-2">
+                  {formData.existingImages.length + formData.images.length} / 6 images
+                </div>
+                
+                {/* Existing Images (Edit Mode) */}
+                {formData.existingImages.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-500 mb-2">Current images:</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {formData.existingImages.map((img, index) => {
+                        const imgUrl = img.includes("http") ? img : `${API_URL}/uploads/achievements/${img}`;
+                        return (
+                          <div key={index} className="relative group">
+                            <img
+                              src={imgUrl}
+                              alt={`Existing ${index + 1}`}
+                              className="w-full h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveExistingImage(index)}
+                              className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                {/* New Images Preview */}
+                {formData.images.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-500 mb-2">New images to upload:</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {formData.images.map((img, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={URL.createObjectURL(img)}
+                            alt={`New ${index + 1}`}
+                            className="w-full h-20 object-cover rounded-lg border-2 border-emerald-300 dark:border-emerald-600"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveNewImage(index)}
+                            className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Upload Button */}
+                {formData.existingImages.length + formData.images.length < 6 && (
+                  <label className="flex flex-col items-center px-4 py-4 sm:py-6 bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 border-dashed cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <Upload className="w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2" />
+                    <span className="text-xs sm:text-sm">Click to upload images</span>
+                    <span className="text-[10px] text-gray-400 mt-1">JPG, PNG up to 10MB</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                  </label>
+                )}
               </div>
 
               <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">

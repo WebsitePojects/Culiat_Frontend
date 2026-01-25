@@ -256,10 +256,10 @@ export default function FileUploadTab({
                   <button
                     type="button"
                     onClick={() => openImagePreview(photo1x1Preview, "1x1 Photo Preview")}
-                    className="p-2 hover:bg-blue-50 rounded-full transition"
+                    className="p-2 hover:bg-emerald-50 rounded-full transition"
                     title="View image"
                   >
-                    <Eye size={18} className="text-blue-500" />
+                    <Eye size={18} className="text-emerald-500" />
                   </button>
                 )}
                 <button
@@ -378,10 +378,10 @@ export default function FileUploadTab({
                   <button
                     type="button"
                     onClick={() => openImagePreview(validIDPreview, "Valid ID Preview")}
-                    className="p-2 hover:bg-blue-50 rounded-full transition"
+                    className="p-2 hover:bg-emerald-50 rounded-full transition"
                     title="View image"
                   >
-                    <Eye size={18} className="text-blue-500" />
+                    <Eye size={18} className="text-emerald-500" />
                   </button>
                 )}
                 <button
@@ -419,11 +419,11 @@ export default function FileUploadTab({
         )}
       </div>
 
-      <div className="pt-2 text-sm text-[var(--color-text-secondary)] flex items-start gap-2 bg-blue-50 p-3 rounded">
-        <AlertCircle size={16} className="text-blue-500 mt-0.5 flex-shrink-0" />
+      <div className="pt-2 text-sm text-[var(--color-text-secondary)] flex items-start gap-2 bg-emerald-50 p-3 rounded">
+        <AlertCircle size={16} className="text-emerald-500 mt-0.5 flex-shrink-0" />
         <div>
-          <p className="font-medium text-blue-700">Important Notes:</p>
-          <ul className="list-disc list-inside text-xs mt-1 text-blue-600 space-y-1">
+          <p className="font-medium text-emerald-700">Important Notes:</p>
+          <ul className="list-disc list-inside text-xs mt-1 text-emerald-600 space-y-1">
             <li>Make sure all documents are clear and readable</li>
             <li>Photos should be in color and not edited</li>
             <li>File names should not contain special characters</li>

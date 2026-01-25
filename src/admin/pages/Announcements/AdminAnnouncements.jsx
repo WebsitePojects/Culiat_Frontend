@@ -63,6 +63,11 @@ const AdminAnnouncements = () => {
   const [imageGalleryOpen, setImageGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  // Hashtags state
+  const [availableHashtags, setAvailableHashtags] = useState([]);
+  const [hashtagSearch, setHashtagSearch] = useState("");
+  const [showHashtagDropdown, setShowHashtagDropdown] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     content: "",
@@ -70,8 +75,14 @@ const AdminAnnouncements = () => {
     status: "published",
     location: "Barangay Culiat",
     eventDate: "",
-    image: null,
+    images: [], // Changed to array for multiple images
+    hashtags: [], // Hashtags for the announcement
   });
+
+  // Image preview states for multiple images
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [imagesToRemove, setImagesToRemove] = useState([]);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -90,7 +101,45 @@ const AdminAnnouncements = () => {
 
   useEffect(() => {
     fetchAnnouncements();
+    fetchHashtags();
   }, []);
+
+  const fetchHashtags = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/hashtags`);
+      if (response.data.success) {
+        const hashtags = response.data.data || [];
+        setAvailableHashtags(hashtags);
+        
+        // If no hashtags exist, automatically seed default ones
+        if (hashtags.length === 0) {
+          console.log('No hashtags found, seeding default hashtags...');
+          await seedHashtags();
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching hashtags:", error);
+    }
+  };
+
+  const seedHashtags = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(`${API_URL}/api/hashtags/seed`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        console.log('Default hashtags seeded successfully');
+        // Refetch hashtags to update the list
+        const hashtagsResponse = await axios.get(`${API_URL}/api/hashtags`);
+        if (hashtagsResponse.data.success) {
+          setAvailableHashtags(hashtagsResponse.data.data || []);
+        }
+      }
+    } catch (error) {
+      console.error("Error seeding hashtags:", error);
+    }
+  };
 
   const fetchAnnouncements = async (isRefresh = false) => {
     try {
@@ -182,9 +231,14 @@ const AdminAnnouncements = () => {
       status: "published",
       location: "Barangay Culiat",
       eventDate: "",
-      image: null,
+      images: [],
+      hashtags: [],
     });
-    setImagePreview(null);
+    setImagePreviews([]);
+    setExistingImages([]);
+    setImagesToRemove([]);
+    setHashtagSearch("");
+    setShowHashtagDropdown(false);
     setIsEditMode(false);
     setSelectedAnnouncement(null);
     setError("");
@@ -204,9 +258,18 @@ const AdminAnnouncements = () => {
       status: announcement.status || "published",
       location: announcement.location || "Barangay Culiat",
       eventDate: announcement.eventDate ? new Date(announcement.eventDate).toISOString().split('T')[0] : "",
-      image: null,
+      images: [],
+      hashtags: announcement.hashtags || [],
     });
-    setImagePreview(announcement.image || null);
+    // Set existing images from announcement (support both images array and legacy image field)
+    const existingImgs = announcement.images?.length > 0 
+      ? announcement.images 
+      : (announcement.image ? [announcement.image] : []);
+    setExistingImages(existingImgs);
+    setImagePreviews([]);
+    setImagesToRemove([]);
+    setHashtagSearch("");
+    setShowHashtagDropdown(false);
     setIsEditMode(true);
     setIsModalOpen(true);
   };
@@ -222,15 +285,51 @@ const AdminAnnouncements = () => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({ ...formData, image: file });
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    
+    // Calculate remaining slots (max 6 total)
+    const currentTotal = existingImages.length + formData.images.length;
+    const remainingSlots = 6 - currentTotal;
+    
+    if (remainingSlots <= 0) {
+      showError("Maximum 6 images allowed");
+      return;
+    }
+    
+    // Take only as many files as we have slots for
+    const filesToAdd = files.slice(0, remainingSlots);
+    
+    // Add new files to formData
+    setFormData(prev => ({ 
+      ...prev, 
+      images: [...prev.images, ...filesToAdd] 
+    }));
+    
+    // Generate previews for new files
+    filesToAdd.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result);
+        setImagePreviews(prev => [...prev, reader.result]);
       };
       reader.readAsDataURL(file);
-    }
+    });
+    
+    // Reset file input
+    e.target.value = '';
+  };
+
+  const handleRemoveNewImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveExistingImage = (imageUrl) => {
+    setExistingImages(prev => prev.filter(img => img !== imageUrl));
+    setImagesToRemove(prev => [...prev, imageUrl]);
   };
 
   const handleSubmit = async (e) => {
@@ -250,8 +349,20 @@ const AdminAnnouncements = () => {
       if (formData.eventDate) {
         submitData.append("eventDate", formData.eventDate);
       }
-      if (formData.image) {
-        submitData.append("image", formData.image);
+      
+      // Append hashtags
+      if (formData.hashtags.length > 0) {
+        submitData.append("hashtags", JSON.stringify(formData.hashtags));
+      }
+      
+      // Append multiple images
+      formData.images.forEach(image => {
+        submitData.append("images", image);
+      });
+      
+      // Append images to remove (for edit mode)
+      if (isEditMode && imagesToRemove.length > 0) {
+        submitData.append("removeImages", JSON.stringify(imagesToRemove));
       }
 
       const config = {
@@ -452,21 +563,35 @@ const AdminAnnouncements = () => {
     setImageGalleryOpen(false);
   }, []);
 
-  const nextImage = useCallback(() => {
-    if (selectedAnnouncement?.images?.length) {
-      setCurrentImageIndex((prev) =>
-        prev === selectedAnnouncement.images.length - 1 ? 0 : prev + 1
-      );
+  // Get all images for current selected announcement (support both images array and legacy image field)
+  const getAnnouncementImages = useCallback(() => {
+    if (!selectedAnnouncement) return [];
+    if (selectedAnnouncement.images?.length > 0) {
+      return selectedAnnouncement.images;
     }
+    if (selectedAnnouncement.image) {
+      return [selectedAnnouncement.image];
+    }
+    return [];
   }, [selectedAnnouncement]);
 
-  const prevImage = useCallback(() => {
-    if (selectedAnnouncement?.images?.length) {
+  const nextImage = useCallback(() => {
+    const images = getAnnouncementImages();
+    if (images.length > 0) {
       setCurrentImageIndex((prev) =>
-        prev === 0 ? selectedAnnouncement.images.length - 1 : prev - 1
+        prev === images.length - 1 ? 0 : prev + 1
       );
     }
-  }, [selectedAnnouncement]);
+  }, [getAnnouncementImages]);
+
+  const prevImage = useCallback(() => {
+    const images = getAnnouncementImages();
+    if (images.length > 0) {
+      setCurrentImageIndex((prev) =>
+        prev === 0 ? images.length - 1 : prev - 1
+      );
+    }
+  }, [getAnnouncementImages]);
 
   // Keyboard navigation for image gallery
   useEffect(() => {
@@ -721,18 +846,25 @@ const AdminAnnouncements = () => {
                 </div>
 
                 {/* Image Preview */}
-                {announcement.image && (
+                {(announcement.images?.length > 0 || announcement.image) && (
                   <div className="relative h-32 sm:h-40 overflow-hidden rounded-t-lg sm:rounded-t-xl">
                     <img
-                      src={announcement.image}
+                      src={announcement.images?.[0] || announcement.image}
                       alt=""
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    {/* Show image count badge if multiple images */}
+                    {(announcement.images?.length > 1) && (
+                      <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-black/50 backdrop-blur-sm rounded-lg">
+                        <Image className="w-3.5 h-3.5 text-white" />
+                        <span className="text-xs text-white font-medium">+{announcement.images.length - 1}</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {!announcement.image && (
+                {(!announcement.images?.length && !announcement.image) && (
                   <div className="relative h-24 sm:h-32 overflow-hidden rounded-t-lg sm:rounded-t-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 flex items-center justify-center">
                     <Megaphone className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
                   </div>
@@ -829,10 +961,10 @@ const AdminAnnouncements = () => {
           >
             {/* Modal Header with Image */}
             <div className="relative">
-              {selectedAnnouncement.image ? (
+              {(selectedAnnouncement.images?.length > 0 || selectedAnnouncement.image) ? (
                 <div className="relative h-40 sm:h-56 md:h-64 overflow-hidden">
                   <img
-                    src={selectedAnnouncement.image}
+                    src={selectedAnnouncement.images?.[0] || selectedAnnouncement.image}
                     alt=""
                     className="w-full h-full object-cover"
                   />
@@ -844,7 +976,11 @@ const AdminAnnouncements = () => {
                     className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white/90 backdrop-blur-sm rounded-lg text-xs sm:text-sm font-medium text-gray-900 hover:bg-white transition-colors"
                   >
                     <ZoomIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span className="hidden xs:inline">View Full Image</span>
+                    <span>
+                      {getAnnouncementImages().length > 1 
+                        ? `${getAnnouncementImages().length} Photos` 
+                        : 'View Full Image'}
+                    </span>
                   </button>
                 </div>
               ) : (
@@ -933,6 +1069,29 @@ const AdminAnnouncements = () => {
                   {selectedAnnouncement.content}
                 </p>
               </div>
+
+              {/* Image Gallery Thumbnails */}
+              {getAnnouncementImages().length > 0 && (
+                <div className="mb-4 sm:mb-6">
+                  <h4 className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 sm:mb-3">
+                    Attachments ({getAnnouncementImages().length})
+                  </h4>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {getAnnouncementImages().map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => openImageGallery(idx)}
+                        className="relative group aspect-square rounded-xl overflow-hidden"
+                      >
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                          <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Modal Footer */}
@@ -969,24 +1128,43 @@ const AdminAnnouncements = () => {
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full sm:max-w-3xl bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
-                {isEditMode ? "Edit Announcement" : "Create New Announcement"}
-              </h2>
-              <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  resetForm();
-                }}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-              >
-                <X className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm">
+          <div className="w-full sm:max-w-2xl bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
+            {/* Premium Header */}
+            <div className={`px-4 sm:px-6 py-4 sm:py-5 relative overflow-hidden ${isEditMode ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800' : 'bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-800'}`}>
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0" style={{
+                  backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+                  backgroundSize: "24px 24px"
+                }}></div>
+              </div>
+              <div className="relative z-10 flex items-center justify-between">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center">
+                    {isEditMode ? <Edit className="w-5 h-5 sm:w-6 sm:h-6 text-white" /> : <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />}
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-xl font-bold text-white">
+                      {isEditMode ? "Edit Announcement" : "New Announcement"}
+                    </h2>
+                    <p className={`text-xs sm:text-sm ${isEditMode ? 'text-blue-200' : 'text-emerald-200'}`}>
+                      {isEditMode ? "Update announcement details" : "Create a new announcement"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    resetForm();
+                  }}
+                  className="p-1.5 sm:p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                </button>
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-5 overflow-y-auto max-h-[calc(90vh-120px)]">
               {error && (
                 <div className="flex items-center gap-2 p-2.5 sm:p-3 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 rounded-lg text-xs sm:text-sm">
                   <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
@@ -1083,39 +1261,212 @@ const AdminAnnouncements = () => {
                 />
               </div>
 
+              {/* Hashtags Selection */}
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Image <span className="text-gray-400">(Optional)</span>
+                  Hashtags <span className="text-gray-400">(Optional)</span>
                 </label>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                  <label className="flex-1 w-full flex flex-col items-center px-4 py-4 sm:py-6 bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-lg border-2 border-gray-300 dark:border-gray-600 border-dashed cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600">
-                    <Upload className="w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2" />
-                    <span className="text-xs sm:text-sm">Click to upload image</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </label>
-                  {imagePreview && (
-                    <div className="relative">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600"
-                      />
+                
+                {/* Selected Hashtags */}
+                {formData.hashtags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {formData.hashtags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full text-xs font-medium"
+                      >
+                        #{tag}
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({
+                            ...prev,
+                            hashtags: prev.hashtags.filter((_, i) => i !== idx)
+                          }))}
+                          className="hover:text-emerald-900 dark:hover:text-emerald-100"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Hashtag Search/Select */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={hashtagSearch}
+                    onChange={(e) => {
+                      setHashtagSearch(e.target.value);
+                      setShowHashtagDropdown(true);
+                    }}
+                    onFocus={() => setShowHashtagDropdown(true)}
+                    placeholder="Search or add hashtags..."
+                    className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                  />
+                  
+                  {showHashtagDropdown && (
+                    <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {/* Filtered hashtags from database */}
+                      {availableHashtags
+                        .filter(h => 
+                          h.name.toLowerCase().includes(hashtagSearch.toLowerCase()) &&
+                          !formData.hashtags.includes(h.name)
+                        )
+                        .slice(0, 10)
+                        .map((hashtag) => (
+                          <button
+                            key={hashtag._id}
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                hashtags: [...prev.hashtags, hashtag.name]
+                              }));
+                              setHashtagSearch("");
+                              setShowHashtagDropdown(false);
+                            }}
+                            className="w-full px-3 py-2 text-left text-xs sm:text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between"
+                          >
+                            <span className="text-emerald-600 dark:text-emerald-400">#{hashtag.name}</span>
+                            <span className="text-xs text-gray-400">{hashtag.category}</span>
+                          </button>
+                        ))
+                      }
+                      
+                      {/* Option to add custom hashtag */}
+                      {hashtagSearch.trim() && !availableHashtags.some(h => 
+                        h.name.toLowerCase() === hashtagSearch.toLowerCase().replace(/^#/, '').replace(/\s+/g, '')
+                      ) && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const cleanTag = hashtagSearch.trim().replace(/^#/, '').replace(/\s+/g, '');
+                            if (cleanTag && !formData.hashtags.includes(cleanTag)) {
+                              // Add to form
+                              setFormData(prev => ({
+                                ...prev,
+                                hashtags: [...prev.hashtags, cleanTag]
+                              }));
+                              // Save to database
+                              try {
+                                const token = localStorage.getItem("token");
+                                await axios.post(`${API_URL}/api/hashtags`, 
+                                  { name: cleanTag, category: 'Custom' },
+                                  { headers: { Authorization: `Bearer ${token}` } }
+                                );
+                                // Refresh hashtags list
+                                fetchHashtags();
+                              } catch (error) {
+                                console.log('Hashtag may already exist or failed to save:', error);
+                              }
+                            }
+                            setHashtagSearch("");
+                            setShowHashtagDropdown(false);
+                          }}
+                          className="w-full px-3 py-2 text-left text-xs sm:text-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-t border-gray-200 dark:border-gray-700"
+                        >
+                          + Add "#{hashtagSearch.trim().replace(/^#/, '').replace(/\s+/g, '')}"
+                        </button>
+                      )}
+                      
+                      {availableHashtags.length === 0 && !hashtagSearch.trim() && (
+                        <div className="px-3 py-2 text-xs text-gray-400">
+                          Type to search or add hashtags
+                        </div>
+                      )}
+                      
                       <button
                         type="button"
-                        onClick={() => {
-                          setImagePreview(null);
-                          setFormData({ ...formData, image: null });
-                        }}
-                        className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                        onClick={() => setShowHashtagDropdown(false)}
+                        className="w-full px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 border-t border-gray-200 dark:border-gray-700"
                       >
-                        <X className="w-3 h-3 sm:w-4 sm:h-4" />
+                        Close
                       </button>
                     </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                  Images <span className="text-gray-400">(Up to 6 images)</span>
+                </label>
+                
+                {/* Image Upload Area */}
+                <div className="space-y-3">
+                  {/* Existing Images (in edit mode) */}
+                  {existingImages.length > 0 && (
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Current Images:</p>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                        {existingImages.map((img, idx) => (
+                          <div key={`existing-${idx}`} className="relative group aspect-square">
+                            <img
+                              src={img}
+                              alt={`Existing ${idx + 1}`}
+                              className="w-full h-full object-cover rounded-lg border-2 border-gray-200 dark:border-gray-600"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveExistingImage(img)}
+                              className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* New Image Previews */}
+                  {imagePreviews.length > 0 && (
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">New Images:</p>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                        {imagePreviews.map((preview, idx) => (
+                          <div key={`preview-${idx}`} className="relative group aspect-square">
+                            <img
+                              src={preview}
+                              alt={`Preview ${idx + 1}`}
+                              className="w-full h-full object-cover rounded-lg border-2 border-blue-300 dark:border-blue-600"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveNewImage(idx)}
+                              className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload Button - Show if less than 6 total images */}
+                  {(existingImages.length + formData.images.length) < 6 && (
+                    <label className="flex flex-col items-center justify-center px-4 py-6 bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-lg border-2 border-gray-300 dark:border-gray-600 border-dashed cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                      <Upload className="w-6 h-6 sm:w-8 sm:h-8 mb-2" />
+                      <span className="text-xs sm:text-sm font-medium">Click to upload images</span>
+                      <span className="text-xs text-gray-400 mt-1">
+                        {6 - existingImages.length - formData.images.length} slots remaining
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+
+                  {(existingImages.length + formData.images.length) >= 6 && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 text-center py-2">
+                      Maximum of 6 images reached
+                    </p>
                   )}
                 </div>
               </div>
@@ -1127,18 +1478,18 @@ const AdminAnnouncements = () => {
                     setIsModalOpen(false);
                     resetForm();
                   }}
-                  className="px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  className="px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg sm:rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center justify-center px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="flex items-center justify-center gap-1.5 sm:gap-2 px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed rounded-lg sm:rounded-xl transition-colors shadow-lg shadow-emerald-600/25"
                 >
                   {submitting ? (
                     <>
-                      <svg className="animate-spin w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin w-3.5 h-3.5 sm:w-4 sm:h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
@@ -1146,7 +1497,7 @@ const AdminAnnouncements = () => {
                     </>
                   ) : (
                     <>
-                      <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                      <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       {isEditMode ? "Update" : "Create"}
                     </>
                   )}
@@ -1262,7 +1613,7 @@ const AdminAnnouncements = () => {
       )}
 
       {/* Full Screen Image Gallery */}
-      {imageGalleryOpen && selectedAnnouncement?.image && (
+      {imageGalleryOpen && selectedAnnouncement && getAnnouncementImages().length > 0 && (
         <div
           className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
           onClick={closeImageGallery}
@@ -1277,17 +1628,64 @@ const AdminAnnouncements = () => {
 
           {/* Image Counter */}
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 bg-white/10 backdrop-blur-sm text-white text-sm rounded-full">
-            Announcement Image
+            {currentImageIndex + 1} / {getAnnouncementImages().length}
           </div>
 
           {/* Main Image */}
-          <div className="relative w-full h-full flex items-center justify-center p-16">
+          <div 
+            className="relative w-full h-full flex items-center justify-center p-16"
+            onClick={(e) => e.stopPropagation()}
+          >
             <img
-              src={selectedAnnouncement.image}
+              src={getAnnouncementImages()[currentImageIndex]}
               alt=""
               className="max-w-full max-h-full object-contain"
-              onClick={(e) => e.stopPropagation()}
             />
+          </div>
+
+          {/* Navigation Buttons */}
+          {getAnnouncementImages().length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 backdrop-blur-sm text-white rounded-full hover:bg-white/20 transition-colors"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 backdrop-blur-sm text-white rounded-full hover:bg-white/20 transition-colors"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </>
+          )}
+
+          {/* Thumbnail Strip */}
+          {getAnnouncementImages().length > 1 && (
+            <div
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-white/10 backdrop-blur-sm rounded-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {getAnnouncementImages().map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentImageIndex(idx)}
+                  className={`w-14 h-14 rounded-lg overflow-hidden transition-all ${
+                    idx === currentImageIndex
+                      ? "ring-2 ring-white scale-110"
+                      : "opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <img src={img} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Keyboard Hint */}
+          <div className="absolute bottom-6 right-6 text-white/50 text-xs">
+            ← → Navigate • ESC Close
           </div>
         </div>
       )}

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
-import { Eye, EyeOff, Lock, User, ArrowLeft, Activity } from "lucide-react";
+import { Eye, EyeOff, Lock, User, ArrowLeft, Activity, Clock } from "lucide-react";
 
 export default function SignInForm() {
    const [showPassword, setShowPassword] = useState(false);
@@ -9,8 +9,16 @@ export default function SignInForm() {
    const [password, setPassword] = useState("");
    const [error, setError] = useState("");
    const [loading, setLoading] = useState(false);
-   const { login } = useAuth();
+   const { login, sessionExpired, clearSessionExpired } = useAuth();
    const navigate = useNavigate();
+
+   // Show session expired message if applicable
+   useEffect(() => {
+      if (sessionExpired) {
+         setError("Your session has expired due to inactivity. Please log in again.");
+         clearSessionExpired();
+      }
+   }, [sessionExpired, clearSessionExpired]);
 
    const handleSubmit = async (e) => {
       e.preventDefault();

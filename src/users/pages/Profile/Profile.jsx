@@ -5,7 +5,7 @@ import axios from 'axios';
 import { 
   User, Mail, Phone, MapPin, Calendar, Briefcase, Heart, Users, IdCard, Shield,
   FileText, Clock, CheckCircle, XCircle, AlertTriangle, Upload, Loader2, Edit, History,
-  Save, X, ChevronDown, ChevronUp, Info, Image, Plus, Trash2
+  Save, X, ChevronDown, ChevronUp, Info, Image, Plus, Trash2, UsersRound
 } from 'lucide-react';
 import PSABirthCertificateForm from '../../../components/profile/PSABirthCertificateForm';
 
@@ -22,7 +22,7 @@ const EditableInput = memo(({ label, name, value, type = 'text', options = null,
           value={value || ''}
           onChange={onChange}
           disabled={disabled}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm disabled:bg-gray-100"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm disabled:bg-gray-100"
         >
           <option value="">Select...</option>
           {options.map(opt => (
@@ -42,7 +42,7 @@ const EditableInput = memo(({ label, name, value, type = 'text', options = null,
         value={value || ''}
         onChange={onChange}
         disabled={disabled}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm disabled:bg-gray-100"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm disabled:bg-gray-100"
       />
     </div>
   );
@@ -169,6 +169,19 @@ const VERIFICATION_CONFIG = {
       acceptedTypes: 'ID, Birth Certificate, Any relationship proof',
     },
     adminNote: 'Admin may contact the emergency contact person for verification.',
+  },
+  sectoral: {
+    title: 'Sectoral Membership Update',
+    description: 'Update your sectoral group membership. This helps the barangay provide targeted services.',
+    requiresReason: false,
+    documents: {
+      required: false,
+      maxFiles: 1,
+      label: 'Supporting Document (Optional)',
+      description: 'Optionally upload proof of membership:\n• Senior Citizen ID (for Senior Citizens)\n• PWD ID (for PWD)\n• 4Ps Certificate (for 4Ps)\n• Any valid document proving membership',
+      acceptedTypes: 'ID, Certificate, Membership Card',
+    },
+    adminNote: 'Sectoral membership may be verified by the barangay.',
   },
 };
 
@@ -335,6 +348,11 @@ const Profile = () => {
           }
         };
         break;
+      case 'sectoral':
+        initialData = {
+          sectoralGroups: user?.sectoralGroups || [],
+        };
+        break;
     }
     
     setEditFormData(initialData);
@@ -451,6 +469,7 @@ const Profile = () => {
         additional: 'additional_info',
         spouse: 'spouse_info',
         emergency: 'emergency_contact',
+        sectoral: 'sectoral_groups',
       };
       
       formData.append('updateType', updateTypeMap[editSection]);
@@ -478,6 +497,8 @@ const Profile = () => {
             formData.append(`emergencyContact.address.${key}`, editFormData.address[key]);
           });
         }
+      } else if (editSection === 'sectoral') {
+        formData.append('sectoralGroups', JSON.stringify(editFormData.sectoralGroups || []));
       } else {
         Object.keys(editFormData).forEach(key => {
           formData.append(key, editFormData[key]);
@@ -554,14 +575,14 @@ const Profile = () => {
     return (
       <div className="border-t mt-6 pt-6 space-y-5">
         {/* Verification Header */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-semibold text-blue-800 flex items-center gap-2">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+          <h4 className="font-semibold text-emerald-800 flex items-center gap-2">
             <Shield className="w-5 h-5" />
             {config.title}
           </h4>
-          <p className="text-blue-600 text-sm mt-1">{config.description}</p>
+          <p className="text-emerald-600 text-sm mt-1">{config.description}</p>
           {config.adminNote && (
-            <p className="text-blue-700 text-xs mt-2 flex items-center gap-1">
+            <p className="text-emerald-700 text-xs mt-2 flex items-center gap-1">
               <Info className="w-3 h-3" />
               {config.adminNote}
             </p>
@@ -577,7 +598,7 @@ const Profile = () => {
             <select
               value={updateReason}
               onChange={handleReasonChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
             >
               <option value="">Select a reason...</option>
               {config.reasonOptions.map(opt => (
@@ -613,7 +634,7 @@ const Profile = () => {
                     <img src={preview.url} alt={preview.name} className="w-full h-20 object-cover rounded" />
                   ) : (
                     <div className="w-full h-20 flex items-center justify-center">
-                      <FileText className="w-10 h-10 text-blue-600" />
+                      <FileText className="w-10 h-10 text-emerald-600" />
                     </div>
                   )}
                   <p className="text-xs text-gray-600 truncate mt-1">{preview.name}</p>
@@ -645,7 +666,7 @@ const Profile = () => {
                   </>
                 )}
                 <p className="text-xs text-gray-400 mt-1">JPG, PNG or PDF (Max 10MB each)</p>
-                <p className="text-xs text-blue-500 mt-1">{config.documents.acceptedTypes}</p>
+                <p className="text-xs text-emerald-500 mt-1">{config.documents.acceptedTypes}</p>
               </div>
               <input
                 type="file"
@@ -672,7 +693,7 @@ const Profile = () => {
             type="button"
             onClick={handleSubmitUpdate}
             disabled={isSubmittingUpdate || (config.documents.required && proofDocuments.length === 0) || (config.requiresReason && !updateReason)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmittingUpdate ? (
               <>
@@ -692,7 +713,7 @@ const Profile = () => {
   }, [editSection, updateReason, proofDocuments, proofPreviews, isSubmittingUpdate, handleReasonChange, handleProofUpload, handleRemoveProof, handleCancelEdit, handleSubmitUpdate]);
 
   // Section Header with Edit button
-  const SectionHeader = ({ title, icon: Icon, iconColor = 'text-blue-600', section }) => (
+  const SectionHeader = ({ title, icon: Icon, iconColor = 'text-emerald-600', section }) => (
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
         <Icon className={`w-5 h-5 ${iconColor}`} />
@@ -701,7 +722,7 @@ const Profile = () => {
       {isResident && editSection !== section && (
         <button
           onClick={() => handleStartEdit(section)}
-          className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1"
+          className="text-emerald-600 hover:text-emerald-700 text-sm font-medium flex items-center gap-1"
         >
           <Edit className="w-4 h-4" />
           Edit
@@ -713,7 +734,7 @@ const Profile = () => {
   if (!user) return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
         <p className="mt-4 text-gray-600">Loading profile...</p>
       </div>
     </div>
@@ -779,8 +800,8 @@ const Profile = () => {
         {/* Header */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center">
-              <User className="w-10 h-10 text-blue-600" />
+            <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center">
+              <User className="w-10 h-10 text-emerald-600" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-800">
@@ -803,7 +824,7 @@ const Profile = () => {
                   onClick={() => setActiveTab('overview')}
                   className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                     activeTab === 'overview'
-                      ? 'border-blue-600 text-blue-600'
+                      ? 'border-emerald-600 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -814,7 +835,7 @@ const Profile = () => {
                   onClick={() => setActiveTab('psa')}
                   className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
                     activeTab === 'psa'
-                      ? 'border-blue-600 text-blue-600'
+                      ? 'border-emerald-600 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -825,7 +846,7 @@ const Profile = () => {
                   onClick={() => setActiveTab('updates')}
                   className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
                     activeTab === 'updates'
-                      ? 'border-blue-600 text-blue-600'
+                      ? 'border-emerald-600 text-emerald-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -843,7 +864,7 @@ const Profile = () => {
             {/* Status Card */}
             {isLoadingStatus ? (
               <div className="bg-white rounded-lg shadow-md p-6 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
                 <span className="ml-2 text-gray-600">Loading status...</span>
               </div>
             ) : (
@@ -903,7 +924,7 @@ const Profile = () => {
                   </p>
                   <button
                     onClick={() => setActiveTab('overview')}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
                   >
                     View Profile Overview
                   </button>
@@ -918,13 +939,13 @@ const Profile = () => {
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <History className="w-5 h-5 text-blue-600" />
+                <History className="w-5 h-5 text-emerald-600" />
                 Profile Update History
               </h2>
               
               {loadingHistory ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                  <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
                   <span className="ml-2 text-gray-600">Loading history...</span>
                 </div>
               ) : updateHistory.length === 0 ? (
@@ -954,7 +975,7 @@ const Profile = () => {
                             }`}>
                               {update.status.charAt(0).toUpperCase() + update.status.slice(1)}
                             </span>
-                            <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                            <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full">
                               {update.updateType?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                             </span>
                           </div>
@@ -1216,6 +1237,77 @@ const Profile = () => {
                 )}
               </div>
 
+              {/* Sectoral Membership */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <SectionHeader title="Sectoral Membership" icon={UsersRound} iconColor="text-emerald-600" section="sectoral" />
+                
+                {editSection === 'sectoral' ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-600 mb-3">Select all sectoral groups you belong to (optional):</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { value: 'senior', label: 'Senior Citizen (60+)' },
+                        { value: 'pwd', label: 'Person with Disability (PWD)' },
+                        { value: 'solo_parent', label: 'Solo Parent' },
+                        { value: 'woman', label: 'Woman' },
+                        { value: 'child-youth', label: 'Child/Youth' },
+                      ].map((group) => (
+                        <label key={group.value} className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 border border-gray-200">
+                          <input
+                            type="checkbox"
+                            checked={editFormData.sectoralGroups?.includes(group.value) || false}
+                            onChange={(e) => {
+                              const currentGroups = editFormData.sectoralGroups || [];
+                              if (e.target.checked) {
+                                setEditFormData(prev => ({
+                                  ...prev,
+                                  sectoralGroups: [...currentGroups, group.value]
+                                }));
+                              } else {
+                                setEditFormData(prev => ({
+                                  ...prev,
+                                  sectoralGroups: currentGroups.filter(g => g !== group.value)
+                                }));
+                              }
+                            }}
+                            className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                          />
+                          <span className="text-sm text-gray-700">{group.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <EditFormFooter />
+                  </div>
+                ) : (
+                  <div>
+                    {user.sectoralGroups && user.sectoralGroups.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {user.sectoralGroups.map((group, idx) => {
+                          // Map enum values to display labels
+                          const labelMap = {
+                            'senior': 'Senior Citizen',
+                            'pwd': 'PWD',
+                            'solo_parent': 'Solo Parent',
+                            'woman': 'Woman',
+                            'child-youth': 'Child/Youth',
+                          };
+                          return (
+                            <span 
+                              key={idx}
+                              className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full font-medium"
+                            >
+                              {labelMap[group] || group}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 italic">No sectoral membership indicated</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Additional Information */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <SectionHeader title="Additional Information" icon={FileText} iconColor="text-purple-600" section="additional" />
@@ -1378,7 +1470,7 @@ const Profile = () => {
               {psaStatus?.birthCertificate?.father && psaStatus?.verificationStatus === 'approved' && (
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <User className="w-5 h-5 text-blue-600" />
+                    <User className="w-5 h-5 text-emerald-600" />
                     Father's Information
                     <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">From PSA</span>
                   </h3>

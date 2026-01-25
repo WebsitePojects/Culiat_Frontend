@@ -180,7 +180,7 @@ const GetInTouch = () => {
                 custom={0.1}
                 className="flex items-center space-x-3 sm:space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
               >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary text-white rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
                   <MapPin size={20} className="sm:hidden" />
                   <MapPin size={24} className="hidden sm:block" />
                 </div>
@@ -203,7 +203,7 @@ const GetInTouch = () => {
                 custom={0.2}
                 className="flex items-center space-x-3 sm:space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
               >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary text-white rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
                   <svg
                     className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
@@ -234,7 +234,7 @@ const GetInTouch = () => {
                 custom={0.3}
                 className="flex items-center space-x-3 sm:space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
               >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary text-white rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
                   <svg
                     className="w-5 h-5 sm:w-6 sm:h-6"
                     fill="none"
@@ -263,7 +263,7 @@ const GetInTouch = () => {
                 custom={0.4}
                 className="flex items-center space-x-3 sm:space-x-4 hover:translate-y-[-3px] transition-transform duration-300"
               >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-secondary text-secondary-foreground rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary text-white rounded-lg flex items-center text-text-color-light justify-center shrink-0 shadow-sm">
                   <Clock size={20} className="sm:hidden" />
                   <Clock size={24} className="hidden sm:block" />
                 </div>
@@ -289,30 +289,30 @@ const GetInTouch = () => {
                   href="https://www.facebook.com/profile.php?id=100091344363854"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
+                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  <Facebook size={16} className="text-secondary" />
+                  <Facebook size={16} className="text-primary" />
                   <span>Facebook Page</span>
                 </a>
                 <Link
                   to="/legal#privacy"
-                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
+                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  <FileText size={16} className="text-secondary" />
+                  <FileText size={16} className="text-primary" />
                   <span>Privacy Policy</span>
                 </Link>
                 <Link
                   to="/legal#terms"
-                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
+                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  <FileText size={16} className="text-secondary" />
+                  <FileText size={16} className="text-primary" />
                   <span>Terms & Conditions</span>
                 </Link>
                 <Link
                   to="/about"
-                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
+                  className="flex items-center space-x-2 text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  <FileText size={16} className="text-secondary" />
+                  <FileText size={16} className="text-primary" />
                   <span>About Us</span>
                 </Link>
               </div>
@@ -326,7 +326,7 @@ const GetInTouch = () => {
             viewport={{ once: true }}
             variants={fadeUp}
             custom={0.6}
-            className="bg-card border border-text-secondary/30 rounded-lg p-8 shadow-md bg-light"
+            className="bg-card border border-text-primary/30 rounded-lg p-8 shadow-md bg-light"
           >
             <h3 className="text-xl font-bold mb-6">Send us a Message</h3>
 
@@ -353,7 +353,7 @@ const GetInTouch = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    First Name <span className="text-secondary">*</span>
+                    First Name <span className="text-primary">*</span>
                   </label>
                   <input
                     type="text"
@@ -361,12 +361,12 @@ const GetInTouch = () => {
                     value={formData.firstName}
                     onChange={handleInputChange}
                     placeholder="Enter your first name"
-                    className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary outline-none transition-all bg-background"
+                    className="w-full px-4 py-2 border border-text-primary/30 rounded-lg focus:ring focus:ring-primary outline-none transition-all bg-background"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Last Name <span className="text-secondary">*</span>
+                    Last Name <span className="text-primary">*</span>
                   </label>
                   <input
                     type="text"
@@ -374,7 +374,7 @@ const GetInTouch = () => {
                     value={formData.lastName}
                     onChange={handleInputChange}
                     placeholder="Enter your last name"
-                    className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary outline-none transition-all bg-background"
+                    className="w-full px-4 py-2 border border-text-primary/30 rounded-lg focus:ring focus:ring-primary outline-none transition-all bg-background"
                   />
                 </div>
               </div>
@@ -382,7 +382,7 @@ const GetInTouch = () => {
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Email Address <span className="text-secondary">*</span>
+                  Email Address <span className="text-primary">*</span>
                 </label>
                 <input
                   type="email"
@@ -390,20 +390,20 @@ const GetInTouch = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter your email address"
-                  className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary outline-none transition-all bg-background"
+                  className="w-full px-4 py-2 border border-text-primary/30 rounded-lg focus:ring focus:ring-primary outline-none transition-all bg-background"
                 />
               </div>
 
               {/* Subject */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Subject <span className="text-secondary">*</span>
+                  Subject <span className="text-primary">*</span>
                 </label>
                 <select
                   name="subject"
                   value={formData.subject}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary bg-background outline-none transition-all"
+                  className="w-full px-4 py-2 border border-text-primary/30 rounded-lg focus:ring focus:ring-primary bg-background outline-none transition-all"
                 >
                   <option value="">Select a subject</option>
                   <option value="Document Request">Document Request</option>
@@ -418,7 +418,7 @@ const GetInTouch = () => {
               {/* Star Rating */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Rate Your Experience <span className="text-secondary">*</span>
+                  Rate Your Experience <span className="text-primary">*</span>
                 </label>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1">
@@ -450,7 +450,7 @@ const GetInTouch = () => {
               {/* Message */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Message <span className="text-secondary">*</span>
+                  Message <span className="text-primary">*</span>
                 </label>
                 <textarea
                   name="message"
@@ -458,7 +458,7 @@ const GetInTouch = () => {
                   onChange={handleInputChange}
                   rows={5}
                   placeholder="Write your message here..."
-                  className="w-full px-4 py-2 border border-text-secondary/30 rounded-lg focus:ring focus:ring-secondary outline-none transition-all bg-background resize-none"
+                  className="w-full px-4 py-2 border border-text-primary/30 rounded-lg focus:ring focus:ring-primary outline-none transition-all bg-background resize-none"
                 ></textarea>
               </div>
 
@@ -470,18 +470,18 @@ const GetInTouch = () => {
                   name="privacyAccepted"
                   checked={formData.privacyAccepted}
                   onChange={handleInputChange}
-                  className="mt-1 w-4 h-4 text-secondary border-border rounded focus:ring-secondary"
+                  className="mt-1 w-4 h-4 text-primary border-border rounded focus:ring-primary"
                 />
                 <label
                   htmlFor="privacy"
                   className="text-sm text-muted-foreground"
                 >
                   I agree to the{" "}
-                  <a href="/legal#privacy" className="text-secondary hover:underline">
+                  <a href="/legal#privacy" className="text-primary hover:underline">
                     privacy policy
                   </a>{" "}
                   and{" "}
-                  <a href="/legal#terms" className="text-secondary hover:underline">
+                  <a href="/legal#terms" className="text-primary hover:underline">
                     terms of service
                   </a>
                 </label>

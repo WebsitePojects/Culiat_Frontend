@@ -13,13 +13,13 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
  * 
  * TEMPORARILY DISABLED - Return null immediately
  */
-const ProfileWarningModal = ({ 
-  isOpen, 
-  onClose, 
-  daysLeft, 
-  deadline, 
+const ProfileWarningModal = ({
+  isOpen,
+  onClose,
+  daysLeft,
+  deadline,
   verificationStatus,
-  rejectionReason 
+  rejectionReason
 }) => {
   const navigate = useNavigate();
   const [isDismissing, setIsDismissing] = useState(false);
@@ -60,7 +60,7 @@ const ProfileWarningModal = ({
 
   // Early return if not open OR if essential data is missing
   if (!isOpen) return null;
-  
+
   // Don't render the backdrop if deadline is missing - prevent the broken modal state
   if (!deadline) {
     console.warn('ProfileWarningModal: deadline is missing, closing modal');
@@ -115,15 +115,15 @@ const ProfileWarningModal = ({
       countdownBg: 'bg-amber-800/80',
     },
     info: {
-      bg: 'bg-blue-600',
-      bgLight: 'bg-blue-50',
-      border: 'border-blue-300',
-      icon: 'text-blue-500',
-      title: 'text-blue-700',
-      button: 'bg-blue-600 hover:bg-blue-700',
-      badge: 'bg-blue-100 text-blue-700',
-      gradient: 'from-blue-500 to-blue-700',
-      countdownBg: 'bg-blue-800/80',
+      bg: 'bg-primary',
+      bgLight: 'bg-emerald-50',
+      border: 'border-emerald-300',
+      icon: 'text-primary',
+      title: 'text-emerald-700',
+      button: 'bg-primary hover:bg-primary-dark',
+      badge: 'bg-emerald-100 text-emerald-700',
+      gradient: 'from-primary to-primary-dark',
+      countdownBg: 'bg-emerald-800/80',
     },
   };
 
@@ -174,14 +174,14 @@ const ProfileWarningModal = ({
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 99999 }}>
       {/* Backdrop */}
-      <div 
+      <div
         style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
         onClick={handleDismiss}
       />
 
       {/* Modal Container - centered modal */}
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-        <div 
+        <div
           style={{ position: 'relative', width: '100%', maxWidth: '500px', backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', overflow: 'hidden' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -212,14 +212,14 @@ const ProfileWarningModal = ({
             </div>
 
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
-              {urgencyLevel === 'expired' 
+              {urgencyLevel === 'expired'
                 ? '⚠️ Profile Update Overdue!'
                 : urgencyLevel === 'critical'
-                ? '🚨 Urgent Action Required!'
-                : 'Complete Your Profile'}
+                  ? '🚨 Urgent Action Required!'
+                  : 'Complete Your Profile'}
             </h2>
             <p className="text-white/90 text-sm sm:text-base">
-              {urgencyLevel === 'expired' 
+              {urgencyLevel === 'expired'
                 ? 'Your deadline has passed. Please complete your profile immediately.'
                 : 'Your PSA Birth Certificate information is required'}
             </p>
@@ -232,7 +232,7 @@ const ProfileWarningModal = ({
                   {countdown.isExpired ? 'Time Expired' : 'Time Remaining'}
                 </span>
               </div>
-              
+
               {countdown.isExpired ? (
                 <div className="bg-red-900/50 rounded-xl px-6 py-4 inline-block">
                   <span className="text-2xl sm:text-3xl font-bold text-white">OVERDUE</span>
@@ -287,27 +287,27 @@ const ProfileWarningModal = ({
               </p>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm text-gray-600">
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></span>
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0"></span>
                   PSA Certificate Number
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></span>
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0"></span>
                   Registry Number
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></span>
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0"></span>
                   Date & Place Issued
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></span>
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0"></span>
                   Father's Information
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></span>
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0"></span>
                   Mother's Information
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></span>
+                  <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0"></span>
                   Birth Certificate Copy
                 </li>
               </ul>
@@ -315,7 +315,7 @@ const ProfileWarningModal = ({
 
             {/* Info Note */}
             <p className="text-gray-500 text-xs sm:text-sm text-center px-2">
-              Complete your profile to access all Barangay Culiat services. 
+              Complete your profile to access all Barangay Culiat services.
               Your submission will be reviewed by an administrator.
             </p>
           </div>

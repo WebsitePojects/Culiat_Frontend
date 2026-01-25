@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { CalendarDays, MapPin, Filter, Megaphone, Loader2, Search, RefreshCw, Inbox, Clock, CheckCircle, ArrowUpDown, X } from "lucide-react";
+import { CalendarDays, MapPin, Filter, Megaphone, Loader2, Search, RefreshCw, Inbox, Clock, CheckCircle, ArrowUpDown, X, Image } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -49,12 +49,12 @@ const Announcement = () => {
    // Filter by category - use useMemo to avoid recalculating on every render
    const filteredAnnouncements = useMemo(() => {
       let filtered = recentAnnouncements;
-      
+
       // Filter by category
       if (activeFilter !== "All") {
          filtered = filtered.filter((a) => a.category === activeFilter);
       }
-      
+
       // Filter by search term
       if (searchTerm.trim()) {
          const search = searchTerm.toLowerCase();
@@ -64,14 +64,14 @@ const Announcement = () => {
             a.location?.toLowerCase().includes(search)
          );
       }
-      
+
       // Sort by date
       filtered = [...filtered].sort((a, b) => {
          const dateA = new Date(a.createdAt);
          const dateB = new Date(b.createdAt);
          return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
       });
-      
+
       return filtered;
    }, [activeFilter, recentAnnouncements, searchTerm, sortOrder]);
 
@@ -93,13 +93,13 @@ const Announcement = () => {
 
    const cardVariants = {
       hidden: { opacity: 0, scale: 0.95 },
-      show: { 
-         opacity: 1, 
+      show: {
+         opacity: 1,
          scale: 1,
          transition: { duration: 0.2 }
       },
-      exit: { 
-         opacity: 0, 
+      exit: {
+         opacity: 0,
          scale: 0.95,
          transition: { duration: 0.15 }
       }
@@ -131,7 +131,10 @@ const Announcement = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
-            className="relative bg-gradient-to-br from-[#1e3a8a] via-[#3b82f6] to-[#60a5fa] text-white overflow-hidden"
+            className="relative text-white overflow-hidden"
+            style={{
+               background: "linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 50%, var(--color-primary-glow) 100%)",
+            }}
          >
             {/* Decorative Background Pattern */}
             <div className="absolute inset-0 opacity-10">
@@ -215,7 +218,7 @@ const Announcement = () => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Search announcements..."
-                        className="w-full pl-9 md:pl-12 pr-4 py-2.5 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl text-sm md:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full pl-9 md:pl-12 pr-4 py-2.5 md:py-3 bg-gray-50 border border-gray-200 rounded-lg md:rounded-xl text-sm md:text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                      />
                   </div>
 
@@ -232,7 +235,7 @@ const Announcement = () => {
                      <button
                         onClick={() => fetchAnnouncements(true)}
                         disabled={refreshing}
-                        className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 bg-blue-50 text-blue-600 rounded-lg md:rounded-xl hover:bg-blue-100 transition-colors disabled:opacity-50 text-xs md:text-sm"
+                        className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2.5 md:py-3 bg-emerald-50 text-emerald-600 rounded-lg md:rounded-xl hover:bg-emerald-100 transition-colors disabled:opacity-50 text-xs md:text-sm"
                      >
                         <RefreshCw className={`w-3.5 h-3.5 md:w-4 md:h-4 ${refreshing ? "animate-spin" : ""}`} />
                         <span className="hidden sm:inline">Refresh</span>
@@ -250,11 +253,10 @@ const Announcement = () => {
                      <button
                         key={cat}
                         onClick={() => setActiveFilter(cat)}
-                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-150 ${
-                           activeFilter === cat
-                              ? "bg-blue-600 text-white shadow-md"
-                              : "bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                        }`}
+                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-150 ${activeFilter === cat
+                           ? "bg-emerald-600 text-white shadow-md"
+                           : "bg-gray-100 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600"
+                           }`}
                      >
                         {cat}
                      </button>
@@ -273,16 +275,16 @@ const Announcement = () => {
                         </span>
                      )}
                      {activeFilter !== "All" && (
-                        <span className="inline-flex items-center gap-1 px-2 md:px-3 py-0.5 md:py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] md:text-sm">
+                        <span className="inline-flex items-center gap-1 px-2 md:px-3 py-0.5 md:py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] md:text-sm">
                            {activeFilter}
-                           <button onClick={() => setActiveFilter("All")} className="ml-1 hover:text-blue-900">
+                           <button onClick={() => setActiveFilter("All")} className="ml-1 hover:text-emerald-900">
                               <X className="w-2.5 h-2.5 md:w-3 md:h-3" />
                            </button>
                         </span>
                      )}
                   </div>
                   <span className="text-xs md:text-sm text-gray-500">
-                     Showing <span className="font-semibold text-blue-600">{filteredAnnouncements.length}</span> of {recentAnnouncements.length} announcements
+                     Showing <span className="font-semibold text-emerald-600">{filteredAnnouncements.length}</span> of {recentAnnouncements.length} announcements
                   </span>
                </div>
             </div>
@@ -292,8 +294,8 @@ const Announcement = () => {
          {loading && (
             <div className="flex flex-col items-center justify-center py-12 md:py-20">
                <div className="relative">
-                  <div className="w-12 h-12 md:w-16 md:h-16 border-4 border-blue-200 rounded-full animate-pulse" />
-                  <div className="absolute inset-0 w-12 h-12 md:w-16 md:h-16 border-4 border-transparent border-t-blue-600 rounded-full animate-spin" />
+                  <div className="w-12 h-12 md:w-16 md:h-16 border-4 border-emerald-200 rounded-full animate-pulse" />
+                  <div className="absolute inset-0 w-12 h-12 md:w-16 md:h-16 border-4 border-transparent border-t-emerald-600 rounded-full animate-spin" />
                </div>
                <p className="mt-3 md:mt-4 text-sm md:text-base text-gray-500">Loading announcements...</p>
             </div>
@@ -305,7 +307,7 @@ const Announcement = () => {
                <p className="text-red-500">{error}</p>
                <button
                   onClick={fetchAnnouncements}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
                >
                   Try Again
                </button>
@@ -332,25 +334,34 @@ const Announcement = () => {
                            className="bg-white shadow-lg flex flex-col border border-gray-100 rounded-2xl overflow-hidden hover:shadow-2xl transition-shadow duration-300"
                         >
                            <Link
-                              to={`/announcements/${item.slug || item._id}`}
+                              to={`/announcements/${item.slug && item.slug.trim() !== '' ? item.slug : item._id}`}
                               className="flex flex-col h-full"
                            >
-                              <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-blue-100 to-blue-200">
-                                 {item.image ? (
-                                    <img
-                                       src={item.image}
-                                       alt={item.title}
-                                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                                       loading="lazy"
-                                    />
+                              <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-emerald-100 to-emerald-200">
+                                 {(item.images?.length > 0 || item.image) ? (
+                                    <>
+                                       <img
+                                          src={item.images?.[0] || item.image}
+                                          alt={item.title}
+                                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                          loading="lazy"
+                                       />
+                                       {/* Multiple images badge */}
+                                       {item.images?.length > 1 && (
+                                          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-black/50 backdrop-blur-sm rounded-lg">
+                                             <Image className="w-3.5 h-3.5 text-white" />
+                                             <span className="text-xs text-white font-medium">+{item.images.length - 1}</span>
+                                          </div>
+                                       )}
+                                    </>
                                  ) : (
                                     <div className="w-full h-full flex items-center justify-center">
-                                       <Megaphone className="w-16 h-16 text-blue-400" />
+                                       <Megaphone className="w-16 h-16 text-emerald-400" />
                                     </div>
                                  )}
                                  {/* Category Badge Overlay */}
                                  <div className="absolute top-3 right-3">
-                                    <span className="px-3 py-1 bg-white/95 backdrop-blur-sm text-xs font-semibold text-blue-600 rounded-full shadow-md uppercase tracking-wide">
+                                    <span className="px-3 py-1 bg-white/95 backdrop-blur-sm text-xs font-semibold text-emerald-600 rounded-full shadow-md uppercase tracking-wide">
                                        {item.category}
                                     </span>
                                  </div>
@@ -358,7 +369,7 @@ const Announcement = () => {
 
                               <div className="p-6 flex flex-col justify-between flex-1">
                                  <div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
+                                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 hover:text-emerald-600 transition-colors">
                                        {item.title}
                                     </h3>
                                     <p className="text-sm text-gray-600 mb-4 leading-relaxed line-clamp-3">
@@ -369,19 +380,19 @@ const Announcement = () => {
                                  <div className="space-y-3">
                                     <div className="flex flex-wrap gap-3 text-sm text-gray-500">
                                        <span className="flex items-center gap-1.5">
-                                          <CalendarDays className="w-4 h-4 text-blue-600" />
+                                          <CalendarDays className="w-4 h-4 text-emerald-600" />
                                           <span className="text-xs">{formatDate(item.eventDate || item.createdAt)}</span>
                                        </span>
                                        {item.location && (
                                           <span className="flex items-center gap-1.5">
-                                             <MapPin className="w-4 h-4 text-blue-600" />
+                                             <MapPin className="w-4 h-4 text-emerald-600" />
                                              <span className="text-xs line-clamp-1">
                                                 {item.location}
                                              </span>
                                           </span>
                                        )}
                                     </div>
-                                    <div className="pt-2 flex items-center gap-2 text-blue-600 font-medium text-sm group">
+                                    <div className="pt-2 flex items-center gap-2 text-emerald-600 font-medium text-sm group">
                                        <span>Read more</span>
                                        <span className="group-hover:translate-x-1 transition-transform">→</span>
                                     </div>

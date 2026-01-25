@@ -63,7 +63,7 @@ const fadeUp = {
 const Explore = () => {
   return (
     <section
-      className="relative pt-12 px-6 pb-[5.5em] bg-linear-to-bl from-secondary to-secondary-glow"
+      className="relative pt-12 px-6 pb-[5.5em] bg-linear-to-bl from-primary-dark to-primary"
       id="home-explore"
     >
       <div className="max-w-6xl mx-auto">
@@ -113,9 +113,9 @@ const Explore = () => {
                 whileTap={{ scale: 0.98 }}
                 className="flex flex-col items-center text-center dark:bg-gray-800 rounded-xl cursor-pointer transition-all duration-200 p-2 sm:p-3"
               >
-                <div className="p-2 sm:p-3 mt-2 sm:mt-4 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <div className="p-2 sm:p-3 mt-2 sm:mt-4 bg-white/20 backdrop-blur-sm rounded-lg">
                   <Icon
-                    className="text-blue-600 dark:text-blue-400"
+                    className="text-white"
                     size={24}
                   />
                 </div>

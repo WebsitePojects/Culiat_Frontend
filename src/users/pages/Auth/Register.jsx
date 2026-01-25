@@ -39,7 +39,7 @@ const Register = () => {
   const [showOccupationDropdown, setShowOccupationDropdown] = useState(false);
   const [occupationSearch, setOccupationSearch] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
-  
+
   // Optional PSA Step states
   const [showOptionalPSA, setShowOptionalPSA] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
@@ -52,12 +52,12 @@ const Register = () => {
     father: false,
     marriage: false,
   });
-  
+
   // Terms & Conditions Modal states
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [hasScrolledTerms, setHasScrolledTerms] = useState(false);
   const [canAcceptTerms, setCanAcceptTerms] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -94,6 +94,8 @@ const Register = () => {
     emergencyHouseNumber: "",
     emergencyStreet: "",
     emergencySubdivision: "",
+    // Sectoral Groups (multiple selection)
+    sectoralGroups: [],
     // Primary ID 1
     primaryID1Type: "",
     primaryID1File: null,
@@ -116,7 +118,7 @@ const Register = () => {
       placeIssued: "",
       province: "",
       cityMunicipality: "",
-      
+
       // === YOUR INFORMATION (as registered on birth certificate) ===
       yourInfo: {
         firstName: "",
@@ -133,7 +135,7 @@ const Register = () => {
         birthOrder: "",
         birthWeight: "",
       },
-      
+
       // === MOTHER'S INFORMATION ===
       mother: {
         maidenName: {
@@ -157,7 +159,7 @@ const Register = () => {
         childrenStillLiving: "",
         childrenNowDead: "",
       },
-      
+
       // === FATHER'S INFORMATION ===
       father: {
         name: {
@@ -178,7 +180,7 @@ const Register = () => {
           country: "Philippines",
         },
       },
-      
+
       // === PARENTS' MARRIAGE ===
       parentsMarriage: {
         dateOfMarriage: "",
@@ -188,7 +190,7 @@ const Register = () => {
           country: "Philippines",
         },
       },
-      
+
       // === REMARKS ===
       remarks: "",
     },
@@ -411,18 +413,18 @@ const Register = () => {
   // Suffix options for dropdown
   const suffixOptions = ["", "Jr.", "Sr.", "II", "III", "IV", "V"];
 
-  // Area/Zone options for Barangay Culiat
+  // Area/Purok options for Barangay Culiat
   const areaOptions = [
-    "Zone 1",
-    "Zone 2",
-    "Zone 3",
-    "Zone 4",
-    "Zone 5",
-    "Zone 6",
-    "Zone 7",
-    "Zone 8",
-    "Zone 9",
-    "Zone 10",
+    "PUROK 1",
+    "PUROK 1A",
+    "PUROK 2",
+    "PUROK 3",
+    "PUROK 3A",
+    "PUROK 4",
+    "PUROK 4A",
+    "PUROK 4B",
+    "PUROK 5",
+    "PUROK 6",
   ];
 
   // Auto-determine salutation based on sex and civil status
@@ -463,20 +465,20 @@ const Register = () => {
   const formatPhoneNumber = (value) => {
     // Remove all non-digits
     let cleaned = value.replace(/\D/g, "");
-    
+
     // Remove leading 63 if present (we'll add it back)
     if (cleaned.startsWith("63")) {
       cleaned = cleaned.substring(2);
     }
-    
+
     // Remove leading 0 if present
     if (cleaned.startsWith("0")) {
       cleaned = cleaned.substring(1);
     }
-    
+
     // Limit to 10 digits (9XX XXX XXXX)
     cleaned = cleaned.substring(0, 10);
-    
+
     // Format as +63 9XX XXX XXXX
     if (cleaned.length === 0) return "";
     if (cleaned.length <= 3) return `+63 ${cleaned}`;
@@ -585,7 +587,7 @@ const Register = () => {
     }
 
     setFieldErrors(newFieldErrors);
-    
+
     // Create updated form data
     const updatedFormData = {
       ...formData,
@@ -602,17 +604,31 @@ const Register = () => {
     setFormData(updatedFormData);
   };
 
+  // Handler for sectoral group checkbox changes
+  const handleSectoralGroupChange = (group) => {
+    setFormData(prev => {
+      const currentGroups = prev.sectoralGroups || [];
+      if (currentGroups.includes(group)) {
+        // Remove if already selected
+        return { ...prev, sectoralGroups: currentGroups.filter(g => g !== group) };
+      } else {
+        // Add if not selected
+        return { ...prev, sectoralGroups: [...currentGroups, group] };
+      }
+    });
+  };
+
   const handleFileChange = (e, fieldName = "validIDFile") => {
     const file = e.target.files[0];
     if (file) {
       const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
       const allowedTypesWithPDF = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
-      
+
       const typesToCheck = fieldName === "psaCertificateFile" ? allowedTypesWithPDF : allowedTypes;
-      
+
       if (!typesToCheck.includes(file.type)) {
-        setError(fieldName === "psaCertificateFile" 
-          ? "Only JPG, JPEG, PNG, and PDF files are allowed" 
+        setError(fieldName === "psaCertificateFile"
+          ? "Only JPG, JPEG, PNG, and PDF files are allowed"
           : "Only JPG, JPEG, and PNG files are allowed");
         return;
       }
@@ -781,7 +797,7 @@ const Register = () => {
         setError("Please upload the back of your first primary ID");
         return false;
       }
-      
+
       // Validate Primary ID 2
       if (!formData.primaryID2Type) {
         setError("Please select the type of your second primary ID");
@@ -795,7 +811,7 @@ const Register = () => {
         setError("Please upload the back of your second primary ID");
         return false;
       }
-      
+
       // Check that both IDs are different types
       if (formData.primaryID1Type === formData.primaryID2Type) {
         setError("Please select two different types of government IDs");
@@ -847,12 +863,12 @@ const Register = () => {
     setFormData(prev => {
       const newPSA = { ...prev.psaBirthCertificate };
       let current = newPSA;
-      
+
       for (let i = 0; i < keys.length - 1; i++) {
         current[keys[i]] = { ...current[keys[i]] };
         current = current[keys[i]];
       }
-      
+
       current[keys[keys.length - 1]] = value;
       return { ...prev, psaBirthCertificate: newPSA };
     });
@@ -862,7 +878,7 @@ const Register = () => {
   const togglePSASection = (section) => {
     setPsaSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
-  
+
   // Handle terms scroll
   const handleTermsScroll = (e) => {
     const bottom = e.target.scrollHeight - e.target.scrollTop <= e.target.clientHeight + 50;
@@ -871,7 +887,7 @@ const Register = () => {
       setCanAcceptTerms(true);
     }
   };
-  
+
   // Handle terms acceptance
   const handleAcceptTerms = () => {
     setFormData(prev => ({ ...prev, termsAccepted: true }));
@@ -898,7 +914,7 @@ const Register = () => {
       setError("You must accept the profile completion terms to continue");
       return;
     }
-    
+
     setShowConfirmationModal(false);
     await performRegistration();
   };
@@ -925,11 +941,11 @@ const Register = () => {
         formDataToSend.append("placeOfBirth", formData.placeOfBirth);
       formDataToSend.append("gender", formData.gender);
       formDataToSend.append("civilStatus", formData.civilStatus);
-      
+
       // Auto-calculated salutation based on sex and civil status
       const autoSalutation = getSalutation(formData.gender, formData.civilStatus);
       formDataToSend.append("salutation", autoSalutation);
-      
+
       formDataToSend.append("nationality", formData.nationality);
       formDataToSend.append("phoneNumber", formData.phoneNumber);
 
@@ -1013,11 +1029,16 @@ const Register = () => {
 
       // PSA Birth Certificate data (optional)
       formDataToSend.append("skipPSAStep", formData.skipPSAStep);
-      
+
+      // Sectoral Groups - send as JSON array
+      if (formData.sectoralGroups && formData.sectoralGroups.length > 0) {
+        formDataToSend.append("sectoralGroups", JSON.stringify(formData.sectoralGroups));
+      }
+
       if (!formData.skipPSAStep) {
         // Include PSA birth certificate data
         formDataToSend.append("birthCertificate", JSON.stringify(formData.psaBirthCertificate));
-        
+
         // Include PSA certificate file if uploaded
         if (formData.psaCertificateFile) {
           formDataToSend.append("birthCertificateDoc", formData.psaCertificateFile);
@@ -1048,31 +1069,30 @@ const Register = () => {
   };
 
   const stepLabels = ['Account', 'Personal', 'Address', 'ID Upload', 'Terms'];
-  
+
   const renderStepIndicator = () => (
     <div className="mb-6">
       {/* Progress Bar */}
       <div className="relative h-1 bg-slate-100 rounded-full mb-3 overflow-hidden">
         <motion.div
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full"
           initial={{ width: '0%' }}
           animate={{ width: `${((currentStep - 1) / 4) * 100}%` }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
         />
       </div>
-      
+
       {/* Step Indicators */}
       <div className="flex items-center justify-between">
         {[1, 2, 3, 4, 5].map((step) => (
           <div key={step} className="flex flex-col items-center">
             <motion.div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
-                currentStep > step
-                  ? "bg-blue-600 text-white"
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${currentStep > step
+                  ? "bg-emerald-600 text-white"
                   : currentStep === step
-                  ? "bg-blue-600 text-white ring-4 ring-blue-100"
-                  : "bg-slate-100 text-slate-400 border border-slate-200"
-              }`}
+                    ? "bg-emerald-600 text-white ring-4 ring-emerald-100"
+                    : "bg-slate-100 text-slate-400 border border-slate-200"
+                }`}
               initial={false}
               animate={{
                 scale: currentStep === step ? 1.1 : 1,
@@ -1081,9 +1101,8 @@ const Register = () => {
             >
               {currentStep > step ? <CheckCircle className="w-3.5 h-3.5" /> : step}
             </motion.div>
-            <span className={`text-[9px] mt-1 font-medium transition-colors ${
-              currentStep >= step ? 'text-slate-700' : 'text-slate-400'
-            }`}>
+            <span className={`text-[9px] mt-1 font-medium transition-colors ${currentStep >= step ? 'text-slate-700' : 'text-slate-400'
+              }`}>
               {stepLabels[step - 1]}
             </span>
           </div>
@@ -1106,7 +1125,7 @@ const Register = () => {
         </label>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <User className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+            <User className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
           </div>
           <input
             type="text"
@@ -1114,7 +1133,7 @@ const Register = () => {
             value={formData.username}
             onChange={handleChange}
             required
-            className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Choose a username"
           />
         </div>
@@ -1126,7 +1145,7 @@ const Register = () => {
         </label>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Mail className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+            <Mail className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
           </div>
           <input
             type="email"
@@ -1134,7 +1153,7 @@ const Register = () => {
             value={formData.email}
             onChange={handleChange}
             required
-            className={`block w-full pl-10 pr-3 py-2 bg-slate-50 border ${fieldErrors.email ? 'border-red-400' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm`}
+            className={`block w-full pl-10 pr-3 py-2 bg-slate-50 border ${fieldErrors.email ? 'border-red-400' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm`}
             placeholder="your.email@example.com"
           />
         </div>
@@ -1149,7 +1168,7 @@ const Register = () => {
         </label>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Lock className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+            <Lock className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
           </div>
           <input
             type={showPassword ? "text" : "password"}
@@ -1157,7 +1176,7 @@ const Register = () => {
             value={formData.password}
             onChange={handleChange}
             required
-            className="block w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Minimum 6 characters"
           />
           <button
@@ -1180,7 +1199,7 @@ const Register = () => {
         </label>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Lock className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+            <Lock className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
           </div>
           <input
             type={showConfirmPassword ? "text" : "password"}
@@ -1188,7 +1207,7 @@ const Register = () => {
             value={formData.confirmPassword}
             onChange={handleChange}
             required
-            className="block w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Re-enter your password"
           />
           <button
@@ -1217,8 +1236,8 @@ const Register = () => {
     >
       {/* Salutation is auto-calculated based on sex and civil status */}
       {formData.salutation && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-          <p className="text-xs text-blue-800">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+          <p className="text-xs text-emerald-800">
             <strong>Salutation:</strong> {formData.salutation} (auto-determined based on sex and civil status)
           </p>
         </div>
@@ -1235,7 +1254,7 @@ const Register = () => {
             value={formData.firstName}
             onChange={handleChange}
             required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Juan"
           />
         </div>
@@ -1249,7 +1268,7 @@ const Register = () => {
             value={formData.lastName}
             onChange={handleChange}
             required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Dela Cruz"
           />
         </div>
@@ -1265,7 +1284,7 @@ const Register = () => {
             name="middleName"
             value={formData.middleName}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Santos"
           />
         </div>
@@ -1277,7 +1296,7 @@ const Register = () => {
             name="suffix"
             value={formData.suffix}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
           >
             <option value="">No Suffix</option>
             {suffixOptions.filter(s => s).map((suffix) => (
@@ -1296,7 +1315,7 @@ const Register = () => {
           </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Calendar className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+              <Calendar className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
             </div>
             <input
               type="date"
@@ -1304,7 +1323,7 @@ const Register = () => {
               value={formData.dateOfBirth}
               onChange={handleChange}
               required
-              className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+              className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
             />
           </div>
         </div>
@@ -1317,7 +1336,7 @@ const Register = () => {
             value={formData.gender}
             onChange={handleChange}
             required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
           >
             <option value="">Select Sex</option>
             <option value="Male">Male</option>
@@ -1335,7 +1354,7 @@ const Register = () => {
           name="placeOfBirth"
           value={formData.placeOfBirth}
           onChange={handleChange}
-          className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+          className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
           placeholder="Quezon City"
         />
       </div>
@@ -1350,7 +1369,7 @@ const Register = () => {
             value={formData.civilStatus}
             onChange={handleChange}
             required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
           >
             <option value="">Select Status</option>
             <option value="Single">Single</option>
@@ -1365,7 +1384,7 @@ const Register = () => {
           </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Phone className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+              <Phone className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
             </div>
             <input
               type="tel"
@@ -1373,7 +1392,7 @@ const Register = () => {
               value={formData.phoneNumber}
               onChange={handleChange}
               required
-              className={`block w-full pl-10 pr-3 py-2 bg-slate-50 border ${fieldErrors.phoneNumber ? 'border-red-400' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm`}
+              className={`block w-full pl-10 pr-3 py-2 bg-slate-50 border ${fieldErrors.phoneNumber ? 'border-red-400' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm`}
               placeholder="+63 9XX XXX XXXX"
             />
           </div>
@@ -1390,7 +1409,7 @@ const Register = () => {
           </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Briefcase className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+              <Briefcase className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
             </div>
             <input
               type="text"
@@ -1403,7 +1422,7 @@ const Register = () => {
               }}
               onFocus={() => setShowOccupationDropdown(true)}
               onBlur={() => setTimeout(() => setShowOccupationDropdown(false), 150)}
-              className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+              className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
               placeholder="Search or select occupation"
               autoComplete="off"
             />
@@ -1420,7 +1439,7 @@ const Register = () => {
                     {jobs.map((occ) => (
                       <div
                         key={occ}
-                        className="px-3 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 cursor-pointer transition-colors pl-4"
+                        className="px-3 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer transition-colors pl-4"
                         onMouseDown={() => {
                           setFormData({ ...formData, occupation: occ });
                           setOccupationSearch(occ);
@@ -1437,7 +1456,7 @@ const Register = () => {
                 filteredOccupations.map((occ) => (
                   <div
                     key={occ}
-                    className="px-3 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-blue-700 cursor-pointer transition-colors"
+                    className="px-3 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer transition-colors"
                     onMouseDown={() => {
                       setFormData({ ...formData, occupation: occ });
                       setOccupationSearch(occ);
@@ -1459,7 +1478,7 @@ const Register = () => {
             name="religion"
             value={formData.religion}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
           >
             <option value="">Select Religion</option>
             {religionOptions.map((religion) => (
@@ -1471,14 +1490,51 @@ const Register = () => {
         </div>
       </div>
 
+      {/* Sectoral Groups Selection */}
+      <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+        <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+          <Users className="h-4 w-4 text-emerald-600" /> Sectoral Group Membership
+        </h4>
+        <p className="text-xs text-slate-500 mb-3">
+          Select all that apply (optional)
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {[
+            { value: 'senior', label: 'Senior Citizen', icon: '👴' },
+            { value: 'woman', label: 'Woman', icon: '👩' },
+            { value: 'youth', label: 'Youth', icon: '🧑' },
+            { value: 'solo_parent', label: 'Solo Parent', icon: '👨‍👧' },
+            { value: 'pwd', label: 'PWD', icon: '♿' }
+          ].map((group) => (
+            <label
+              key={group.value}
+              className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${
+                formData.sectoralGroups?.includes(group.value)
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                  : 'bg-white border-slate-200 hover:border-emerald-200 text-slate-700'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={formData.sectoralGroups?.includes(group.value) || false}
+                onChange={() => handleSectoralGroupChange(group.value)}
+                className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+              />
+              <span className="text-sm">{group.icon}</span>
+              <span className="text-xs font-medium">{group.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
       {formData.civilStatus === "Married" && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
-          className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3"
+          className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-3"
         >
-          <h4 className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+          <h4 className="text-sm font-semibold text-emerald-900 flex items-center gap-2">
             <Heart className="h-4 w-4" /> Spouse Information
           </h4>
           <input
@@ -1486,7 +1542,7 @@ const Register = () => {
             name="spouseName"
             value={formData.spouseName}
             onChange={handleChange}
-            className="block w-full px-3 py-2.5 bg-white border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2.5 bg-white border-2 border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Spouse Full Name"
           />
           <div className="grid grid-cols-2 gap-3">
@@ -1495,7 +1551,7 @@ const Register = () => {
               name="spouseOccupation"
               value={formData.spouseOccupation}
               onChange={handleChange}
-              className="block w-full px-3 py-2.5 bg-white border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+              className="block w-full px-3 py-2.5 bg-white border-2 border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
               placeholder="Spouse Occupation"
             />
             <input
@@ -1503,7 +1559,7 @@ const Register = () => {
               name="spouseContact"
               value={formData.spouseContact}
               onChange={handleChange}
-              className="block w-full px-3 py-2.5 bg-white border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+              className="block w-full px-3 py-2.5 bg-white border-2 border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
               placeholder="Spouse Contact"
             />
           </div>
@@ -1521,7 +1577,7 @@ const Register = () => {
       transition={{ duration: 0.3 }}
     >
       <h4 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-blue-600" /> Your Address
+        <MapPin className="h-4 w-4 text-emerald-600" /> Your Address
       </h4>
 
       <div className="grid grid-cols-2 gap-3">
@@ -1535,7 +1591,7 @@ const Register = () => {
             value={formData.houseNumber}
             onChange={handleChange}
             required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="123"
           />
         </div>
@@ -1549,7 +1605,7 @@ const Register = () => {
             value={formData.street}
             onChange={handleChange}
             required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Main Street"
           />
         </div>
@@ -1565,7 +1621,7 @@ const Register = () => {
             name="subdivision"
             value={formData.subdivision}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Village"
           />
         </div>
@@ -1577,7 +1633,7 @@ const Register = () => {
             name="area"
             value={formData.area}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
           >
             <option value="">Select Area/Zone</option>
             {areaOptions.map((area) => (
@@ -1608,7 +1664,7 @@ const Register = () => {
             value={formData.emergencyName}
             onChange={handleChange}
             required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Full Name"
           />
           <input
@@ -1617,7 +1673,7 @@ const Register = () => {
             value={formData.emergencyRelationship}
             onChange={handleChange}
             required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Relationship"
           />
         </div>
@@ -1629,7 +1685,7 @@ const Register = () => {
             value={formData.emergencyContact}
             onChange={handleChange}
             required
-            className={`block w-full px-3 py-2 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm ${fieldErrors.emergencyContact ? 'border-red-500' : 'border-slate-200'}`}
+            className={`block w-full px-3 py-2 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm ${fieldErrors.emergencyContact ? 'border-red-500' : 'border-slate-200'}`}
             placeholder="Contact Number (e.g., +63 9XX XXX XXXX)"
           />
           {fieldErrors.emergencyContact && (
@@ -1643,7 +1699,7 @@ const Register = () => {
             name="emergencyHouseNumber"
             value={formData.emergencyHouseNumber}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="House No."
           />
           <input
@@ -1651,7 +1707,7 @@ const Register = () => {
             name="emergencyStreet"
             value={formData.emergencyStreet}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Street"
           />
           <input
@@ -1659,7 +1715,7 @@ const Register = () => {
             name="emergencySubdivision"
             value={formData.emergencySubdivision}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="Subdivision"
           />
         </div>
@@ -1675,7 +1731,7 @@ const Register = () => {
             name="tinNumber"
             value={formData.tinNumber}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="000-000-000"
           />
         </div>
@@ -1688,7 +1744,7 @@ const Register = () => {
             name="sssGsisNumber"
             value={formData.sssGsisNumber}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
             placeholder="00-0000000-0"
           />
         </div>
@@ -1705,11 +1761,11 @@ const Register = () => {
       transition={{ duration: 0.3 }}
     >
       {/* Requirements Notice */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+        <h4 className="text-sm font-semibold text-emerald-900 mb-2 flex items-center gap-2">
           <Shield className="w-4 h-4" /> ID Requirements
         </h4>
-        <ul className="text-xs text-blue-800 space-y-1 list-disc pl-4">
+        <ul className="text-xs text-emerald-800 space-y-1 list-disc pl-4">
           <li>2 different valid government-issued IDs required</li>
           <li>Both front and back of each ID must be uploaded</li>
           <li>Full name and address must be clearly visible on each ID</li>
@@ -1720,10 +1776,10 @@ const Register = () => {
       {/* PRIMARY ID 1 */}
       <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
         <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-          <IdCard className="h-4 w-4 text-blue-600" />
+          <IdCard className="h-4 w-4 text-emerald-600" />
           Primary Government ID #1 *
         </h4>
-        
+
         {/* ID Type Selector */}
         <div className="mb-4">
           <label className="block text-xs font-semibold text-slate-600 mb-1">
@@ -1733,7 +1789,7 @@ const Register = () => {
             name="primaryID1Type"
             value={formData.primaryID1Type}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
           >
             {governmentIDOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -1750,7 +1806,7 @@ const Register = () => {
               Front of ID *
             </label>
             {!primaryID1Preview ? (
-              <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-blue-400 transition-all">
+              <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-all">
                 <Upload className="w-8 h-8 mb-2 text-slate-400" />
                 <span className="text-xs font-medium text-center">Upload Front</span>
                 <input
@@ -1788,7 +1844,7 @@ const Register = () => {
               Back of ID *
             </label>
             {!primaryID1BackPreview ? (
-              <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-blue-400 transition-all">
+              <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-all">
                 <Upload className="w-8 h-8 mb-2 text-slate-400" />
                 <span className="text-xs font-medium text-center">Upload Back</span>
                 <input
@@ -1828,7 +1884,7 @@ const Register = () => {
           <IdCard className="h-4 w-4 text-green-600" />
           Primary Government ID #2 *
         </h4>
-        
+
         {/* ID Type Selector */}
         <div className="mb-4">
           <label className="block text-xs font-semibold text-slate-600 mb-1">
@@ -1838,7 +1894,7 @@ const Register = () => {
             name="primaryID2Type"
             value={formData.primaryID2Type}
             onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
           >
             {governmentIDOptions
               .filter(option => option.value !== formData.primaryID1Type || option.value === "")
@@ -1960,11 +2016,11 @@ const Register = () => {
       </div>
 
       {/* Review Summary */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="text-sm font-semibold text-blue-900 mb-2">
+      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+        <h4 className="text-sm font-semibold text-emerald-900 mb-2">
           Review Your Information
         </h4>
-        <div className="text-xs text-blue-800 space-y-1">
+        <div className="text-xs text-emerald-800 space-y-1">
           <p>
             <strong>Name:</strong> {formData.salutation} {formData.firstName} {formData.middleName}{" "}
             {formData.lastName} {formData.suffix}
@@ -2006,8 +2062,8 @@ const Register = () => {
       transition={{ duration: 0.3 }}
     >
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-          <FileText className="w-6 h-6 text-blue-600" />
+        <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
+          <FileText className="w-6 h-6 text-emerald-600" />
         </div>
         <div>
           <h3 className="font-bold text-lg text-slate-800">
@@ -2169,7 +2225,7 @@ const Register = () => {
       </motion.div>
 
       <motion.div
-        className="flex items-start gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg"
+        className="flex items-start gap-3 p-4 bg-gradient-to-r from-emerald-50 to-indigo-50 border-2 border-emerald-200 rounded-lg"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
@@ -2181,7 +2237,7 @@ const Register = () => {
             type="checkbox"
             checked={formData.termsAccepted}
             onChange={handleChange}
-            className="w-5 h-5 text-blue-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            className="w-5 h-5 text-emerald-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 cursor-pointer"
           />
         </div>
         <label
@@ -2192,7 +2248,7 @@ const Register = () => {
           <button
             type="button"
             onClick={() => setShowTermsModal(true)}
-            className="font-bold text-blue-700 hover:text-blue-800 underline transition-colors"
+            className="font-bold text-emerald-700 hover:text-emerald-800 underline transition-colors"
           >
             Terms and Conditions
           </button>{" "}
@@ -2200,7 +2256,7 @@ const Register = () => {
           <button
             type="button"
             onClick={() => setShowTermsModal(true)}
-            className="font-bold text-blue-700 hover:text-blue-800 underline transition-colors"
+            className="font-bold text-emerald-700 hover:text-emerald-800 underline transition-colors"
           >
             Privacy Policy
           </button>{" "}
@@ -2238,7 +2294,7 @@ const Register = () => {
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-          <FileCheck className="w-5 h-5 text-blue-600" />
+          <FileCheck className="w-5 h-5 text-emerald-600" />
           PSA Birth Certificate Information
         </h3>
         <button
@@ -2250,12 +2306,12 @@ const Register = () => {
         </button>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-4">
         <div className="flex items-start gap-3">
-          <FileText className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800">
+          <FileText className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-emerald-800">
             <p className="font-semibold mb-1">Why provide PSA Birth Certificate details?</p>
-            <ul className="list-disc list-inside space-y-1 text-blue-700">
+            <ul className="list-disc list-inside space-y-1 text-emerald-700">
               <li>Faster document request processing</li>
               <li>Pre-verified identity for barangay services</li>
               <li>Complete your profile now instead of later</li>
@@ -2276,7 +2332,7 @@ const Register = () => {
           </span>
           {psaSections.certificate ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
-        
+
         {psaSections.certificate && (
           <div className="p-4 space-y-3">
             <div className="grid grid-cols-2 gap-3">
@@ -2286,7 +2342,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.certificateNumber}
                   onChange={(e) => handlePSAChange('certificateNumber', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Certificate #"
                 />
               </div>
@@ -2296,7 +2352,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.registryNumber}
                   onChange={(e) => handlePSAChange('registryNumber', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="e.g., 2000-12345"
                 />
               </div>
@@ -2308,7 +2364,7 @@ const Register = () => {
                   type="date"
                   value={formData.psaBirthCertificate.dateIssued}
                   onChange={(e) => handlePSAChange('dateIssued', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                 />
               </div>
               <div>
@@ -2317,7 +2373,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.placeIssued}
                   onChange={(e) => handlePSAChange('placeIssued', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Place issued"
                 />
               </div>
@@ -2329,7 +2385,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.province}
                   onChange={(e) => handlePSAChange('province', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Province"
                 />
               </div>
@@ -2339,7 +2395,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.cityMunicipality}
                   onChange={(e) => handlePSAChange('cityMunicipality', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="City/Municipality"
                 />
               </div>
@@ -2360,7 +2416,7 @@ const Register = () => {
           </span>
           {psaSections.yourInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
-        
+
         {psaSections.yourInfo && (
           <div className="p-4 space-y-3">
             <p className="text-xs text-slate-500 mb-2">Name as it appears on your birth certificate</p>
@@ -2371,7 +2427,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.yourInfo.firstName}
                   onChange={(e) => handlePSAChange('yourInfo.firstName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="First Name"
                 />
               </div>
@@ -2381,7 +2437,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.yourInfo.middleName}
                   onChange={(e) => handlePSAChange('yourInfo.middleName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Middle Name"
                 />
               </div>
@@ -2391,7 +2447,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.yourInfo.lastName}
                   onChange={(e) => handlePSAChange('yourInfo.lastName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Last Name"
                 />
               </div>
@@ -2402,7 +2458,7 @@ const Register = () => {
                 <select
                   value={formData.psaBirthCertificate.yourInfo.sex}
                   onChange={(e) => handlePSAChange('yourInfo.sex', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                 >
                   <option value="">Select...</option>
                   <option value="Male">Male</option>
@@ -2415,7 +2471,7 @@ const Register = () => {
                   type="date"
                   value={formData.psaBirthCertificate.yourInfo.dateOfBirth}
                   onChange={(e) => handlePSAChange('yourInfo.dateOfBirth', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                 />
               </div>
             </div>
@@ -2427,7 +2483,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.yourInfo.placeOfBirth.hospital}
                   onChange={(e) => handlePSAChange('yourInfo.placeOfBirth.hospital', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Hospital name"
                 />
               </div>
@@ -2437,7 +2493,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.yourInfo.placeOfBirth.cityMunicipality}
                   onChange={(e) => handlePSAChange('yourInfo.placeOfBirth.cityMunicipality', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="City"
                 />
               </div>
@@ -2447,7 +2503,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.yourInfo.placeOfBirth.province}
                   onChange={(e) => handlePSAChange('yourInfo.placeOfBirth.province', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Province"
                 />
               </div>
@@ -2458,7 +2514,7 @@ const Register = () => {
                 <select
                   value={formData.psaBirthCertificate.yourInfo.typeOfBirth}
                   onChange={(e) => handlePSAChange('yourInfo.typeOfBirth', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                 >
                   <option value="Single">Single</option>
                   <option value="Twin">Twin</option>
@@ -2471,7 +2527,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.yourInfo.birthOrder}
                   onChange={(e) => handlePSAChange('yourInfo.birthOrder', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="e.g., 1st, 2nd"
                 />
               </div>
@@ -2481,7 +2537,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.yourInfo.birthWeight}
                   onChange={(e) => handlePSAChange('yourInfo.birthWeight', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Weight in grams"
                 />
               </div>
@@ -2502,7 +2558,7 @@ const Register = () => {
           </span>
           {psaSections.mother ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
-        
+
         {psaSections.mother && (
           <div className="p-4 space-y-3">
             <p className="text-xs text-slate-500 mb-2">Mother's Maiden Name</p>
@@ -2513,7 +2569,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.maidenName.firstName}
                   onChange={(e) => handlePSAChange('mother.maidenName.firstName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="First Name"
                 />
               </div>
@@ -2523,7 +2579,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.maidenName.middleName}
                   onChange={(e) => handlePSAChange('mother.maidenName.middleName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Middle Name"
                 />
               </div>
@@ -2533,7 +2589,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.maidenName.lastName}
                   onChange={(e) => handlePSAChange('mother.maidenName.lastName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Last Name"
                 />
               </div>
@@ -2545,7 +2601,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.citizenship}
                   onChange={(e) => handlePSAChange('mother.citizenship', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="e.g., Filipino"
                 />
               </div>
@@ -2555,7 +2611,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.religion}
                   onChange={(e) => handlePSAChange('mother.religion', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Religion"
                 />
               </div>
@@ -2565,7 +2621,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.occupation}
                   onChange={(e) => handlePSAChange('mother.occupation', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Occupation"
                 />
               </div>
@@ -2575,7 +2631,7 @@ const Register = () => {
                   type="number"
                   value={formData.psaBirthCertificate.mother.ageAtBirth}
                   onChange={(e) => handlePSAChange('mother.ageAtBirth', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Age"
                 />
               </div>
@@ -2588,7 +2644,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.residence.houseNo}
                   onChange={(e) => handlePSAChange('mother.residence.houseNo', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="House No."
                 />
               </div>
@@ -2598,7 +2654,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.residence.street}
                   onChange={(e) => handlePSAChange('mother.residence.street', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Street"
                 />
               </div>
@@ -2608,7 +2664,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.residence.barangay}
                   onChange={(e) => handlePSAChange('mother.residence.barangay', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Barangay"
                 />
               </div>
@@ -2620,7 +2676,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.residence.cityMunicipality}
                   onChange={(e) => handlePSAChange('mother.residence.cityMunicipality', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="City"
                 />
               </div>
@@ -2630,7 +2686,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.residence.province}
                   onChange={(e) => handlePSAChange('mother.residence.province', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Province"
                 />
               </div>
@@ -2640,7 +2696,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.mother.residence.country}
                   onChange={(e) => handlePSAChange('mother.residence.country', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Country"
                 />
               </div>
@@ -2653,7 +2709,7 @@ const Register = () => {
                   type="number"
                   value={formData.psaBirthCertificate.mother.totalChildrenBornAlive}
                   onChange={(e) => handlePSAChange('mother.totalChildrenBornAlive', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Total"
                 />
               </div>
@@ -2663,7 +2719,7 @@ const Register = () => {
                   type="number"
                   value={formData.psaBirthCertificate.mother.childrenStillLiving}
                   onChange={(e) => handlePSAChange('mother.childrenStillLiving', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Living"
                 />
               </div>
@@ -2673,7 +2729,7 @@ const Register = () => {
                   type="number"
                   value={formData.psaBirthCertificate.mother.childrenNowDead}
                   onChange={(e) => handlePSAChange('mother.childrenNowDead', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Deceased"
                 />
               </div>
@@ -2694,7 +2750,7 @@ const Register = () => {
           </span>
           {psaSections.father ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
-        
+
         {psaSections.father && (
           <div className="p-4 space-y-3">
             <p className="text-xs text-slate-500 mb-2">Father's Name</p>
@@ -2705,7 +2761,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.name.firstName}
                   onChange={(e) => handlePSAChange('father.name.firstName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="First Name"
                 />
               </div>
@@ -2715,7 +2771,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.name.middleName}
                   onChange={(e) => handlePSAChange('father.name.middleName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Middle Name"
                 />
               </div>
@@ -2725,7 +2781,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.name.lastName}
                   onChange={(e) => handlePSAChange('father.name.lastName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Last Name"
                 />
               </div>
@@ -2737,7 +2793,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.citizenship}
                   onChange={(e) => handlePSAChange('father.citizenship', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="e.g., Filipino"
                 />
               </div>
@@ -2747,7 +2803,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.religion}
                   onChange={(e) => handlePSAChange('father.religion', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Religion"
                 />
               </div>
@@ -2757,7 +2813,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.occupation}
                   onChange={(e) => handlePSAChange('father.occupation', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Occupation"
                 />
               </div>
@@ -2767,7 +2823,7 @@ const Register = () => {
                   type="number"
                   value={formData.psaBirthCertificate.father.ageAtBirth}
                   onChange={(e) => handlePSAChange('father.ageAtBirth', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Age"
                 />
               </div>
@@ -2780,7 +2836,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.residence.houseNo}
                   onChange={(e) => handlePSAChange('father.residence.houseNo', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="House No."
                 />
               </div>
@@ -2790,7 +2846,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.residence.street}
                   onChange={(e) => handlePSAChange('father.residence.street', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Street"
                 />
               </div>
@@ -2800,7 +2856,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.residence.barangay}
                   onChange={(e) => handlePSAChange('father.residence.barangay', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Barangay"
                 />
               </div>
@@ -2812,7 +2868,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.residence.cityMunicipality}
                   onChange={(e) => handlePSAChange('father.residence.cityMunicipality', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="City"
                 />
               </div>
@@ -2822,7 +2878,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.residence.province}
                   onChange={(e) => handlePSAChange('father.residence.province', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Province"
                 />
               </div>
@@ -2832,7 +2888,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.father.residence.country}
                   onChange={(e) => handlePSAChange('father.residence.country', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Country"
                 />
               </div>
@@ -2853,7 +2909,7 @@ const Register = () => {
           </span>
           {psaSections.marriage ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
-        
+
         {psaSections.marriage && (
           <div className="p-4 space-y-3">
             <div className="grid grid-cols-3 gap-3">
@@ -2863,7 +2919,7 @@ const Register = () => {
                   type="date"
                   value={formData.psaBirthCertificate.parentsMarriage.dateOfMarriage}
                   onChange={(e) => handlePSAChange('parentsMarriage.dateOfMarriage', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                 />
               </div>
               <div>
@@ -2872,7 +2928,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.parentsMarriage.placeOfMarriage.cityMunicipality}
                   onChange={(e) => handlePSAChange('parentsMarriage.placeOfMarriage.cityMunicipality', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="City/Municipality"
                 />
               </div>
@@ -2882,7 +2938,7 @@ const Register = () => {
                   type="text"
                   value={formData.psaBirthCertificate.parentsMarriage.placeOfMarriage.province}
                   onChange={(e) => handlePSAChange('parentsMarriage.placeOfMarriage.province', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
                   placeholder="Province"
                 />
               </div>
@@ -2897,7 +2953,7 @@ const Register = () => {
         <textarea
           value={formData.psaBirthCertificate.remarks}
           onChange={(e) => handlePSAChange('remarks', e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-600"
+          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
           rows={2}
           placeholder="Any additional remarks or annotations on the certificate..."
         />
@@ -2906,7 +2962,7 @@ const Register = () => {
       {/* PSA Certificate Upload */}
       <div className="mt-4">
         <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
-          <Upload className="w-4 h-4 text-blue-600" />
+          <Upload className="w-4 h-4 text-emerald-600" />
           Upload PSA Birth Certificate
         </label>
         <p className="text-xs text-slate-500 mb-3">
@@ -2914,7 +2970,7 @@ const Register = () => {
         </p>
 
         {!psaCertificatePreview ? (
-          <label className="flex flex-col items-center px-6 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-blue-400 transition-all">
+          <label className="flex flex-col items-center px-6 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-all">
             <Upload className="w-10 h-10 mb-2 text-slate-400" />
             <span className="text-sm font-medium">Click to upload PSA Certificate</span>
             <span className="text-xs mt-1">JPG, PNG, or PDF (Max 5MB)</span>
@@ -3000,9 +3056,9 @@ const Register = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-indigo-50">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center">
                   <FileText className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -3019,22 +3075,22 @@ const Register = () => {
             </div>
 
             {/* Scrollable Content */}
-            <div 
+            <div
               className="flex-1 overflow-y-auto p-6 space-y-6"
               onScroll={handleTermsScroll}
             >
               {/* Privacy Policy Section */}
               <section>
                 <h3 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-                  <div className="w-2 h-8 bg-blue-600 rounded-full"></div>
+                  <div className="w-2 h-8 bg-emerald-600 rounded-full"></div>
                   Privacy Policy
                 </h3>
                 <div className="space-y-3 text-slate-700 leading-relaxed">
                   <p>
                     Barangay Culiat ("we," "our," or "us") is committed to protecting your privacy and personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you register and use our barangay services.
                   </p>
-                  
-                  <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg">
+
+                  <div className="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg">
                     <h4 className="font-semibold text-slate-800 mb-2">Information We Collect</h4>
                     <ul className="list-disc list-inside space-y-1 text-sm">
                       <li>Personal identification information (Name, Date of Birth, Gender)</li>
@@ -3128,7 +3184,7 @@ const Register = () => {
                 </h3>
                 <div className="space-y-3 text-slate-700 leading-relaxed">
                   <p>Under the Data Privacy Act of 2012 (Republic Act No. 10173), you have the following rights:</p>
-                  
+
                   <div className="grid md:grid-cols-2 gap-3">
                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                       <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
@@ -3137,7 +3193,7 @@ const Register = () => {
                       </h4>
                       <p className="text-sm">Request access to your personal information we hold</p>
                     </div>
-                    
+
                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                       <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600" />
@@ -3145,7 +3201,7 @@ const Register = () => {
                       </h4>
                       <p className="text-sm">Request correction of inaccurate information</p>
                     </div>
-                    
+
                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                       <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600" />
@@ -3153,7 +3209,7 @@ const Register = () => {
                       </h4>
                       <p className="text-sm">Request deletion of your personal data</p>
                     </div>
-                    
+
                     <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                       <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600" />
@@ -3179,7 +3235,7 @@ const Register = () => {
                   <p>
                     <strong>Questions or Concerns:</strong> If you have questions about these terms or our privacy practices, please contact us at:
                   </p>
-                  
+
                   <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                     <p className="text-sm space-y-1">
                       <strong>Barangay Culiat, Quezon City</strong><br />
@@ -3202,7 +3258,7 @@ const Register = () => {
               {/* Scroll indicator */}
               {!canAcceptTerms && (
                 <div className="sticky bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-transparent pt-8 pb-4">
-                  <div className="flex items-center justify-center gap-2 text-blue-600 animate-bounce">
+                  <div className="flex items-center justify-center gap-2 text-emerald-600 animate-bounce">
                     <ChevronDown className="w-5 h-5" />
                     <span className="text-sm font-medium">Scroll down to continue</span>
                     <ChevronDown className="w-5 h-5" />
@@ -3234,11 +3290,10 @@ const Register = () => {
                   <button
                     onClick={handleAcceptTerms}
                     disabled={!canAcceptTerms}
-                    className={`flex-1 sm:flex-none px-6 py-3 font-semibold rounded-lg transition-all ${
-                      canAcceptTerms
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg'
+                    className={`flex-1 sm:flex-none px-6 py-3 font-semibold rounded-lg transition-all ${canAcceptTerms
+                        ? 'bg-gradient-to-r from-emerald-600 to-indigo-600 text-white hover:from-emerald-700 hover:to-indigo-700 shadow-lg'
                         : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                    }`}
+                      }`}
                   >
                     I Agree
                   </button>
@@ -3315,8 +3370,8 @@ const Register = () => {
             </div>
 
             {formData.skipPSAStep && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                <p className="text-sm text-blue-800 flex items-start gap-2">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6">
+                <p className="text-sm text-emerald-800 flex items-start gap-2">
                   <FileText className="w-5 h-5 flex-shrink-0 mt-0.5" />
                   <span>
                     You can complete your PSA birth certificate details anytime from your profile page after registration.
@@ -3331,7 +3386,7 @@ const Register = () => {
                 id="acceptDeadlineTerms"
                 checked={acceptedDeadlineTerms}
                 onChange={(e) => setAcceptedDeadlineTerms(e.target.checked)}
-                className="mt-1 w-5 h-5 text-blue-600 border-2 border-slate-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="mt-1 w-5 h-5 text-emerald-600 border-2 border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 cursor-pointer"
               />
               <label htmlFor="acceptDeadlineTerms" className="text-sm text-slate-700 cursor-pointer">
                 I understand and agree that I must complete my profile with PSA birth certificate information within <strong>90 days</strong>, or my account may be locked until verification is complete.
@@ -3372,7 +3427,7 @@ const Register = () => {
   );
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 overflow-auto">
+    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-50 overflow-auto">
       {/* Premium Left Panel - Hidden on mobile */}
       <div className="hidden lg:flex lg:w-[340px] xl:w-[400px] relative bg-gradient-to-br from-[#0a1628] via-[#1e3a5f] to-[#0d2847] overflow-hidden flex-col">
         {/* Animated Background Elements */}
@@ -3381,16 +3436,16 @@ const Register = () => {
           <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,rgba(99,102,241,0.1),transparent_50%)]"></div>
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
         </div>
-        
+
         {/* Floating Orbs */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-40 right-5 w-40 h-40 bg-indigo-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
 
         <div className="relative z-10 flex flex-col h-full p-8 xl:p-10">
           {/* Header with Logo */}
           <Link to="/" className="group inline-flex items-center gap-3 mb-10">
-            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300 group-hover:scale-105">
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-all duration-300 group-hover:scale-105">
               <img
                 src="/images/logo/brgy-culiat-logo.svg"
                 alt="Logo"
@@ -3407,12 +3462,12 @@ const Register = () => {
           <div className="flex-1 flex flex-col justify-center -mt-10">
             <div className="space-y-6">
               <div>
-                <span className="inline-block px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full mb-4 border border-blue-400/20">
+                <span className="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-medium rounded-full mb-4 border border-emerald-400/20">
                   Resident Portal
                 </span>
                 <h1 className="text-3xl xl:text-4xl font-bold text-white leading-tight">
                   Join Your
-                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
+                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300">
                     Community Today
                   </span>
                 </h1>
@@ -3425,7 +3480,7 @@ const Register = () => {
             {/* Feature Cards */}
             <div className="mt-10 space-y-3">
               <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+                <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg">
                   <FileText className="w-4 h-4 text-white" />
                 </div>
                 <div>
@@ -3457,10 +3512,15 @@ const Register = () => {
           {/* Footer */}
           <div className="pt-6 border-t border-white/10">
             <p className="text-white/40 text-[10px]">
-              � 2025 Barangay Culiat, Quezon City
+              © 2025 Barangay Culiat, Quezon City
             </p>
             <p className="text-white/30 text-[10px] mt-1">
-              Secure � Trusted � Community-Driven
+              Secure • Trusted • Community-Driven
+            </p>
+            <p className="text-white/25 text-[9px] mt-3 leading-relaxed">
+              Your personal data is protected under the Data Privacy Act of 2012 (R.A. 10173). 
+              By registering, you consent to the collection and processing of your information 
+              for barangay services and official purposes.
             </p>
           </div>
         </div>
@@ -3478,7 +3538,7 @@ const Register = () => {
 
         {/* Subtle Background for Mobile */}
         <div className="lg:hidden absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-20 -right-20 w-60 h-60 bg-blue-100 rounded-full opacity-30 blur-3xl"></div>
+          <div className="absolute -top-20 -right-20 w-60 h-60 bg-emerald-100 rounded-full opacity-30 blur-3xl"></div>
           <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-indigo-50 rounded-full opacity-30 blur-3xl"></div>
         </div>
 
@@ -3519,12 +3579,12 @@ const Register = () => {
                       {currentStep === 1
                         ? "Set up your login credentials"
                         : currentStep === 2
-                        ? "Tell us about yourself"
-                        : currentStep === 3
-                        ? "Your address & emergency contact"
-                        : currentStep === 4
-                        ? "Upload valid government ID"
-                        : "Review and accept terms"}
+                          ? "Tell us about yourself"
+                          : currentStep === 3
+                            ? "Your address & emergency contact"
+                            : currentStep === 4
+                              ? "Upload valid government ID"
+                              : "Review and accept terms"}
                     </>
                   )}
                 </p>
@@ -3582,7 +3642,7 @@ const Register = () => {
                         <motion.button
                           type="button"
                           onClick={nextStep}
-                          className={`bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg text-sm ${currentStep === 1 ? 'col-span-2' : ''}`}
+                          className={`bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg text-sm ${currentStep === 1 ? 'col-span-2' : ''}`}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
@@ -3603,11 +3663,11 @@ const Register = () => {
                           >
                             Previous
                           </motion.button>
-                          
+
                           <motion.button
                             type="submit"
                             disabled={loading || !formData.termsAccepted}
-                            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
+                            className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
                             whileHover={{
                               scale: loading || !formData.termsAccepted ? 1 : 1.02,
                             }}
@@ -3619,7 +3679,7 @@ const Register = () => {
                             {loading ? "Processing..." : "Complete Registration"}
                           </motion.button>
                         </div>
-                        
+
                         {/* Divider */}
                         <div className="relative">
                           <div className="absolute inset-0 flex items-center">
@@ -3629,7 +3689,7 @@ const Register = () => {
                             <span className="bg-white px-3 text-slate-500 font-medium">or add optional info</span>
                           </div>
                         </div>
-                        
+
                         {/* Optional PSA Button */}
                         <motion.button
                           type="button"
@@ -3642,7 +3702,7 @@ const Register = () => {
                           <FileCheck className="w-5 h-5" />
                           Add PSA Birth Certificate (Recommended)
                         </motion.button>
-                        
+
                         <p className="text-xs text-center text-slate-500">
                           Optional - Complete later within 90 days
                         </p>
@@ -3660,7 +3720,7 @@ const Register = () => {
                   Already have an account?{" "}
                   <Link
                     to="/login"
-                    className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
+                    className="text-emerald-600 hover:text-emerald-700 font-semibold hover:underline"
                   >
                     Sign in
                   </Link>
@@ -3676,7 +3736,7 @@ const Register = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Modals */}
       {renderTermsModal()}
       {renderConfirmationModal()}
