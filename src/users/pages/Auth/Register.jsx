@@ -2449,12 +2449,17 @@ const Register = () => {
             type="checkbox"
             checked={formData.termsAccepted}
             onChange={handleChange}
-            className="w-5 h-5 text-emerald-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+            disabled={!formData.termsAccepted}
+            className={`w-5 h-5 text-emerald-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 ${
+              formData.termsAccepted ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'
+            }`}
           />
         </div>
         <label
           htmlFor="termsAccepted"
-          className="text-sm text-slate-700 cursor-pointer select-none"
+          className={`text-sm text-slate-700 select-none ${
+            formData.termsAccepted ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'
+          }`}
         >
           I have read and agree to the{" "}
           <button

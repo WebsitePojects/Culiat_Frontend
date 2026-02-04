@@ -193,99 +193,6 @@ const LegalPage = () => {
 
 // Privacy Policy Component
 const PrivacyPolicy = () => {
-  const sections = [
-    {
-      icon: Database,
-      title: "Information We Collect",
-      content: [
-        {
-          subtitle: "Personal Information",
-          text: "When you register or use our services, we may collect personal information including but not limited to: full name, date of birth, address, contact number, email address, and government-issued IDs for verification purposes.",
-        },
-        {
-          subtitle: "Usage Data",
-          text: "We automatically collect information about how you interact with our platform, including pages visited, features used, timestamps, and device information to improve our services.",
-        },
-        {
-          subtitle: "Document Requests",
-          text: "When you request barangay documents, we collect and store the relevant information needed to process your request, including supporting documents you may upload.",
-        },
-      ],
-    },
-    {
-      icon: Eye,
-      title: "How We Use Your Information",
-      content: [
-        {
-          subtitle: "Service Delivery",
-          text: "To process your requests for barangay documents, verify your identity, and provide you with the services you request.",
-        },
-        {
-          subtitle: "Communication",
-          text: "To send you important updates about your requests, announcements, and notifications relevant to barangay services and community activities.",
-        },
-        {
-          subtitle: "Improvement",
-          text: "To analyze usage patterns and improve our platform's functionality, user experience, and service quality.",
-        },
-      ],
-    },
-    {
-      icon: Users,
-      title: "Information Sharing",
-      content: [
-        {
-          subtitle: "Government Agencies",
-          text: "We may share your information with relevant government agencies when required by law or for the purpose of verifying your identity and processing official documents.",
-        },
-        {
-          subtitle: "Service Providers",
-          text: "We may engage trusted third-party service providers to assist in operating our platform. These providers are bound by confidentiality agreements.",
-        },
-        {
-          subtitle: "Legal Requirements",
-          text: "We may disclose your information if required to do so by law or in response to valid requests by public authorities.",
-        },
-      ],
-    },
-    {
-      icon: Lock,
-      title: "Data Security",
-      content: [
-        {
-          subtitle: "Protection Measures",
-          text: "We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.",
-        },
-        {
-          subtitle: "Data Encryption",
-          text: "All sensitive data transmitted through our platform is encrypted using industry-standard SSL/TLS protocols.",
-        },
-        {
-          subtitle: "Access Control",
-          text: "Access to personal information is restricted to authorized personnel who need it to perform their duties.",
-        },
-      ],
-    },
-    {
-      icon: CheckCircle,
-      title: "Your Rights",
-      content: [
-        {
-          subtitle: "Access & Correction",
-          text: "You have the right to access, correct, or update your personal information at any time through your account settings or by contacting us.",
-        },
-        {
-          subtitle: "Data Deletion",
-          text: "You may request the deletion of your personal data, subject to legal retention requirements and ongoing service needs.",
-        },
-        {
-          subtitle: "Opt-Out",
-          text: "You can opt out of receiving non-essential communications from us while still receiving important service-related notifications.",
-        },
-      ],
-    },
-  ];
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -297,7 +204,7 @@ const PrivacyPolicy = () => {
       {/* Last Updated */}
       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
         <Calendar className="w-4 h-4" />
-        <span>Last Updated: January 7, 2026</span>
+        <span>Last Updated: February 1, 2026</span>
       </div>
 
       {/* Introduction */}
@@ -306,68 +213,153 @@ const PrivacyPolicy = () => {
           Privacy Policy Overview
         </h2>
         <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm sm:text-base">
-          Barangay Culiat Management System ("we," "us," or "our") is committed
-          to protecting your privacy. This Privacy Policy explains how we
-          collect, use, disclose, and safeguard your information when you use
-          our online services platform. By using our services, you agree to the
-          collection and use of information in accordance with this policy.
+          Barangay Culiat ("we," "our," or "us") is committed to protecting your privacy and personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you register and use our barangay services.
         </p>
       </div>
 
-      {/* Sections */}
-      {sections.map((section, index) => {
-        const Icon = section.icon;
-        return (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700"
-          >
-            <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <div className="p-2.5 sm:p-3 bg-emerald-100 rounded-xl sm:rounded-2xl flex-shrink-0">
-                <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
-                {section.title}
-              </h3>
-            </div>
-            <div className="space-y-4 sm:space-y-6 pl-0 sm:pl-16">
-              {section.content.map((item, idx) => (
-                <div key={idx}>
-                  <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-1.5 sm:mb-2 text-sm sm:text-base">
-                    {item.subtitle}
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm sm:text-base">
-                    {item.text}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        );
-      })}
+      {/* Information We Collect */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="p-2.5 sm:p-3 bg-emerald-100 dark:bg-emerald-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <Database className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
+            Information We Collect
+          </h3>
+        </div>
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-600 p-4 rounded-r-lg">
+          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+            <li>Personal identification information (Name, Date of Birth, Gender)</li>
+            <li>Contact information (Phone number, Email address)</li>
+            <li>Address and residency information</li>
+            <li>Government-issued identification documents</li>
+            <li>Emergency contact information</li>
+            <li>Cookies and tracking technologies for functionality</li>
+            <li>IP address and device information for security</li>
+            <li>Usage data to improve our services</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Cookies & Tracking */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="p-2.5 sm:p-3 bg-blue-100 dark:bg-blue-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
+            Cookies & Tracking Technologies
+          </h3>
+        </div>
+        <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600 p-4 rounded-r-lg">
+          <p className="text-sm mb-2 text-gray-700 dark:text-gray-300">
+            We use cookies to enhance your experience and maintain security:
+          </p>
+          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+            <li><strong>Essential Cookies:</strong> Required for authentication and basic functionality</li>
+            <li><strong>Preference Cookies:</strong> Remember your settings</li>
+            <li><strong>Analytics Cookies:</strong> Help us understand site usage</li>
+            <li><strong>Security Cookies:</strong> Log IP addresses to prevent fraud and abuse</li>
+          </ul>
+          <p className="text-sm mt-2 text-gray-700 dark:text-gray-300">
+            You can control cookies through your browser settings. Disabling essential cookies may limit functionality.
+          </p>
+        </div>
+      </div>
+
+      {/* How We Use Your Information */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="p-2.5 sm:p-3 bg-indigo-100 dark:bg-indigo-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
+          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
+            How We Use Your Information
+          </h3>
+        </div>
+        <div className="bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-600 p-4 rounded-r-lg">
+          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+            <li>Process registration and verification</li>
+            <li>Provide access to barangay services</li>
+            <li>Send important announcements</li>
+            <li>Maintain records for government reporting</li>
+            <li>Improve services and user experience</li>
+            <li>Comply with legal obligations</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Data Security */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4">
+          <div className="p-2.5 sm:p-3 bg-purple-100 dark:bg-purple-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <Lock className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+          </div>
+          <div>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Data Security
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+              We implement appropriate technical measures to protect your personal information against unauthorized access, alteration, or destruction.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Data Retention */}
-      <div className="bg-gradient-to-br from-emerald-50 to-indigo-50 dark:from-emerald-900/20 dark:to-indigo-900/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-emerald-100 dark:border-emerald-800">
-        <div className="flex items-start gap-3 sm:gap-4">
-          <div className="p-2.5 sm:p-3 bg-emerald-500/10 rounded-xl sm:rounded-2xl flex-shrink-0">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4">
+          <div className="p-2.5 sm:p-3 bg-emerald-100 dark:bg-emerald-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
             <Database className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
           </div>
           <div>
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
               Data Retention
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm sm:text-base">
-              We retain your personal information only for as long as necessary
-              to fulfill the purposes for which it was collected, including to
-              satisfy any legal, accounting, or reporting requirements. For
-              document requests, we maintain records as required by Philippine
-              government regulations and barangay record-keeping requirements.
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+              We retain your personal information for as long as your account is active or as needed to provide services and comply with legal obligations.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Data Sharing */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4">
+          <div className="p-2.5 sm:p-3 bg-blue-100 dark:bg-blue-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Data Sharing
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+              We do not sell or rent your personal information. We may share data with government agencies as required by law, or with service providers under strict confidentiality agreements.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Your Rights */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="p-2.5 sm:p-3 bg-green-100 dark:bg-green-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
+            Your Rights (Data Privacy Act 2012)
+          </h3>
+        </div>
+        <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-600 p-4 rounded-r-lg">
+          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+            <li>Right to access your personal information</li>
+            <li>Right to request correction of inaccurate data</li>
+            <li>Right to erasure/deletion of your data</li>
+            <li>Right to object to processing</li>
+          </ul>
+          <p className="text-sm mt-2 text-gray-700 dark:text-gray-300">
+            Contact our Data Protection Officer at <strong>bautista.vergel.agripa@gmail.com</strong> to exercise these rights.
+          </p>
         </div>
       </div>
 
@@ -382,10 +374,7 @@ const PrivacyPolicy = () => {
               Policy Updates
             </h3>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm sm:text-base">
-              We may update this Privacy Policy from time to time. We will
-              notify you of any changes by posting the new Privacy Policy on
-              this page and updating the "Last Updated" date. You are advised to
-              review this Privacy Policy periodically for any changes.
+              We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date. You are advised to review this Privacy Policy periodically for any changes.
             </p>
           </div>
         </div>
@@ -396,61 +385,6 @@ const PrivacyPolicy = () => {
 
 // Terms & Conditions Component
 const TermsConditions = () => {
-  const sections = [
-    {
-      icon: CheckCircle,
-      title: "Acceptance of Terms",
-      content:
-        "By accessing and using the Barangay Culiat Management System, you accept and agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you must not use our services.",
-    },
-    {
-      icon: Users,
-      title: "User Registration",
-      content: [
-        "You must be a resident of Barangay Culiat or have legitimate business with the barangay to register for an account.",
-        "You are responsible for maintaining the confidentiality of your account credentials.",
-        "All information provided during registration must be accurate, current, and complete.",
-        "Your account may be subject to verification by barangay officials before full access is granted.",
-        "You must notify us immediately of any unauthorized use of your account.",
-      ],
-    },
-    {
-      icon: FileText,
-      title: "Document Request Services",
-      content: [
-        "Document requests are subject to verification and approval by authorized barangay personnel.",
-        "Processing times may vary depending on the type of document and verification requirements.",
-        "Fees for document requests are as prescribed by the barangay and must be paid before document release.",
-        "The barangay reserves the right to reject requests that do not meet the requirements.",
-        "Digital copies of documents are for reference only; official copies must be claimed in person.",
-      ],
-    },
-    {
-      icon: AlertCircle,
-      title: "Prohibited Activities",
-      content: [
-        "Providing false or misleading information in your registration or document requests.",
-        "Attempting to access other users' accounts or personal information.",
-        "Using the platform for any illegal or unauthorized purpose.",
-        "Interfering with or disrupting the platform's security features.",
-        "Uploading malicious software, viruses, or harmful code.",
-        "Impersonating another person or entity.",
-      ],
-    },
-    {
-      icon: Shield,
-      title: "Intellectual Property",
-      content:
-        "All content, features, and functionality of this platform, including but not limited to text, graphics, logos, icons, and software, are the property of Barangay Culiat or its licensors and are protected by intellectual property laws.",
-    },
-    {
-      icon: Scale,
-      title: "Limitation of Liability",
-      content:
-        "The Barangay Culiat Management System and its administrators shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of or inability to use the platform. We do not guarantee that the platform will be available at all times or that it will be free from errors.",
-    },
-  ];
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -462,127 +396,132 @@ const TermsConditions = () => {
       {/* Last Updated */}
       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
         <Calendar className="w-4 h-4" />
-        <span>Last Updated: January 7, 2026</span>
+        <span>Last Updated: February 1, 2026</span>
       </div>
 
       {/* Introduction */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
-          Terms & Conditions Overview
+          Terms of Service Overview
         </h2>
         <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm sm:text-base">
-          Welcome to the Barangay Culiat Management System. These Terms and
-          Conditions govern your use of our online platform and services. Please
-          read these terms carefully before using our services. Your continued
-          use of the platform constitutes your acceptance of these terms.
+          By registering for Barangay Culiat services, you agree to comply with and be bound by the following terms and conditions.
         </p>
       </div>
 
-      {/* Sections */}
-      {sections.map((section, index) => {
-        const Icon = section.icon;
-        return (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700"
-          >
-            <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
-              <div className="p-2.5 sm:p-3 bg-emerald-100 rounded-xl sm:rounded-2xl flex-shrink-0">
-                <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
-                {section.title}
-              </h3>
-            </div>
-            <div className="pl-0 sm:pl-16">
-              {Array.isArray(section.content) ? (
-                <ul className="space-y-2 sm:space-y-3">
-                  {section.content.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-2 sm:gap-3">
-                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-                        {item}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm sm:text-base">
-                  {section.content}
-                </p>
-              )}
-            </div>
-          </motion.div>
-        );
-      })}
-
-      {/* Governing Law */}
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-green-100 dark:border-green-800">
-        <div className="flex items-start gap-3 sm:gap-4">
-          <div className="p-2.5 sm:p-3 bg-green-500/10 rounded-xl sm:rounded-2xl flex-shrink-0">
-            <Scale className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+      {/* Account Registration */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="p-2.5 sm:p-3 bg-amber-100 dark:bg-amber-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
           </div>
-          <div>
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
-              Governing Law
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm sm:text-base">
-              These Terms and Conditions shall be governed by and construed in
-              accordance with the laws of the Republic of the Philippines. Any
-              disputes arising from these terms shall be subject to the
-              exclusive jurisdiction of the courts of Quezon City.
-            </p>
-          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
+            Account Registration
+          </h3>
+        </div>
+        <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-600 p-4 rounded-r-lg">
+          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+            <li>You must be a resident or stakeholder of Barangay Culiat</li>
+            <li>You must provide accurate and complete information</li>
+            <li>You are responsible for account confidentiality</li>
+            <li>Registration subject to admin verification</li>
+            <li>False information may result in account suspension</li>
+          </ul>
         </div>
       </div>
 
-      {/* Termination */}
-      <div className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-red-100 dark:border-red-800">
-        <div className="flex items-start gap-3 sm:gap-4">
-          <div className="p-2.5 sm:p-3 bg-red-500/10 rounded-xl sm:rounded-2xl flex-shrink-0">
+      {/* User Responsibilities */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="p-2.5 sm:p-3 bg-green-100 dark:bg-green-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
+            User Responsibilities
+          </h3>
+        </div>
+        <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-600 p-4 rounded-r-lg">
+          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+            <li>Provide truthful and accurate information</li>
+            <li>Update your profile when changes occur</li>
+            <li>Use services in compliance with applicable laws</li>
+            <li>Respect privacy and rights of other users</li>
+            <li>Report suspicious activity or security concerns</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Account Restrictions */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="p-2.5 sm:p-3 bg-red-100 dark:bg-red-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
             <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
           </div>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
+            Account Restrictions
+          </h3>
+        </div>
+        <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-600 p-4 rounded-r-lg">
+          <p className="text-sm mb-2 text-gray-700 dark:text-gray-300">Your account may be suspended if you:</p>
+          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+            <li>Provide false or misleading information</li>
+            <li>Violate any terms or conditions</li>
+            <li>Engage in fraudulent or illegal activities</li>
+            <li>Abuse or misuse barangay services</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Service Availability */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4">
+          <div className="p-2.5 sm:p-3 bg-blue-100 dark:bg-blue-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+          </div>
           <div>
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
-              Account Termination
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Service Availability
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm sm:text-base">
-              We reserve the right to terminate or suspend your account and
-              access to our services immediately, without prior notice or
-              liability, for any reason whatsoever, including without limitation
-              if you breach these Terms and Conditions. Upon termination, your
-              right to use the platform will immediately cease.
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+              While we strive to provide uninterrupted service, we do not guarantee availability at all times. We may suspend services for maintenance or updates.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Contact for Terms */}
+      {/* Changes to Terms */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
-          Questions About These Terms?
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4 sm:mb-6 text-sm sm:text-base">
-          If you have any questions about these Terms and Conditions, please
-          contact the Barangay Culiat office:
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div className="flex items-center gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
-            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 flex-shrink-0" />
-            <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-              467 Tandang Sora Ave, Quezon City
-            </span>
+        <div className="flex items-start gap-3 sm:gap-4 mb-4">
+          <div className="p-2.5 sm:p-3 bg-indigo-100 dark:bg-indigo-900/20 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
           </div>
-          <div className="flex items-center gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
-            <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 flex-shrink-0" />
-            <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-              brgy.culiat@yahoo.com
-            </span>
+          <div>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Changes to Terms
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+              We reserve the right to modify these terms at any time. Significant changes will be communicated through email or system notifications.
+            </p>
           </div>
+        </div>
+      </div>
+
+      {/* Contact Information */}
+      <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-200 dark:border-slate-700">
+        <div className="flex items-start gap-3 sm:gap-4 mb-4">
+          <div className="p-2.5 sm:p-3 bg-slate-100 dark:bg-slate-700 rounded-xl sm:rounded-2xl flex-shrink-0">
+            <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-slate-600 dark:text-slate-300" />
+          </div>
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white pt-1">
+            Contact Us
+          </h3>
+        </div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+          <p><strong>Barangay Culiat, Quezon City</strong></p>
+          <p><strong>Email:</strong> brgy.culiat@yahoo.com</p>
+          <p><strong>Cellphone:</strong> 0962-582-1531</p>
+          <p><strong>Telephone:</strong> 856722-60</p>
+          <p><strong>Office Hours:</strong> Monday-Friday, 8:00 AM - 5:00 PM</p>
         </div>
       </div>
     </motion.div>
