@@ -27,7 +27,8 @@ const GetInTouch = () => {
       region: "Philippines"
     },
     contactInfo: {
-      phoneNumber: "(02) 8123-4567",
+      phoneNumber: "0962-582-1531",
+      telephoneNumber: "856722-60",
       email: "barangay@culiat.gov.ph"
     },
     socialMedia: {
@@ -223,7 +224,8 @@ const GetInTouch = () => {
                     Phone Numbers
                   </h4>
                   <p className="text-xs sm:text-sm text-muted-foreground">
-                    Main Line: {contactInfo.contactInfo?.phoneNumber || "(02) 8123-4567"}
+                    Main Line: {contactInfo.contactInfo?.telephoneNumber || "856722-60"}<br />
+                    Cellphone Number: {contactInfo.contactInfo?.phoneNumber || "0962-582-1531"}
                   </p>
                 </div>
               </motion.div>

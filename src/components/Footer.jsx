@@ -4,25 +4,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { Facebook } from "lucide-react";
 
 const Footer = () => {
-  const [settings, setSettings] = useState(null);
   const [barangayInfo, setBarangayInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    fetchSettings();
     fetchBarangayInfo();
   }, []);
-
-  const fetchSettings = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/api/settings`);
-      setSettings(response.data.data);
-    } catch (error) {
-      console.error("Error fetching settings:", error);
-    }
-  };
 
   const fetchBarangayInfo = async () => {
     try {
@@ -31,24 +20,24 @@ const Footer = () => {
         setBarangayInfo(response.data.data);
       }
     } catch (error) {
-      console.error("Error fetching barangay info:", error);
+      // Silently fail - not critical for footer display
     } finally {
       setLoading(false);
     }
   };
 
-  // Default values if settings not loaded
-  const siteInfo = settings?.siteInfo || {
+  // Default values if barangay info not loaded
+  const siteInfo = {
     barangayName: barangayInfo?.barangayName || "Barangay Culiat",
     city: "Quezon City",
   };
 
   const contactInfo = {
     officeAddress: "467 Tandang Sora Ave, Quezon City, 1128 Metro Manila",
-    phoneNumber: barangayInfo?.contactInfo?.phoneNumber || settings?.contactInfo?.phoneNumber || "+63 962-582-1531",
-    mobileNumber: settings?.contactInfo?.mobileNumber || "856-722-60",
-    emailAddress: barangayInfo?.contactInfo?.email || settings?.contactInfo?.emailAddress || "brgy.culiat@yahoo.com",
-    officeHours: settings?.contactInfo?.officeHours || "Monday - Friday, 8:00 AM - 5:00 PM",
+    phoneNumber: barangayInfo?.contactInfo?.phoneNumber || "+63 962-582-1531",
+    mobileNumber: "856-722-60",
+    emailAddress: barangayInfo?.contactInfo?.email || "brgy.culiat@yahoo.com",
+    officeHours: "Monday - Friday, 8:00 AM - 5:00 PM",
     mapEmbedUrl:
       "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d964.9469179112511!2d121.05602636955277!3d14.667987796511813!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b7475e1333fb%3A0xb01b3d6a168686a5!2sCuliat%20Barangay%20Hall!5e0!3m2!1sen!2sph!4v1760884990064!5m2!1sen!2sph",
     mapDirectionsUrl:
@@ -56,7 +45,7 @@ const Footer = () => {
   };
 
   const socialMedia = {
-    facebook: barangayInfo?.socialMedia?.facebook || settings?.socialMedia?.facebook || "https://www.facebook.com/profile.php?id=100091344363854",
+    facebook: barangayInfo?.socialMedia?.facebook || "https://www.facebook.com/profile.php?id=100091344363854",
   };
 
   const navigate = useNavigate();
@@ -74,7 +63,7 @@ const Footer = () => {
     { title: "Contact Us", url: "/#contact", isRoute: false },
   ];
 
-  const footer = settings?.footer || {
+  const footer = {
     aboutText:
       "Serving our community with transparency, dedication, and excellence. Building a safer and unified Barangay Culiat for all residents.",
     copyrightText:

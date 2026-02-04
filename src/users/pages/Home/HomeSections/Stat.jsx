@@ -37,10 +37,25 @@ const Stat = () => {
 
   return (
     <section
-      className="lg:absolute lg:-bottom-[50px] lg:left-1/2 lg:-translate-x-1/2 lg:py-0 py-6 w-full px-4 z-10"
+      className="py-12 md:py-16 w-full px-4 bg-gradient-to-b from-gray-50 to-white"
       id="home-stat"
     >
       <div className="max-w-6xl mx-auto">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-8 md:mb-12"
+        >
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
+            Barangay Demographics
+          </h2>
+          <p className="text-gray-600 text-sm md:text-base">
+            Key statistics about our community
+          </p>
+        </motion.div>
         {/* Mobile: Auto-scrolling animation */}
         <div className="lg:hidden overflow-hidden w-full">
           <motion.div 

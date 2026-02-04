@@ -114,8 +114,8 @@ const Council = () => {
   };
 
   return (
-    <section className="py-20 bg-neutral overflow-hidden " id="council">
-      <div className="max-w-6xl mx-auto  px-4">
+    <section className="py-20 bg-neutral overflow-hidden" id="council">
+      <div className="max-w-6xl mx-auto px-4">
         {/* --- Barangay Captain Section --- */}
         <div className="flex flex-wrap-reverse items-center gap-12 md:gap-[5em] justify-between mb-20 ">
           {/* Left Text */}

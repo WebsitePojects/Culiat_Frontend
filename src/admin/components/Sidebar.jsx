@@ -27,6 +27,7 @@ import {
   MessageSquare,
   ShieldCheck,
   FileEdit,
+  Image,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -74,11 +75,6 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
       icon: FileCheck,
     },
     {
-      name: "PSA Verifications",
-      path: "/admin/profile-verifications",
-      icon: ShieldCheck,
-    },
-    {
       name: "Profile Updates",
       path: "/admin/profile-updates",
       icon: FileEdit,
@@ -117,6 +113,7 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
         { name: "Officials", path: "/admin/officials", icon: UserCircle },
         { name: "About Us", path: "/admin/cms/about-us", icon: Info },
         { name: "Services", path: "/admin/cms/services", icon: Briefcase },
+        { name: "Homepage Carousel", path: "/admin/cms/banners", icon: Image },
       ],
     },
     {

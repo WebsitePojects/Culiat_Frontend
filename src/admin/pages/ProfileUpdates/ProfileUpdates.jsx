@@ -296,6 +296,10 @@ const ProfileUpdates = () => {
     // Handle objects (shouldn't happen with changedFields but just in case)
     if (typeof value === 'object') {
       if (Array.isArray(value)) {
+        // Special handling for empty arrays - show "None" instead of blank
+        if (value.length === 0) {
+          return <span className="text-gray-400 italic">None</span>;
+        }
         return value.join(', ');
       }
       return Object.values(value).filter(v => v).join(', ');
@@ -322,7 +326,6 @@ const ProfileUpdates = () => {
       'Emergency Contact': [],
       'Spouse Information': [],
       'Government IDs': [],
-      'PSA Birth Certificate': [],
     };
     
     filteredFields.forEach(field => {

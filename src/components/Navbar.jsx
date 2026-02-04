@@ -8,34 +8,27 @@ import { User, LogOut, LogIn, ChevronDown } from "lucide-react";
 
 const Navbar = () => {
    const [isOpen, setIsOpen] = useState(false);
-   const [isScrolldown, setisScrolldown] = useState(true);
+   const [isInHeroCarousel, setIsInHeroCarousel] = useState(true);
    const [showUserMenu, setShowUserMenu] = useState(false);
    const location = useLocation();
    const navigate = useNavigate();
    const { user, logout } = useAuth();
 
    const isHome = location.pathname === "/";
-   // const isAbout = location.pathname === "/about";
-
-   const shouldApplySpecialScroll = isHome;
 
    useEffect(() => {
       const handleScroll = () => {
-         const currentScrollY = window.scrollY;
-
-         if (shouldApplySpecialScroll && currentScrollY < 250) {
-            setisScrolldown(false);
-         } else {
-            setisScrolldown(true);
-         }
+         const scrollY = window.scrollY;
+         // Transparent only in hero/carousel sections (approximately first viewport height)
+         // Changed from 2 to 1 viewport height to make navbar solid after hero section
+         setIsInHeroCarousel(isHome && scrollY < window.innerHeight * 1);
       };
 
       handleScroll();
-
       window.addEventListener("scroll", handleScroll);
 
       return () => window.removeEventListener("scroll", handleScroll);
-   }, [shouldApplySpecialScroll, location.pathname]);
+   }, [isHome]);
 
    useEffect(() => {
       // Close dropdown when clicking outside
@@ -67,16 +60,18 @@ const Navbar = () => {
    };
 
    return (
-      <nav className={`fixed top-0 left-0 w-full z-100 h-auto `}>
+      <nav className={`fixed top-0 left-0 w-full z-100 h-auto`}>
          <div
-            className={`relative w-full py-2 backdrop-blur-[2px]  ${(isScrolldown || isOpen) && "bg-light shadow-md"
-               } transition-background ease-in-out duration-400`}
+            className={`relative w-full py-2 transition-all duration-300 ${
+               !isInHeroCarousel || isOpen
+                  ? "bg-white shadow-md backdrop-blur-sm"
+                  : "bg-transparent backdrop-blur-sm"
+            }`}
          >
             <div
-               className={`flex justify-between max-w-6xl mx-auto items-center h-16  px-4  ${isScrolldown || isOpen
-                     ? "text-text-color transition-all duration-300"
-                     : "text-text-color-light transition-all duration-300"
-                  }`}
+               className={`flex justify-between max-w-6xl mx-auto items-center h-16 px-4 transition-colors duration-300 ${
+                  !isInHeroCarousel || isOpen ? "text-text-color" : "text-text-color-light"
+               }`}
             >
                {/* Logo */}
                <Link to="/signin" className="flex items-center gap-2 sm:gap-3">
@@ -112,7 +107,7 @@ const Navbar = () => {
                   </NavLink>
 
                   <NavLink
-                     to="/services"
+                     to={user && user.roleCode === 74934 ? "/services" : "/services-info"}
                      className={({ isActive }) =>
                         `navlink text-md  transition ${isActive && "active"}`
                      }
@@ -291,7 +286,7 @@ const Navbar = () => {
                Home
             </NavLink>
             <NavLink
-               to="/services"
+               to={user && user.roleCode === 74934 ? "/services" : "/services-info"}
                onClick={() => setIsOpen(false)}
                className="block mobile-navlink text-text-color hover:text-secondary active:text-secondary"
             >

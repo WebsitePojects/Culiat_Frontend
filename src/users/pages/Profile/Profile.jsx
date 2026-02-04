@@ -7,7 +7,6 @@ import {
   FileText, Clock, CheckCircle, XCircle, AlertTriangle, Upload, Loader2, Edit, History,
   Save, X, ChevronDown, ChevronUp, Info, Image, Plus, Trash2, UsersRound
 } from 'lucide-react';
-import PSABirthCertificateForm from '../../../components/profile/PSABirthCertificateForm';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -187,9 +186,7 @@ const VERIFICATION_CONFIG = {
 
 const Profile = () => {
   const { user, setUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'psa' | 'updates'
-  const [psaStatus, setPsaStatus] = useState(null);
-  const [isLoadingStatus, setIsLoadingStatus] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'updates'
   const [updateHistory, setUpdateHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   
@@ -201,38 +198,8 @@ const Profile = () => {
   const [proofPreviews, setProofPreviews] = useState([]); // Array for previews
   const [isSubmittingUpdate, setIsSubmittingUpdate] = useState(false);
 
-  // Check if user is a resident (needs PSA completion)
+  // Check if user is a resident
   const isResident = user?.roleCode === 74934 || user?.role === 'Resident';
-
-  // Fetch PSA completion status
-  useEffect(() => {
-    const fetchPsaStatus = async () => {
-      if (!isResident) {
-        setIsLoadingStatus(false);
-        return;
-      }
-
-      try {
-        const response = await axios.get(`${API_URL}/api/profile-verification/status`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        });
-        console.log('=== PSA Status API Response ===');
-        console.log('Full response:', response.data);
-        console.log('PSA Status Data:', response.data.data);
-        console.log('Birth Certificate:', response.data.data?.birthCertificate);
-        console.log('Mother Data:', response.data.data?.birthCertificate?.mother);
-        console.log('Father Data:', response.data.data?.birthCertificate?.father);
-        console.log('Verification Status:', response.data.data?.verificationStatus);
-        setPsaStatus(response.data.data);
-      } catch (error) {
-        console.error('Error fetching PSA status:', error);
-      } finally {
-        setIsLoadingStatus(false);
-      }
-    };
-
-    fetchPsaStatus();
-  }, [isResident]);
 
   // Fetch update history
   useEffect(() => {
@@ -256,25 +223,6 @@ const Profile = () => {
 
     fetchUpdateHistory();
   }, [isResident, activeTab]);
-
-  // Handle PSA form submission from PSABirthCertificateForm component
-  const handlePsaSubmitSuccess = async () => {
-    // Refresh PSA status
-    try {
-      const statusResponse = await axios.get(`${API_URL}/api/profile-verification/status`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setPsaStatus(statusResponse.data.data);
-      
-      // Refresh user data
-      const meResponse = await axios.get(`${API_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      setUser({ ...meResponse.data.data, token: localStorage.getItem('token') });
-    } catch (error) {
-      console.error('Error refreshing data:', error);
-    }
-  };
 
   // Cancel a pending update
   const handleCancelUpdate = async (updateId) => {
@@ -498,7 +446,15 @@ const Profile = () => {
           });
         }
       } else if (editSection === 'sectoral') {
-        formData.append('sectoralGroups', JSON.stringify(editFormData.sectoralGroups || []));
+        // IMPORTANT: Send sectoralGroups as JSON string
+        const groupsToSend = editFormData.sectoralGroups || [];
+        formData.append('sectoralGroups', JSON.stringify(groupsToSend));
+        console.log('📤 Sending sectoral update:', {
+          updateType: 'sectoral_groups',
+          sectoralGroups: groupsToSend,
+          hasReason: !!updateReason,
+          hasDocuments: proofDocuments.length > 0
+        });
       } else {
         Object.keys(editFormData).forEach(key => {
           formData.append(key, editFormData[key]);
@@ -528,6 +484,8 @@ const Profile = () => {
         }
       );
       
+      console.log('✅ Update submitted successfully:', response.data);
+      
       if (response.data.success) {
         toast.success('Update request submitted for admin review!');
         handleCancelEdit();
@@ -542,7 +500,12 @@ const Profile = () => {
         }
       }
     } catch (error) {
-      console.error('Error submitting update:', error);
+      console.error('❌ Error submitting update:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       toast.error(error.response?.data?.message || 'Failed to submit update');
     } finally {
       setIsSubmittingUpdate(false);
@@ -740,60 +703,6 @@ const Profile = () => {
     </div>
   );
 
-  // Render verification status badge
-  const renderVerificationStatus = () => {
-    if (!psaStatus) return null;
-
-    const statusConfig = {
-      none: { 
-        color: 'bg-gray-100 text-gray-700 border-gray-200', 
-        icon: AlertTriangle, 
-        text: 'Not Submitted',
-        description: 'Complete your PSA profile to access all services'
-      },
-      pending: { 
-        color: 'bg-amber-50 text-amber-700 border-amber-200', 
-        icon: Clock, 
-        text: 'Pending Review',
-        description: 'Your submission is being reviewed by an administrator'
-      },
-      approved: { 
-        color: 'bg-green-50 text-green-700 border-green-200', 
-        icon: CheckCircle, 
-        text: 'Verified',
-        description: 'Your PSA profile has been verified'
-      },
-      rejected: { 
-        color: 'bg-red-50 text-red-700 border-red-200', 
-        icon: XCircle, 
-        text: 'Rejected',
-        description: psaStatus.rejectionReason || 'Please review and resubmit'
-      },
-    };
-
-    const config = statusConfig[psaStatus.verificationStatus] || statusConfig.none;
-    const StatusIcon = config.icon;
-
-    return (
-      <div className={`rounded-lg border p-4 ${config.color}`}>
-        <div className="flex items-start gap-3">
-          <StatusIcon className="w-5 h-5 mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="font-medium">{config.text}</p>
-            <p className="text-sm opacity-80 mt-1">{config.description}</p>
-            {psaStatus.deadline && !psaStatus.isComplete && psaStatus.verificationStatus !== 'approved' && (
-              <p className="text-sm mt-2">
-                <Clock className="w-4 h-4 inline mr-1" />
-                Deadline: {formatDate(psaStatus.deadline)} 
-                {psaStatus.daysLeft !== null && ` (${psaStatus.daysLeft} days left)`}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-8 px-4">
       <div className="max-w-5xl mx-auto">
@@ -832,17 +741,6 @@ const Profile = () => {
                   Profile Overview
                 </button>
                 <button
-                  onClick={() => setActiveTab('psa')}
-                  className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
-                    activeTab === 'psa'
-                      ? 'border-emerald-600 text-emerald-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <FileText className="w-4 h-4" />
-                  PSA Birth Certificate
-                </button>
-                <button
                   onClick={() => setActiveTab('updates')}
                   className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
                     activeTab === 'updates'
@@ -855,82 +753,6 @@ const Profile = () => {
                 </button>
               </nav>
             </div>
-          </div>
-        )}
-
-        {/* PSA Tab Content */}
-        {isResident && activeTab === 'psa' && (
-          <div className="space-y-6">
-            {/* Status Card */}
-            {isLoadingStatus ? (
-              <div className="bg-white rounded-lg shadow-md p-6 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
-                <span className="ml-2 text-gray-600">Loading status...</span>
-              </div>
-            ) : (
-              renderVerificationStatus()
-            )}
-
-            {/* PSA Form - Use new comprehensive form if not approved and not pending */}
-            {psaStatus?.verificationStatus !== 'approved' && psaStatus?.verificationStatus !== 'pending' && (
-              <PSABirthCertificateForm 
-                existingData={user?.birthCertificate}
-                onSuccess={handlePsaSubmitSuccess}
-              />
-            )}
-
-            {/* Show submitted data if pending */}
-            {psaStatus?.verificationStatus === 'pending' && psaStatus?.birthCertificate && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-amber-600" />
-                  Submitted PSA Information (Under Review)
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
-                  <div>
-                    <p className="text-sm text-gray-500">Certificate Number</p>
-                    <p className="font-medium">{psaStatus.birthCertificate.certificateNumber}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Registry Number</p>
-                    <p className="font-medium">{psaStatus.birthCertificate.registryNumber}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Date Issued</p>
-                    <p className="font-medium">{formatDate(psaStatus.birthCertificate.dateIssued)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Place of Registration</p>
-                    <p className="font-medium">{psaStatus.birthCertificate.placeOfRegistration}</p>
-                  </div>
-                </div>
-                <p className="text-amber-600 text-sm mt-4">
-                  <Clock className="w-4 h-4 inline mr-1" />
-                  Your submission is currently being reviewed by an administrator.
-                </p>
-              </div>
-            )}
-
-            {/* Show verified message if approved - no update form needed */}
-            {psaStatus?.verificationStatus === 'approved' && (
-              <div className="bg-white rounded-lg shadow-md p-8">
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="w-10 h-10 text-green-600" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Profile Fully Verified</h2>
-                  <p className="text-gray-600 mb-4">
-                    Your PSA Birth Certificate has been successfully verified. Your profile information from the birth certificate is now displayed in your Profile Overview.
-                  </p>
-                  <button
-                    onClick={() => setActiveTab('overview')}
-                    className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-                  >
-                    View Profile Overview
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -1251,6 +1073,7 @@ const Profile = () => {
                         { value: 'solo_parent', label: 'Solo Parent' },
                         { value: 'woman', label: 'Woman' },
                         { value: 'child-youth', label: 'Child/Youth' },
+                        { value: 'lgbtqia', label: 'LGBTQ+' },
                       ].map((group) => (
                         <label key={group.value} className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 border border-gray-200">
                           <input
@@ -1290,6 +1113,7 @@ const Profile = () => {
                             'solo_parent': 'Solo Parent',
                             'woman': 'Woman',
                             'child-youth': 'Child/Youth',
+                            'lgbtqia': 'LGBTQ+',
                           };
                           return (
                             <span 
@@ -1416,119 +1240,6 @@ const Profile = () => {
                   <p className="text-gray-500 italic">No emergency contact provided</p>
                 )}
               </div>
-
-              {/* Debug log for PSA data */}
-              {console.log('=== PSA Render Check ===', {
-                psaStatus,
-                hasBirthCertificate: !!psaStatus?.birthCertificate,
-                hasMother: !!psaStatus?.birthCertificate?.mother,
-                hasFather: !!psaStatus?.birthCertificate?.father,
-                verificationStatus: psaStatus?.verificationStatus,
-                isApproved: psaStatus?.verificationStatus === 'approved'
-              })}
-
-              {/* PSA Birth Certificate - Mother's Information (only if verified) */}
-              {psaStatus?.birthCertificate?.mother && psaStatus?.verificationStatus === 'approved' && (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-rose-600" />
-                    Mother's Information
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">From PSA</span>
-                  </h3>
-                  <div className="space-y-3">
-                    {psaStatus.birthCertificate.mother.maidenName && (
-                      <div>
-                        <p className="text-sm text-gray-600">Maiden Name</p>
-                        <p className="font-medium text-gray-800">
-                          {psaStatus.birthCertificate.mother.maidenName.firstName} {psaStatus.birthCertificate.mother.maidenName.middleName} {psaStatus.birthCertificate.mother.maidenName.lastName}
-                        </p>
-                      </div>
-                    )}
-                    {psaStatus.birthCertificate.mother.citizenship && (
-                      <div>
-                        <p className="text-sm text-gray-600">Citizenship</p>
-                        <p className="font-medium text-gray-800">{psaStatus.birthCertificate.mother.citizenship}</p>
-                      </div>
-                    )}
-                    {psaStatus.birthCertificate.mother.religion && (
-                      <div>
-                        <p className="text-sm text-gray-600">Religion</p>
-                        <p className="font-medium text-gray-800">{psaStatus.birthCertificate.mother.religion}</p>
-                      </div>
-                    )}
-                    {psaStatus.birthCertificate.mother.occupation && (
-                      <div>
-                        <p className="text-sm text-gray-600">Occupation</p>
-                        <p className="font-medium text-gray-800">{psaStatus.birthCertificate.mother.occupation}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* PSA Birth Certificate - Father's Information (only if verified) */}
-              {psaStatus?.birthCertificate?.father && psaStatus?.verificationStatus === 'approved' && (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <User className="w-5 h-5 text-emerald-600" />
-                    Father's Information
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">From PSA</span>
-                  </h3>
-                  <div className="space-y-3">
-                    {psaStatus.birthCertificate.father.name && (
-                      <div>
-                        <p className="text-sm text-gray-600">Full Name</p>
-                        <p className="font-medium text-gray-800">
-                          {psaStatus.birthCertificate.father.name.firstName} {psaStatus.birthCertificate.father.name.middleName} {psaStatus.birthCertificate.father.name.lastName}
-                        </p>
-                      </div>
-                    )}
-                    {psaStatus.birthCertificate.father.citizenship && (
-                      <div>
-                        <p className="text-sm text-gray-600">Citizenship</p>
-                        <p className="font-medium text-gray-800">{psaStatus.birthCertificate.father.citizenship}</p>
-                      </div>
-                    )}
-                    {psaStatus.birthCertificate.father.religion && (
-                      <div>
-                        <p className="text-sm text-gray-600">Religion</p>
-                        <p className="font-medium text-gray-800">{psaStatus.birthCertificate.father.religion}</p>
-                      </div>
-                    )}
-                    {psaStatus.birthCertificate.father.occupation && (
-                      <div>
-                        <p className="text-sm text-gray-600">Occupation</p>
-                        <p className="font-medium text-gray-800">{psaStatus.birthCertificate.father.occupation}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* PSA Birth Certificate - Parents Marriage (only if verified) */}
-              {psaStatus?.birthCertificate?.parentsMarriage?.dateOfMarriage && psaStatus?.verificationStatus === 'approved' && (
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <Heart className="w-5 h-5 text-pink-600" />
-                    Parents' Marriage
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">From PSA</span>
-                  </h3>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-600">Date of Marriage</p>
-                      <p className="font-medium text-gray-800">{formatDate(psaStatus.birthCertificate.parentsMarriage.dateOfMarriage)}</p>
-                    </div>
-                    {psaStatus.birthCertificate.parentsMarriage.placeOfMarriage && (
-                      <div>
-                        <p className="text-sm text-gray-600">Place of Marriage</p>
-                        <p className="font-medium text-gray-800">
-                          {psaStatus.birthCertificate.parentsMarriage.placeOfMarriage.cityMunicipality}, {psaStatus.birthCertificate.parentsMarriage.placeOfMarriage.province}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}

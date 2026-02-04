@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { CalendarDays, MapPin, Loader2, Megaphone } from "lucide-react";
+import { CalendarDays, MapPin, Loader2, Megaphone, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
@@ -154,7 +154,27 @@ const Announcements = () => {
                         className="group rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 block"
                      >
                         <div className="relative h-full w-full">
-                           {main.image ? (
+                           {main.youtubeVideoId ? (
+                              <div className="relative w-full lg:max-h-[450px] min-h-[350px] h-full">
+                                 <img
+                                    src={`https://img.youtube.com/vi/${main.youtubeVideoId}/maxresdefault.jpg`}
+                                    alt={main.title}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                       // Fallback to high quality thumbnail if maxres doesn't exist
+                                       e.target.src = `https://img.youtube.com/vi/${main.youtubeVideoId}/hqdefault.jpg`;
+                                    }}
+                                 />
+                                 {/* Video Play Icon Overlay */}
+                                 <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center shadow-2xl">
+                                       <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                          <path d="M8 5v14l11-7z" />
+                                       </svg>
+                                    </div>
+                                 </div>
+                              </div>
+                           ) : main.image ? (
                               <img
                                  src={main.image}
                                  alt={main.title}
@@ -215,7 +235,7 @@ const Announcements = () => {
                            className="group flex gap-4 p-3 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-300"
                         >
                            {/* Thumbnail Image */}
-                           <div className="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-700">
+                           <div className="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-700 relative">
                               {item.image ? (
                                  <img
                                     src={item.image}
@@ -227,8 +247,14 @@ const Announcements = () => {
                                     <Megaphone className="w-8 h-8 text-white/50" />
                                  </div>
                               )}
+                              {/* Video Badge */}
+                              {item.youtubeVideoId && (
+                                 <div className="absolute bottom-1 right-1 p-1 bg-red-600 rounded">
+                                    <Youtube className="w-3 h-3 text-white" />
+                                 </div>
+                              )}
                            </div>
-                           
+
                            {/* Content */}
                            <div className="flex-1 min-w-0 flex flex-col justify-center">
                               <span className="text-xs text-emerald-600 font-semibold uppercase mb-1">
@@ -247,7 +273,7 @@ const Announcements = () => {
                         </Link>
                      </motion.div>
                   ))}
-                  
+
                   {/* View All Button at bottom */}
                   <motion.div variants={fadeUp}>
                      <Link

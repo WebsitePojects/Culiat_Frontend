@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { CheckCircle, XCircle, Eye, Calendar, Mail, Phone, MapPin, User, AlertCircle, RefreshCw, Search, ZoomIn, Loader2, FileCheck, ChevronLeft, ChevronRight, Users, Clock, FileText, Shield, X, Baby, Heart, Briefcase, Building } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Calendar, Mail, Phone, MapPin, User, AlertCircle, RefreshCw, Search, ZoomIn, Loader2, FileCheck, ChevronLeft, ChevronRight, Users, Clock, FileText, Shield, X, Baby, Heart, Briefcase, Building, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import Tesseract from "tesseract.js";
 import Modal from "../../components/Modal";
 import Alert from "../../components/Alert";
+import { getDocumentTypeLabel, isEndorsementLetter } from "../../../utils/documentTypes";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -58,13 +59,6 @@ export default function PendingRegistrations() {
     const today = new Date().toDateString();
     return pendingUsers.filter(user => 
       new Date(user.createdAt).toDateString() === today
-    ).length;
-  }, [pendingUsers]);
-
-  const withPSACount = useMemo(() => {
-    return pendingUsers.filter(user => 
-      user.birthCertificate && 
-      (user.birthCertificate.yourInfo?.firstName || user.birthCertificate.certificate?.registryNumber)
     ).length;
   }, [pendingUsers]);
 
@@ -280,19 +274,41 @@ export default function PendingRegistrations() {
       const idImages = [];
       
       // Primary ID 1 (validID and backOfValidID for backward compatibility)
+      const id1TypeLabel = getDocumentTypeLabel(selectedUser.primaryID1Type || selectedUser.validID?.idType || "");
+      const id1IsEndorsement = isEndorsementLetter(selectedUser.primaryID1Type);
+      
       if (selectedUser?.validID?.url) {
-        idImages.push({ url: selectedUser.validID.url, label: "PRIMARY ID 1 - FRONT", type: selectedUser.primaryID1Type || selectedUser.validID?.idType || "Government ID" });
+        idImages.push({ 
+          url: selectedUser.validID.url, 
+          label: id1IsEndorsement ? `DOCUMENT 1 - ${id1TypeLabel}` : `DOCUMENT 1 - ${id1TypeLabel} (FRONT)`, 
+          type: id1TypeLabel 
+        });
       }
-      if (selectedUser?.backOfValidID?.url) {
-        idImages.push({ url: selectedUser.backOfValidID.url, label: "PRIMARY ID 1 - BACK", type: selectedUser.primaryID1Type || selectedUser.validID?.idType || "Government ID" });
+      if (selectedUser?.backOfValidID?.url && !id1IsEndorsement) {
+        idImages.push({ 
+          url: selectedUser.backOfValidID.url, 
+          label: `DOCUMENT 1 - ${id1TypeLabel} (BACK)`, 
+          type: id1TypeLabel 
+        });
       }
       
       // Primary ID 2
+      const id2TypeLabel = getDocumentTypeLabel(selectedUser.primaryID2Type || selectedUser.primaryID2?.idType || "");
+      const id2IsEndorsement = isEndorsementLetter(selectedUser.primaryID2Type);
+      
       if (selectedUser?.primaryID2?.url) {
-        idImages.push({ url: selectedUser.primaryID2.url, label: "PRIMARY ID 2 - FRONT", type: selectedUser.primaryID2Type || selectedUser.primaryID2?.idType || "Government ID" });
+        idImages.push({ 
+          url: selectedUser.primaryID2.url, 
+          label: id2IsEndorsement ? `DOCUMENT 2 - ${id2TypeLabel}` : `DOCUMENT 2 - ${id2TypeLabel} (FRONT)`, 
+          type: id2TypeLabel 
+        });
       }
-      if (selectedUser?.primaryID2Back?.url) {
-        idImages.push({ url: selectedUser.primaryID2Back.url, label: "PRIMARY ID 2 - BACK", type: selectedUser.primaryID2Type || selectedUser.primaryID2?.idType || "Government ID" });
+      if (selectedUser?.primaryID2Back?.url && !id2IsEndorsement) {
+        idImages.push({ 
+          url: selectedUser.primaryID2Back.url, 
+          label: `DOCUMENT 2 - ${id2TypeLabel} (BACK)`, 
+          type: id2TypeLabel 
+        });
       }
 
       const totalImages = idImages.length;
@@ -686,12 +702,10 @@ export default function PendingRegistrations() {
         </div>
 
         {/* Stats Grid */}
-        <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4 mt-4 sm:mt-6">
+        <div className="relative z-10 grid grid-cols-2 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4 mt-4 sm:mt-6">
           {[
             { label: "Total Pending", count: pendingUsers.length, icon: Clock, iconColor: "text-yellow-300", iconBg: "bg-yellow-500/20" },
             { label: "Today", count: todayRegistrations, icon: Calendar, iconColor: "text-green-300", iconBg: "bg-green-500/20" },
-            { label: "With PSA", count: withPSACount, icon: FileText, iconColor: "text-blue-300", iconBg: "bg-blue-500/20" },
-            { label: "Without PSA", count: pendingUsers.length - withPSACount, icon: Shield, iconColor: "text-purple-300", iconBg: "bg-purple-500/20" },
           ].map((stat, idx) => (
             <div
               key={idx}
@@ -782,9 +796,6 @@ export default function PendingRegistrations() {
             className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
           >
             {paginatedUsers.map((user, index) => {
-              const hasPSA = user.birthCertificate && 
-                (user.birthCertificate.yourInfo?.firstName || user.birthCertificate.certificate?.registryNumber);
-              
               return (
                 <motion.div
                   key={user._id}
@@ -792,8 +803,8 @@ export default function PendingRegistrations() {
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
                   className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-shadow"
                 >
-                  {/* PSA Status Indicator */}
-                  <div className={`h-1.5 ${hasPSA ? 'bg-gradient-to-r from-green-500 to-emerald-500' : 'bg-gradient-to-r from-yellow-500 to-orange-500'}`}></div>
+                  {/* Status Indicator */}
+                  <div className="h-1.5 bg-gradient-to-r from-yellow-500 to-orange-500"></div>
                   
                   <div className="p-5">
                     <div className="flex items-start justify-between mb-4">
@@ -812,16 +823,6 @@ export default function PendingRegistrations() {
                         <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-[10px] font-semibold rounded-full">
                           Pending
                         </span>
-                        {hasPSA ? (
-                          <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-[10px] font-medium rounded-full flex items-center gap-1">
-                            <FileText className="w-2.5 h-2.5" />
-                            PSA
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-[10px] font-medium rounded-full">
-                            No PSA
-                          </span>
-                        )}
                       </div>
                     </div>
 
@@ -964,11 +965,6 @@ export default function PendingRegistrations() {
                         <span className="px-1.5 sm:px-2 py-0.5 bg-yellow-500/20 text-yellow-300 text-[10px] sm:text-xs font-semibold rounded-full">
                           Pending Review
                         </span>
-                        {selectedUser.birthCertificate?.yourInfo?.firstName && (
-                          <span className="hidden sm:flex px-2 py-0.5 bg-green-500/20 text-green-300 text-xs font-semibold rounded-full items-center gap-1">
-                            <FileText className="w-3 h-3" /> PSA Submitted
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -989,7 +985,6 @@ export default function PendingRegistrations() {
                 <div className="relative z-[5] flex gap-1 mt-3 sm:mt-5 -mb-px overflow-x-auto scrollbar-hide">
                   {[
                     { id: "personal", label: "Personal", fullLabel: "Personal Info", icon: User },
-                    { id: "psa", label: "PSA", fullLabel: "PSA Birth Certificate", icon: FileText },
                     { id: "documents", label: "Docs", fullLabel: "Documents", icon: Shield },
                   ].map((tab) => (
                     <button
@@ -1026,7 +1021,11 @@ export default function PendingRegistrations() {
                         </div>
                         <div>
                           <label className="text-blue-600 dark:text-blue-300 font-medium text-[10px] sm:text-xs">Email</label>
-                          <p className="text-blue-900 dark:text-blue-100 truncate">{selectedUser.email}</p>
+                          {selectedUser.email ? (
+                            <p className="text-blue-900 dark:text-blue-100 truncate">{selectedUser.email}</p>
+                          ) : (
+                            <p className="text-blue-400 dark:text-blue-500 italic text-xs">Not provided (elderly user)</p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1076,14 +1075,65 @@ export default function PendingRegistrations() {
                       </div>
                     </div>
 
+                    {/* Resident Type */}
+                    <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 ${
+                      selectedUser.residentType === 'non_resident' 
+                        ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' 
+                        : 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800'
+                    }`}>
+                      <h4 className={`font-semibold mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 ${
+                        selectedUser.residentType === 'non_resident' ? 'text-amber-900 dark:text-amber-100' : 'text-emerald-900 dark:text-emerald-100'
+                      }`}>
+                        <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Residency Status
+                      </h4>
+                      <div className="flex items-center gap-2">
+                        {selectedUser.residentType === 'non_resident' ? (
+                          <>
+                            <Users className="w-4 h-4 text-amber-600" />
+                            <span className="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-semibold rounded-full">
+                              Non-Resident
+                            </span>
+                            <span className="text-xs text-amber-600 dark:text-amber-400">
+                              (Resides outside Barangay Culiat)
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <MapPin className="w-4 h-4 text-emerald-600" />
+                            <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-full">
+                              Barangay Culiat Resident
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
                     {/* Address */}
                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
                       <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Address
+                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> 
+                        {selectedUser.residentType === 'non_resident' ? 'Current Address (Outside Barangay)' : 'Address in Barangay Culiat'}
                       </h4>
-                      <p className="text-gray-900 dark:text-gray-100 text-xs sm:text-sm">
-                        {selectedUser.address?.houseNumber} {selectedUser.address?.street} {selectedUser.address?.subdivision}, Barangay Culiat, Quezon City
-                      </p>
+                      {selectedUser.residentType === 'non_resident' && selectedUser.nonResidentAddress ? (
+                        <div className="space-y-2">
+                          <p className="text-gray-900 dark:text-gray-100 text-xs sm:text-sm">
+                            {selectedUser.nonResidentAddress.houseNumber} {selectedUser.nonResidentAddress.street}
+                            {selectedUser.nonResidentAddress.subdivision && `, ${selectedUser.nonResidentAddress.subdivision}`}
+                          </p>
+                          <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
+                            Barangay {selectedUser.nonResidentAddress.barangay}, {selectedUser.nonResidentAddress.city}
+                          </p>
+                          <p className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">
+                            {selectedUser.nonResidentAddress.province}
+                            {selectedUser.nonResidentAddress.region && `, ${selectedUser.nonResidentAddress.region}`}
+                            {selectedUser.nonResidentAddress.postalCode && ` ${selectedUser.nonResidentAddress.postalCode}`}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-gray-900 dark:text-gray-100 text-xs sm:text-sm">
+                          {selectedUser.address?.houseNumber} {selectedUser.address?.street} {selectedUser.address?.subdivision}, Barangay Culiat, Quezon City
+                        </p>
+                      )}
                     </div>
 
                     {/* Spouse Information */}
@@ -1180,183 +1230,6 @@ export default function PendingRegistrations() {
                   </div>
                 )}
 
-                {/* PSA Info Tab */}
-                {activeTab === "psa" && (
-                  <div className="space-y-3 sm:space-y-4">
-                    {selectedUser.birthCertificate?.yourInfo?.firstName || selectedUser.birthCertificate?.certificate?.registryNumber ? (
-                      <>
-                        {/* Certificate Details */}
-                        {selectedUser.birthCertificate?.certificate && (
-                          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                            <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                              <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Certificate Details
-                            </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
-                              <div>
-                                <label className="text-green-600 dark:text-green-300 font-medium text-[10px] sm:text-xs">Registry Number</label>
-                                <p className="text-green-900 dark:text-green-100">{selectedUser.birthCertificate.certificate.registryNumber || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-green-600 dark:text-green-300 font-medium text-[10px] sm:text-xs">Province/City</label>
-                                <p className="text-green-900 dark:text-green-100">{selectedUser.birthCertificate.certificate.province || 'N/A'}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Your Info / Child Info */}
-                        {selectedUser.birthCertificate?.yourInfo && (
-                          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                              <Baby className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Child Information (Your Info)
-                            </h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
-                              <div>
-                                <label className="text-blue-600 dark:text-blue-300 font-medium text-[10px] sm:text-xs">First Name</label>
-                                <p className="text-blue-900 dark:text-blue-100">{selectedUser.birthCertificate.yourInfo.firstName || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-blue-600 dark:text-blue-300 font-medium text-[10px] sm:text-xs">Middle Name</label>
-                                <p className="text-blue-900 dark:text-blue-100">{selectedUser.birthCertificate.yourInfo.middleName || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-blue-600 dark:text-blue-300 font-medium text-[10px] sm:text-xs">Last Name</label>
-                                <p className="text-blue-900 dark:text-blue-100">{selectedUser.birthCertificate.yourInfo.lastName || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-blue-600 dark:text-blue-300 font-medium text-[10px] sm:text-xs">Sex</label>
-                                <p className="text-blue-900 dark:text-blue-100">{selectedUser.birthCertificate.yourInfo.sex || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-blue-600 dark:text-blue-300 font-medium text-[10px] sm:text-xs">Date of Birth</label>
-                                <p className="text-blue-900 dark:text-blue-100">{formatDateYMD(selectedUser.birthCertificate.yourInfo.dateOfBirth)}</p>
-                              </div>
-                              <div className="col-span-2 sm:col-span-1">
-                                <label className="text-blue-600 dark:text-blue-300 font-medium text-[10px] sm:text-xs">Place of Birth</label>
-                                <p className="text-blue-900 dark:text-blue-100 text-xs sm:text-sm">
-                                  {(() => {
-                                    const pob = selectedUser.birthCertificate?.yourInfo?.placeOfBirth;
-                                    if (!pob) return 'N/A';
-                                    if (typeof pob === 'string') return pob;
-                                    // Handle object format {hospital, cityMunicipality, province}
-                                    const parts = [pob.hospital, pob.cityMunicipality, pob.province].filter(Boolean);
-                                    return parts.length > 0 ? parts.join(', ') : 'N/A';
-                                  })()}
-                                </p>
-                              </div>
-                              <div>
-                                <label className="text-blue-600 dark:text-blue-300 font-medium text-[10px] sm:text-xs">Type of Birth</label>
-                                <p className="text-blue-900 dark:text-blue-100">{selectedUser.birthCertificate.yourInfo.typeOfBirth || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-blue-600 dark:text-blue-300 font-medium text-[10px] sm:text-xs">Birth Order</label>
-                                <p className="text-blue-900 dark:text-blue-100">{selectedUser.birthCertificate.yourInfo.birthOrder || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-blue-600 dark:text-blue-300 font-medium text-[10px] sm:text-xs">Birth Weight</label>
-                                <p className="text-blue-900 dark:text-blue-100">{selectedUser.birthCertificate.yourInfo.birthWeight ? `${selectedUser.birthCertificate.yourInfo.birthWeight} (g)` : 'N/A'}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Mother's Information */}
-                        {selectedUser.birthCertificate?.mother && (
-                          <div className="bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-800 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                            <h4 className="font-semibold text-pink-900 dark:text-pink-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Mother's Information
-                            </h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
-                              <div className="col-span-2">
-                                <label className="text-pink-600 dark:text-pink-300 font-medium text-[10px] sm:text-xs">Maiden Name</label>
-                                <p className="text-pink-900 dark:text-pink-100">{formatNameObject(selectedUser.birthCertificate.mother.maidenName)}</p>
-                              </div>
-                              <div>
-                                <label className="text-pink-600 dark:text-pink-300 font-medium text-[10px] sm:text-xs">Citizenship</label>
-                                <p className="text-pink-900 dark:text-pink-100">{selectedUser.birthCertificate.mother.citizenship || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-pink-600 dark:text-pink-300 font-medium text-[10px] sm:text-xs">Religion</label>
-                                <p className="text-pink-900 dark:text-pink-100">{selectedUser.birthCertificate.mother.religion || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-pink-600 dark:text-pink-300 font-medium text-[10px] sm:text-xs">Occupation</label>
-                                <p className="text-pink-900 dark:text-pink-100">{selectedUser.birthCertificate.mother.occupation || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-pink-600 dark:text-pink-300 font-medium text-[10px] sm:text-xs">Age at Birth</label>
-                                <p className="text-pink-900 dark:text-pink-100">{selectedUser.birthCertificate.mother.ageAtBirth || 'N/A'}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Father's Information */}
-                        {selectedUser.birthCertificate?.father && (
-                          <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                            <h4 className="font-semibold text-indigo-900 dark:text-indigo-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Father's Information
-                            </h4>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
-                              <div className="col-span-2">
-                                <label className="text-indigo-600 dark:text-indigo-300 font-medium text-[10px] sm:text-xs">Full Name</label>
-                                <p className="text-indigo-900 dark:text-indigo-100">{formatNameObject(selectedUser.birthCertificate.father.name)}</p>
-                              </div>
-                              <div>
-                                <label className="text-indigo-600 dark:text-indigo-300 font-medium text-[10px] sm:text-xs">Citizenship</label>
-                                <p className="text-indigo-900 dark:text-indigo-100">{selectedUser.birthCertificate.father.citizenship || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-indigo-600 dark:text-indigo-300 font-medium text-[10px] sm:text-xs">Religion</label>
-                                <p className="text-indigo-900 dark:text-indigo-100">{selectedUser.birthCertificate.father.religion || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-indigo-600 dark:text-indigo-300 font-medium text-[10px] sm:text-xs">Occupation</label>
-                                <p className="text-indigo-900 dark:text-indigo-100">{selectedUser.birthCertificate.father.occupation || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <label className="text-indigo-600 dark:text-indigo-300 font-medium text-[10px] sm:text-xs">Age at Birth</label>
-                                <p className="text-indigo-900 dark:text-indigo-100">{selectedUser.birthCertificate.father.ageAtBirth || 'N/A'}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Parents Marriage */}
-                        {selectedUser.birthCertificate?.parentsMarriage && (
-                          <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                            <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                              <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Parents' Marriage
-                            </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
-                              <div>
-                                <label className="text-purple-600 dark:text-purple-300 font-medium text-[10px] sm:text-xs">Date of Marriage</label>
-                                <p className="text-purple-900 dark:text-purple-100">{formatDateYMD(selectedUser.birthCertificate.parentsMarriage.dateOfMarriage)}</p>
-                              </div>
-                              <div>
-                                <label className="text-purple-600 dark:text-purple-300 font-medium text-[10px] sm:text-xs">Place of Marriage</label>
-                                <p className="text-purple-900 dark:text-purple-100 text-xs sm:text-sm">{formatPlaceObject(selectedUser.birthCertificate.parentsMarriage.placeOfMarriage)}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-10 sm:py-16 text-center">
-                        <div className="w-14 h-14 sm:w-20 sm:h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                          <FileText className="w-7 h-7 sm:w-10 sm:h-10 text-gray-400" />
-                        </div>
-                        <h3 className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">No PSA Information</h3>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm max-w-md px-4">
-                          This registrant did not provide PSA birth certificate information during registration. 
-                          They have 90 days from approval to complete their profile.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {/* Documents Tab */}
                 {activeTab === "documents" && (
                   <div className="space-y-4 sm:space-y-6">
@@ -1381,158 +1254,171 @@ export default function PendingRegistrations() {
                       )}
                     </div>
 
-                    {/* Primary ID 1 */}
+                    {/* Document 1 */}
                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
                       <div className="flex items-center justify-between mb-2 sm:mb-3">
                         <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 flex-wrap">
                           <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" /> 
-                          <span className="hidden sm:inline">Primary ID 1</span>
-                          <span className="sm:hidden">ID 1</span>
+                          <span className="hidden sm:inline">Document #1</span>
+                          <span className="sm:hidden">Doc 1</span>
                           {(selectedUser.primaryID1Type || selectedUser.validID?.idType) && (
-                            <span className="px-1.5 sm:px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] sm:text-xs font-medium rounded-full">
-                              {selectedUser.primaryID1Type || selectedUser.validID?.idType}
+                            <span className={`px-1.5 sm:px-2 py-0.5 ${isEndorsementLetter(selectedUser.primaryID1Type) ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'} text-[10px] sm:text-xs font-medium rounded-full`}>
+                              {getDocumentTypeLabel(selectedUser.primaryID1Type || selectedUser.validID?.idType)}
                             </span>
                           )}
                         </h4>
                       </div>
                       {selectedUser.validID?.url ? (
-                        <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                        <div className={`grid ${isEndorsementLetter(selectedUser.primaryID1Type) ? 'grid-cols-1' : 'grid-cols-2'} gap-2 sm:gap-4`}>
                           <div>
                             <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 sm:mb-2 flex items-center gap-1">
-                              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-[8px] sm:text-[10px] font-bold">F</span>
-                              Front
+                              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-[8px] sm:text-[10px] font-bold">
+                                {isEndorsementLetter(selectedUser.primaryID1Type) ? 'L' : 'F'}
+                              </span>
+                              {isEndorsementLetter(selectedUser.primaryID1Type) ? 'Letter' : 'Front'}
                             </p>
                             <div className="border-2 border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
                               <img
                                 src={selectedUser.validID.url}
-                                alt="Primary ID 1 Front"
+                                alt={`Document 1 ${isEndorsementLetter(selectedUser.primaryID1Type) ? 'Letter' : 'Front'}`}
                                 className="w-full h-auto max-h-36 sm:max-h-56 object-contain cursor-pointer hover:scale-105 transition-transform"
                                 onClick={() => window.open(selectedUser.validID.url, '_blank')}
                               />
                             </div>
                           </div>
-                          <div>
-                            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 sm:mb-2 flex items-center gap-1">
-                              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400 flex items-center justify-center text-[8px] sm:text-[10px] font-bold">B</span>
-                              Back
-                            </p>
-                            {selectedUser.backOfValidID?.url ? (
-                              <div className="border-2 border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
-                                <img
-                                  src={selectedUser.backOfValidID.url}
-                                  alt="Primary ID 1 Back"
-                                  className="w-full h-auto max-h-36 sm:max-h-56 object-contain cursor-pointer hover:scale-105 transition-transform"
-                                  onClick={() => window.open(selectedUser.backOfValidID.url, '_blank')}
-                                />
-                              </div>
-                            ) : (
-                              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl h-36 sm:h-56 flex items-center justify-center bg-gray-100/50 dark:bg-gray-800/50">
-                                <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs italic">Not uploaded</p>
-                              </div>
-                            )}
-                          </div>
+                          {!isEndorsementLetter(selectedUser.primaryID1Type) && (
+                            <div>
+                              <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 sm:mb-2 flex items-center gap-1">
+                                <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400 flex items-center justify-center text-[8px] sm:text-[10px] font-bold">B</span>
+                                Back
+                              </p>
+                              {selectedUser.backOfValidID?.url ? (
+                                <div className="border-2 border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+                                  <img
+                                    src={selectedUser.backOfValidID.url}
+                                    alt="Document 1 Back"
+                                    className="w-full h-auto max-h-36 sm:max-h-56 object-contain cursor-pointer hover:scale-105 transition-transform"
+                                    onClick={() => window.open(selectedUser.backOfValidID.url, '_blank')}
+                                  />
+                                </div>
+                              ) : (
+                                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl h-36 sm:h-56 flex items-center justify-center bg-gray-100/50 dark:bg-gray-800/50">
+                                  <p className="text-gray-400 dark:text-gray-500 text-[10px] sm:text-xs italic">Not uploaded</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl p-5 sm:p-8 flex items-center justify-center bg-gray-100/50 dark:bg-gray-800/50">
-                          <p className="text-gray-400 dark:text-gray-500 italic text-xs sm:text-sm">No Primary ID 1 uploaded</p>
+                          <p className="text-gray-400 dark:text-gray-500 italic text-xs sm:text-sm">No Document #1 uploaded</p>
                         </div>
                       )}
                     </div>
 
-                    {/* Primary ID 2 */}
-                    <div className="bg-indigo-50/50 dark:bg-indigo-900/10 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-indigo-100 dark:border-indigo-800/30">
+                    {/* Document 2 */}
+                    <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 border ${isEndorsementLetter(selectedUser.primaryID2Type) ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-800/30' : 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-800/30'}`}>
                       <div className="flex items-center justify-between mb-2 sm:mb-3">
                         <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                          <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-500" /> 
-                          <span className="hidden sm:inline">Primary ID 2</span>
-                          <span className="sm:hidden">ID 2</span>
+                          <Shield className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isEndorsementLetter(selectedUser.primaryID2Type) ? 'text-amber-500' : 'text-indigo-500'}`} /> 
+                          <span className="hidden sm:inline">Document #2</span>
+                          <span className="sm:hidden">Doc 2</span>
                           {(selectedUser.primaryID2Type || selectedUser.primaryID2?.idType) && (
-                            <span className="px-1.5 sm:px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-[10px] sm:text-xs font-medium rounded-full">
-                              {selectedUser.primaryID2Type || selectedUser.primaryID2?.idType}
+                            <span className={`px-1.5 sm:px-2 py-0.5 ${isEndorsementLetter(selectedUser.primaryID2Type) ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'} text-[10px] sm:text-xs font-medium rounded-full`}>
+                              {getDocumentTypeLabel(selectedUser.primaryID2Type || selectedUser.primaryID2?.idType)}
                             </span>
                           )}
                         </h4>
                       </div>
                       {selectedUser.primaryID2?.url ? (
-                        <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                        <div className={`grid ${isEndorsementLetter(selectedUser.primaryID2Type) ? 'grid-cols-1' : 'grid-cols-2'} gap-2 sm:gap-4`}>
                           <div>
                             <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 sm:mb-2 flex items-center gap-1">
-                              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[8px] sm:text-[10px] font-bold">F</span>
-                              Front
+                              <span className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full ${isEndorsementLetter(selectedUser.primaryID2Type) ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'} flex items-center justify-center text-[8px] sm:text-[10px] font-bold`}>
+                                {isEndorsementLetter(selectedUser.primaryID2Type) ? 'L' : 'F'}
+                              </span>
+                              {isEndorsementLetter(selectedUser.primaryID2Type) ? 'Letter' : 'Front'}
                             </p>
-                            <div className="border-2 border-indigo-200 dark:border-indigo-700 rounded-lg sm:rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+                            <div className={`border-2 ${isEndorsementLetter(selectedUser.primaryID2Type) ? 'border-amber-200 dark:border-amber-700' : 'border-indigo-200 dark:border-indigo-700'} rounded-lg sm:rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow`}>
                               <img
                                 src={selectedUser.primaryID2.url}
-                                alt="Primary ID 2 Front"
+                                alt={`Document 2 ${isEndorsementLetter(selectedUser.primaryID2Type) ? 'Letter' : 'Front'}`}
                                 className="w-full h-auto max-h-36 sm:max-h-56 object-contain cursor-pointer hover:scale-105 transition-transform"
                                 onClick={() => window.open(selectedUser.primaryID2.url, '_blank')}
                               />
                             </div>
                           </div>
-                          <div>
-                            <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 sm:mb-2 flex items-center gap-1">
-                              <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400 flex items-center justify-center text-[8px] sm:text-[10px] font-bold">B</span>
-                              Back
-                            </p>
-                            {selectedUser.primaryID2Back?.url ? (
-                              <div className="border-2 border-indigo-200 dark:border-indigo-700 rounded-lg sm:rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
-                                <img
-                                  src={selectedUser.primaryID2Back.url}
-                                  alt="Primary ID 2 Back"
-                                  className="w-full h-auto max-h-36 sm:max-h-56 object-contain cursor-pointer hover:scale-105 transition-transform"
-                                  onClick={() => window.open(selectedUser.primaryID2Back.url, '_blank')}
-                                />
-                              </div>
-                            ) : (
-                              <div className="border-2 border-dashed border-indigo-200 dark:border-indigo-700 rounded-lg sm:rounded-xl h-36 sm:h-56 flex items-center justify-center bg-indigo-50/30 dark:bg-indigo-900/10">
-                                <p className="text-indigo-400 dark:text-indigo-500 text-[10px] sm:text-xs italic">Not uploaded</p>
-                              </div>
-                            )}
-                          </div>
+                          {!isEndorsementLetter(selectedUser.primaryID2Type) && (
+                            <div>
+                              <p className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 sm:mb-2 flex items-center gap-1">
+                                <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-400 flex items-center justify-center text-[8px] sm:text-[10px] font-bold">B</span>
+                                Back
+                              </p>
+                              {selectedUser.primaryID2Back?.url ? (
+                                <div className="border-2 border-indigo-200 dark:border-indigo-700 rounded-lg sm:rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+                                  <img
+                                    src={selectedUser.primaryID2Back.url}
+                                    alt="Document 2 Back"
+                                    className="w-full h-auto max-h-36 sm:max-h-56 object-contain cursor-pointer hover:scale-105 transition-transform"
+                                    onClick={() => window.open(selectedUser.primaryID2Back.url, '_blank')}
+                                  />
+                                </div>
+                              ) : (
+                                <div className="border-2 border-dashed border-indigo-200 dark:border-indigo-700 rounded-lg sm:rounded-xl h-36 sm:h-56 flex items-center justify-center bg-indigo-50/30 dark:bg-indigo-900/10">
+                                  <p className="text-indigo-400 dark:text-indigo-500 text-[10px] sm:text-xs italic">Not uploaded</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="border-2 border-dashed border-indigo-200 dark:border-indigo-700 rounded-lg sm:rounded-xl p-5 sm:p-8 flex items-center justify-center bg-indigo-50/30 dark:bg-indigo-900/10">
-                          <p className="text-indigo-400 dark:text-indigo-500 italic text-xs sm:text-sm">No Primary ID 2 uploaded</p>
+                          <p className="text-indigo-400 dark:text-indigo-500 italic text-xs sm:text-sm">No Document #2 uploaded</p>
                         </div>
                       )}
                     </div>
 
-                    {/* PSA Document */}
-                    {selectedUser.birthCertificate?.documentUrl && (
-                      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                        <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                          <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> PSA Birth Certificate Document
-                        </h4>
-                        <div className="border-2 border-green-200 dark:border-green-700 rounded-lg sm:rounded-xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm">
-                          <img
-                            src={selectedUser.birthCertificate.documentUrl}
-                            alt="PSA Birth Certificate"
-                            className="w-full h-auto max-h-60 sm:max-h-96 object-contain cursor-pointer hover:scale-105 transition-transform"
-                            onClick={() => window.open(selectedUser.birthCertificate.documentUrl, '_blank')}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ID Summary */}
+                    {/* Documents Summary */}
                     <div className="bg-slate-100 dark:bg-slate-800/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
                       <h4 className="font-semibold text-slate-700 dark:text-slate-300 text-xs sm:text-sm mb-2 sm:mb-3">Documents Summary</h4>
-                      <div className="grid grid-cols-4 gap-1.5 sm:gap-3 text-center">
-                        <div className={`p-2 sm:p-3 rounded-lg ${selectedUser.validID?.url ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-200 dark:bg-gray-700'}`}>
-                          <p className={`text-[9px] sm:text-xs font-semibold ${selectedUser.validID?.url ? 'text-green-700 dark:text-green-400' : 'text-gray-500'}`}>ID 1 Front</p>
-                          <p className={`text-sm sm:text-lg font-bold ${selectedUser.validID?.url ? 'text-green-600' : 'text-gray-400'}`}>{selectedUser.validID?.url ? '✓' : '—'}</p>
+                      <div className="space-y-2">
+                        {/* Document 1 Summary */}
+                        <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <Shield className="w-4 h-4 text-blue-500" />
+                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                              Doc #1: {getDocumentTypeLabel(selectedUser.primaryID1Type || selectedUser.validID?.idType) || 'Not specified'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${selectedUser.validID?.url ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                              {isEndorsementLetter(selectedUser.primaryID1Type) ? 'Letter' : 'Front'}: {selectedUser.validID?.url ? '✓' : '—'}
+                            </span>
+                            {!isEndorsementLetter(selectedUser.primaryID1Type) && (
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${selectedUser.backOfValidID?.url ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                Back: {selectedUser.backOfValidID?.url ? '✓' : '—'}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className={`p-2 sm:p-3 rounded-lg ${selectedUser.backOfValidID?.url ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-200 dark:bg-gray-700'}`}>
-                          <p className={`text-[9px] sm:text-xs font-semibold ${selectedUser.backOfValidID?.url ? 'text-green-700 dark:text-green-400' : 'text-gray-500'}`}>ID 1 Back</p>
-                          <p className={`text-sm sm:text-lg font-bold ${selectedUser.backOfValidID?.url ? 'text-green-600' : 'text-gray-400'}`}>{selectedUser.backOfValidID?.url ? '✓' : '—'}</p>
-                        </div>
-                        <div className={`p-2 sm:p-3 rounded-lg ${selectedUser.primaryID2?.url ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-200 dark:bg-gray-700'}`}>
-                          <p className={`text-[9px] sm:text-xs font-semibold ${selectedUser.primaryID2?.url ? 'text-green-700 dark:text-green-400' : 'text-gray-500'}`}>ID 2 Front</p>
-                          <p className={`text-sm sm:text-lg font-bold ${selectedUser.primaryID2?.url ? 'text-green-600' : 'text-gray-400'}`}>{selectedUser.primaryID2?.url ? '✓' : '—'}</p>
-                        </div>
-                        <div className={`p-2 sm:p-3 rounded-lg ${selectedUser.primaryID2Back?.url ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-200 dark:bg-gray-700'}`}>
-                          <p className={`text-[9px] sm:text-xs font-semibold ${selectedUser.primaryID2Back?.url ? 'text-green-700 dark:text-green-400' : 'text-gray-500'}`}>ID 2 Back</p>
-                          <p className={`text-sm sm:text-lg font-bold ${selectedUser.primaryID2Back?.url ? 'text-green-600' : 'text-gray-400'}`}>{selectedUser.primaryID2Back?.url ? '✓' : '—'}</p>
+                        {/* Document 2 Summary */}
+                        <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <Shield className={`w-4 h-4 ${isEndorsementLetter(selectedUser.primaryID2Type) ? 'text-amber-500' : 'text-indigo-500'}`} />
+                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                              Doc #2: {getDocumentTypeLabel(selectedUser.primaryID2Type || selectedUser.primaryID2?.idType) || 'Not specified'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${selectedUser.primaryID2?.url ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                              {isEndorsementLetter(selectedUser.primaryID2Type) ? 'Letter' : 'Front'}: {selectedUser.primaryID2?.url ? '✓' : '—'}
+                            </span>
+                            {!isEndorsementLetter(selectedUser.primaryID2Type) && (
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${selectedUser.primaryID2Back?.url ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                Back: {selectedUser.primaryID2Back?.url ? '✓' : '—'}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

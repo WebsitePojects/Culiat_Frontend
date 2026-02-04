@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { CalendarDays, MapPin, Filter, Megaphone, Loader2, Search, RefreshCw, Inbox, Clock, CheckCircle, ArrowUpDown, X, Image } from "lucide-react";
+import { CalendarDays, MapPin, Filter, Megaphone, Loader2, Search, RefreshCw, Inbox, Clock, CheckCircle, ArrowUpDown, X, Image, Youtube } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -353,11 +353,27 @@ const Announcement = () => {
                                              <span className="text-xs text-white font-medium">+{item.images.length - 1}</span>
                                           </div>
                                        )}
+                                       {/* Video badge */}
+                                       {item.youtubeVideoId && (
+                                          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-red-600 backdrop-blur-sm rounded-lg">
+                                             <Youtube className="w-3.5 h-3.5 text-white" />
+                                             <span className="text-xs text-white font-medium">Video</span>
+                                          </div>
+                                       )}
                                     </>
                                  ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                       <Megaphone className="w-16 h-16 text-emerald-400" />
-                                    </div>
+                                    <>
+                                       <div className="w-full h-full flex items-center justify-center">
+                                          <Megaphone className="w-16 h-16 text-emerald-400" />
+                                       </div>
+                                       {/* Video badge for announcements without images */}
+                                       {item.youtubeVideoId && (
+                                          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-red-600 backdrop-blur-sm rounded-lg">
+                                             <Youtube className="w-3.5 h-3.5 text-white" />
+                                             <span className="text-xs text-white font-medium">Video</span>
+                                          </div>
+                                       )}
+                                    </>
                                  )}
                                  {/* Category Badge Overlay */}
                                  <div className="absolute top-3 right-3">

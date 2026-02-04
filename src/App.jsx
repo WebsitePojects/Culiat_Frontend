@@ -6,7 +6,6 @@ import PrivateRoute from "./components/PrivateRoute";
 import MaintenancePage from "./components/MaintenancePage";
 import MaintenanceGuard from "./components/MaintenanceGuard";
 import BypassForm from "./components/BypassForm";
-import ProfileWarningModal from "./components/ProfileWarningModal";
 import ApprovedDocumentModal from "./components/ApprovedDocumentModal";
 import ScrollToTop from "./components/ScrollToTop";
 import AdminLogin from "./tailadminsrc/pages/AuthPages/SignIn";
@@ -19,6 +18,7 @@ import ReportDetail from "./users/pages/Reports/ReportDetail";
 import Announcements from "./users/pages/Announcement/Announcements";
 import AnnouncementDetail from "./users/pages/Announcement/AnnouncementDetail";
 import Services from "./users/pages/Services/Services";
+import ServicesInfoPage from "./users/pages/ServicesInfo/ServicesInfoPage";
 import MainLayout from "./MainLayout/MainLayout";
 import Home from "./users/pages/Home/Home";
 import About from "./users/pages/About/About";
@@ -43,6 +43,7 @@ import AdminAchievements from "./admin/pages/Achievements/AdminAchievements";
 import AdminOfficials from "./admin/pages/Officials/AdminOfficials";
 import CMSServices from "./admin/pages/CMS/CMSServices";
 import CMSAboutUs from "./admin/pages/CMS/CMSAboutUs";
+import CMSBanners from "./admin/pages/CMS/CMSBanners";
 import AdminProfile from "./admin/pages/Profile/AdminProfile";
 import DocumentRequestHistory from "./admin/pages/ActivityLogs/DocumentRequestHistory";
 import DocumentPayments from "./admin/pages/Transparency/DocumentPayments";
@@ -59,6 +60,7 @@ import ForgotPassword from "./users/pages/Auth/ForgotPassword";
 import ResetPassword from "./users/pages/Auth/ResetPassword";
 import PaymentPage from "./users/pages/Payment/PaymentPage";
 import LegalPage from "./users/pages/Legal/LegalPage";
+import CookieConsent from "./components/CookieConsent";
 
 // Document Verification (Public - QR Code scan)
 import VerificationPage from "./users/pages/Verification/VerificationPage";
@@ -88,22 +90,6 @@ const ToastDismissWrapper = ({ children }) => {
   }, []);
 
   return children;
-};
-
-// PSA Warning Modal Wrapper - uses auth context
-const PsaWarningModalWrapper = () => {
-  const { showPsaWarningModal, psaWarningData, closePsaWarningModal } = useAuth();
-  
-  return (
-    <ProfileWarningModal 
-      isOpen={showPsaWarningModal}
-      onClose={closePsaWarningModal}
-      daysLeft={psaWarningData?.daysLeft}
-      deadline={psaWarningData?.deadline}
-      verificationStatus={psaWarningData?.verificationStatus}
-      rejectionReason={psaWarningData?.rejectionReason}
-    />
-  );
 };
 
 // Approved Document Notification Modal Wrapper - uses auth context
@@ -233,9 +219,6 @@ function App() {
         {/* 👇 Render only on client side */}
         {typeof window !== "undefined" && <PolicyPopup />}
 
-        {/* PSA Profile Completion Warning Modal */}
-        <PsaWarningModalWrapper />
-
         {/* Approved Document Notification Modal */}
         <ApprovedDocModalWrapper />
 
@@ -245,6 +228,17 @@ function App() {
           
           {/* PUBLIC: Document Verification via QR Code */}
           <Route path="/verify/:token" element={<VerificationPage />} />
+          <Route path="/verify" element={<VerificationPage />} />
+          
+          {/* PUBLIC: Services Info Page - No login required */}
+          <Route 
+            path="/services-info" 
+            element={
+              <MainLayout>
+                <ServicesInfoPage />
+              </MainLayout>
+            } 
+          />
           
           {/* Public Routes */}
           <Route path="/signin" element={<AdminLogin />} />
@@ -334,6 +328,7 @@ function App() {
             <Route path="officials" element={<AdminOfficials />} />
             <Route path="cms/services" element={<CMSServices />} />
             <Route path="cms/about-us" element={<CMSAboutUs />} />
+            <Route path="cms/banners" element={<CMSBanners />} />
             <Route path="document-history" element={<DocumentRequestHistory />} />
             <Route path="document-payments" element={<DocumentPayments />} />
             <Route path="feedback" element={<WebsiteFeedback />} />
@@ -461,6 +456,9 @@ function App() {
           </Routes>
           </ToastDismissWrapper>
         </MaintenanceGuard>
+        
+        {/* Cookie Consent Banner - Shows on all pages */}
+        <CookieConsent />
       </AuthProvider>
     </>
   );

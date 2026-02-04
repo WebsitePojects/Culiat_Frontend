@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, CalendarDays, MapPin, Tag, Loader2, Eye, Share2, Megaphone, ChevronLeft, ChevronRight, X, ZoomIn, Image, Download, Facebook, Twitter, Link2, User } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Tag, Loader2, Eye, Share2, Megaphone, ChevronLeft, ChevronRight, X, ZoomIn, Image, Download, Facebook, Twitter, Link2, User, Youtube } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { Helmet } from "react-helmet-async";
@@ -396,6 +396,28 @@ const AnnouncementDetail = () => {
                 {announcement.content}
               </p>
             </div>
+
+            {/* YouTube Video Section */}
+            {announcement.youtubeVideoUrl && announcement.youtubeVideoId && (
+              <div className="mt-8 pt-8 border-t border-gray-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <Youtube className="w-5 h-5 text-red-600" />
+                  <h4 className="text-sm font-semibold text-gray-900">Featured Video</h4>
+                </div>
+                <div className="aspect-video rounded-xl overflow-hidden shadow-lg bg-black">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={`https://www.youtube.com/embed/${announcement.youtubeVideoId}`}
+                    title={announcement.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Image Gallery Thumbnails */}
             {getAnnouncementImages().length > 0 && (

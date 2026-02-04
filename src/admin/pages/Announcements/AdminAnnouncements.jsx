@@ -31,8 +31,11 @@ import {
   ChevronLeft,
   ChevronRight,
   ZoomIn,
+  Play,
+  Youtube,
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
+import { extractYouTubeVideoId, isValidYouTubeUrl } from "../../../utils/youtubeHelpers";
 
 const AdminAnnouncements = () => {
   const { showSuccess, showError, showPromise } = useNotifications();
@@ -77,6 +80,7 @@ const AdminAnnouncements = () => {
     eventDate: "",
     images: [], // Changed to array for multiple images
     hashtags: [], // Hashtags for the announcement
+    youtubeVideoUrl: "", // YouTube video URL
   });
 
   // Image preview states for multiple images
@@ -110,7 +114,7 @@ const AdminAnnouncements = () => {
       if (response.data.success) {
         const hashtags = response.data.data || [];
         setAvailableHashtags(hashtags);
-        
+
         // If no hashtags exist, automatically seed default ones
         if (hashtags.length === 0) {
           console.log('No hashtags found, seeding default hashtags...');
@@ -233,6 +237,7 @@ const AdminAnnouncements = () => {
       eventDate: "",
       images: [],
       hashtags: [],
+      youtubeVideoUrl: "",
     });
     setImagePreviews([]);
     setExistingImages([]);
@@ -260,10 +265,11 @@ const AdminAnnouncements = () => {
       eventDate: announcement.eventDate ? new Date(announcement.eventDate).toISOString().split('T')[0] : "",
       images: [],
       hashtags: announcement.hashtags || [],
+      youtubeVideoUrl: announcement.youtubeVideoUrl || "",
     });
     // Set existing images from announcement (support both images array and legacy image field)
-    const existingImgs = announcement.images?.length > 0 
-      ? announcement.images 
+    const existingImgs = announcement.images?.length > 0
+      ? announcement.images
       : (announcement.image ? [announcement.image] : []);
     setExistingImages(existingImgs);
     setImagePreviews([]);
@@ -287,25 +293,25 @@ const AdminAnnouncements = () => {
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
-    
+
     // Calculate remaining slots (max 6 total)
     const currentTotal = existingImages.length + formData.images.length;
     const remainingSlots = 6 - currentTotal;
-    
+
     if (remainingSlots <= 0) {
       showError("Maximum 6 images allowed");
       return;
     }
-    
+
     // Take only as many files as we have slots for
     const filesToAdd = files.slice(0, remainingSlots);
-    
+
     // Add new files to formData
-    setFormData(prev => ({ 
-      ...prev, 
-      images: [...prev.images, ...filesToAdd] 
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, ...filesToAdd]
     }));
-    
+
     // Generate previews for new files
     filesToAdd.forEach(file => {
       const reader = new FileReader();
@@ -314,7 +320,7 @@ const AdminAnnouncements = () => {
       };
       reader.readAsDataURL(file);
     });
-    
+
     // Reset file input
     e.target.value = '';
   };
@@ -349,17 +355,22 @@ const AdminAnnouncements = () => {
       if (formData.eventDate) {
         submitData.append("eventDate", formData.eventDate);
       }
-      
+
+      // Append YouTube video URL if provided
+      if (formData.youtubeVideoUrl) {
+        submitData.append("youtubeVideoUrl", formData.youtubeVideoUrl);
+      }
+
       // Append hashtags
       if (formData.hashtags.length > 0) {
         submitData.append("hashtags", JSON.stringify(formData.hashtags));
       }
-      
+
       // Append multiple images
       formData.images.forEach(image => {
         submitData.append("images", image);
       });
-      
+
       // Append images to remove (for edit mode)
       if (isEditMode && imagesToRemove.length > 0) {
         submitData.append("removeImages", JSON.stringify(imagesToRemove));
@@ -424,9 +435,9 @@ const AdminAnnouncements = () => {
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       showSuccess(`Announcement ${newStatus === 'published' ? 'published' : newStatus === 'archived' ? 'archived' : 'saved as draft'} successfully!`);
-      
+
       setStatusUpdateModal(false);
       fetchAnnouncements();
     } catch (error) {
@@ -442,13 +453,13 @@ const AdminAnnouncements = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       await showPromise(promise, {
         loading: announcement.status === 'archived' ? 'Unarchiving...' : 'Archiving...',
         success: announcement.status === 'archived' ? 'Announcement unarchived!' : 'Announcement archived!',
         error: 'Failed to update announcement'
       });
-      
+
       fetchAnnouncements();
     } catch (error) {
       console.error("Failed to toggle archive:", error);
@@ -736,11 +747,10 @@ const AdminAnnouncements = () => {
                 <button
                   key={status}
                   onClick={() => setFilter(status)}
-                  className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium rounded-md transition-all duration-150 whitespace-nowrap ${
-                    filter === status
+                  className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium rounded-md transition-all duration-150 whitespace-nowrap ${filter === status
                       ? "bg-white dark:bg-slate-600 text-gray-900 dark:text-white shadow-sm"
                       : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                  }`}
+                    }`}
                 >
                   {status.charAt(0).toUpperCase() + status.slice(1)}
                 </button>
@@ -825,11 +835,10 @@ const AdminAnnouncements = () => {
             return (
               <div
                 key={announcement._id}
-                className={`group relative bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl border transition-all duration-200 hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-slate-900/50 cursor-pointer ${
-                  selectedAnnouncements.includes(announcement._id)
+                className={`group relative bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl border transition-all duration-200 hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-slate-900/50 cursor-pointer ${selectedAnnouncements.includes(announcement._id)
                     ? "border-blue-500 ring-2 ring-blue-500/20"
                     : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600"
-                }`}
+                  }`}
                 onClick={() => handleViewAnnouncement(announcement)}
               >
                 {/* Selection Checkbox */}
@@ -969,7 +978,7 @@ const AdminAnnouncements = () => {
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
-                  
+
                   {/* Image Gallery Trigger */}
                   <button
                     onClick={() => openImageGallery(0)}
@@ -977,8 +986,8 @@ const AdminAnnouncements = () => {
                   >
                     <ZoomIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span>
-                      {getAnnouncementImages().length > 1 
-                        ? `${getAnnouncementImages().length} Photos` 
+                      {getAnnouncementImages().length > 1
+                        ? `${getAnnouncementImages().length} Photos`
                         : 'View Full Image'}
                     </span>
                   </button>
@@ -1089,6 +1098,28 @@ const AdminAnnouncements = () => {
                         </div>
                       </button>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* YouTube Video Display */}
+              {selectedAnnouncement.youtubeVideoUrl && selectedAnnouncement.youtubeVideoId && (
+                <div className="mb-4 sm:mb-6">
+                  <h4 className="text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2">
+                    <Youtube className="w-4 h-4 text-red-600" />
+                    Video
+                  </h4>
+                  <div className="aspect-video rounded-xl overflow-hidden bg-black shadow-lg">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${selectedAnnouncement.youtubeVideoId}`}
+                      title="YouTube video"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
                   </div>
                 </div>
               )}
@@ -1266,7 +1297,7 @@ const AdminAnnouncements = () => {
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Hashtags <span className="text-gray-400">(Optional)</span>
                 </label>
-                
+
                 {/* Selected Hashtags */}
                 {formData.hashtags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-2">
@@ -1290,7 +1321,7 @@ const AdminAnnouncements = () => {
                     ))}
                   </div>
                 )}
-                
+
                 {/* Hashtag Search/Select */}
                 <div className="relative">
                   <input
@@ -1304,12 +1335,12 @@ const AdminAnnouncements = () => {
                     placeholder="Search or add hashtags..."
                     className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
                   />
-                  
+
                   {showHashtagDropdown && (
                     <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                       {/* Filtered hashtags from database */}
                       {availableHashtags
-                        .filter(h => 
+                        .filter(h =>
                           h.name.toLowerCase().includes(hashtagSearch.toLowerCase()) &&
                           !formData.hashtags.includes(h.name)
                         )
@@ -1333,49 +1364,49 @@ const AdminAnnouncements = () => {
                           </button>
                         ))
                       }
-                      
+
                       {/* Option to add custom hashtag */}
-                      {hashtagSearch.trim() && !availableHashtags.some(h => 
+                      {hashtagSearch.trim() && !availableHashtags.some(h =>
                         h.name.toLowerCase() === hashtagSearch.toLowerCase().replace(/^#/, '').replace(/\s+/g, '')
                       ) && (
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            const cleanTag = hashtagSearch.trim().replace(/^#/, '').replace(/\s+/g, '');
-                            if (cleanTag && !formData.hashtags.includes(cleanTag)) {
-                              // Add to form
-                              setFormData(prev => ({
-                                ...prev,
-                                hashtags: [...prev.hashtags, cleanTag]
-                              }));
-                              // Save to database
-                              try {
-                                const token = localStorage.getItem("token");
-                                await axios.post(`${API_URL}/api/hashtags`, 
-                                  { name: cleanTag, category: 'Custom' },
-                                  { headers: { Authorization: `Bearer ${token}` } }
-                                );
-                                // Refresh hashtags list
-                                fetchHashtags();
-                              } catch (error) {
-                                console.log('Hashtag may already exist or failed to save:', error);
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const cleanTag = hashtagSearch.trim().replace(/^#/, '').replace(/\s+/g, '');
+                              if (cleanTag && !formData.hashtags.includes(cleanTag)) {
+                                // Add to form
+                                setFormData(prev => ({
+                                  ...prev,
+                                  hashtags: [...prev.hashtags, cleanTag]
+                                }));
+                                // Save to database
+                                try {
+                                  const token = localStorage.getItem("token");
+                                  await axios.post(`${API_URL}/api/hashtags`,
+                                    { name: cleanTag, category: 'Custom' },
+                                    { headers: { Authorization: `Bearer ${token}` } }
+                                  );
+                                  // Refresh hashtags list
+                                  fetchHashtags();
+                                } catch (error) {
+                                  console.log('Hashtag may already exist or failed to save:', error);
+                                }
                               }
-                            }
-                            setHashtagSearch("");
-                            setShowHashtagDropdown(false);
-                          }}
-                          className="w-full px-3 py-2 text-left text-xs sm:text-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-t border-gray-200 dark:border-gray-700"
-                        >
-                          + Add "#{hashtagSearch.trim().replace(/^#/, '').replace(/\s+/g, '')}"
-                        </button>
-                      )}
-                      
+                              setHashtagSearch("");
+                              setShowHashtagDropdown(false);
+                            }}
+                            className="w-full px-3 py-2 text-left text-xs sm:text-sm hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-t border-gray-200 dark:border-gray-700"
+                          >
+                            + Add "#{hashtagSearch.trim().replace(/^#/, '').replace(/\s+/g, '')}"
+                          </button>
+                        )}
+
                       {availableHashtags.length === 0 && !hashtagSearch.trim() && (
                         <div className="px-3 py-2 text-xs text-gray-400">
                           Type to search or add hashtags
                         </div>
                       )}
-                      
+
                       <button
                         type="button"
                         onClick={() => setShowHashtagDropdown(false)}
@@ -1388,11 +1419,55 @@ const AdminAnnouncements = () => {
                 </div>
               </div>
 
+              {/* YouTube Video URL Section */}
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2 flex items-center gap-2">
+                  <Youtube className="w-4 h-4 text-red-600" />
+                  YouTube Video URL <span className="text-gray-400">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.youtubeVideoUrl}
+                  onChange={(e) => setFormData({ ...formData, youtubeVideoUrl: e.target.value })}
+                  placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                  className="w-full px-3 py-2 sm:py-2.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Add a YouTube video to your announcement. Paste the video URL here.
+                </p>
+
+                {/* YouTube Video Preview */}
+                {formData.youtubeVideoUrl && extractYouTubeVideoId(formData.youtubeVideoUrl) && (
+                  <div className="mt-3">
+                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
+                    <div className="aspect-video rounded-lg overflow-hidden border-2 border-red-200 dark:border-red-800">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src={`https://www.youtube.com/embed/${extractYouTubeVideoId(formData.youtubeVideoUrl)}`}
+                        title="YouTube video preview"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {formData.youtubeVideoUrl && !extractYouTubeVideoId(formData.youtubeVideoUrl) && (
+                  <div className="mt-2 flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>Invalid YouTube URL. Please check the format.</span>
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                   Images <span className="text-gray-400">(Up to 6 images)</span>
                 </label>
-                
+
                 {/* Image Upload Area */}
                 <div className="space-y-3">
                   {/* Existing Images (in edit mode) */}
@@ -1533,11 +1608,10 @@ const AdminAnnouncements = () => {
                   return (
                     <label
                       key={status.value}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                        newStatus === status.value
+                      className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${newStatus === status.value
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                           : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600"
-                      }`}
+                        }`}
                     >
                       <input
                         type="radio"
@@ -1632,7 +1706,7 @@ const AdminAnnouncements = () => {
           </div>
 
           {/* Main Image */}
-          <div 
+          <div
             className="relative w-full h-full flex items-center justify-center p-16"
             onClick={(e) => e.stopPropagation()}
           >
@@ -1671,11 +1745,10 @@ const AdminAnnouncements = () => {
                 <button
                   key={idx}
                   onClick={() => setCurrentImageIndex(idx)}
-                  className={`w-14 h-14 rounded-lg overflow-hidden transition-all ${
-                    idx === currentImageIndex
+                  className={`w-14 h-14 rounded-lg overflow-hidden transition-all ${idx === currentImageIndex
                       ? "ring-2 ring-white scale-110"
                       : "opacity-60 hover:opacity-100"
-                  }`}
+                    }`}
                 >
                   <img src={img} alt="" className="w-full h-full object-cover" />
                 </button>

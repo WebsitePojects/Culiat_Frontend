@@ -2,6 +2,13 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import {
+  governmentIDOptions as documentTypeOptions,
+  isEndorsementLetter,
+  isGovernmentID,
+  validateDocumentCombination,
+  getDocumentTypeLabel,
+} from "../../../utils/documentTypes";
+import {
   Upload,
   X,
   ArrowLeft,
@@ -33,34 +40,25 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 const Register = () => {
-  const [currentStep, setCurrentStep] = useState(1);
+  // Step 0 = Resident type selection, Steps 1-5 = Main registration flow
+  const [currentStep, setCurrentStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showOccupationDropdown, setShowOccupationDropdown] = useState(false);
   const [occupationSearch, setOccupationSearch] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // Optional PSA Step states
-  const [showOptionalPSA, setShowOptionalPSA] = useState(false);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [acceptedDeadlineTerms, setAcceptedDeadlineTerms] = useState(false);
-  // PSA section toggles - matches PSABirthCertificateForm.jsx sections exactly
-  const [psaSections, setPsaSections] = useState({
-    certificate: true,
-    yourInfo: true,
-    mother: false,
-    father: false,
-    marriage: false,
-  });
-
   // Terms & Conditions Modal states
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsTab, setTermsTab] = useState('privacy'); // 'privacy' or 'terms'
   const [hasScrolledTerms, setHasScrolledTerms] = useState(false);
   const [canAcceptTerms, setCanAcceptTerms] = useState(false);
 
   const [formData, setFormData] = useState({
+    // Resident type - determines registration flow
+    residentType: "", // 'resident' or 'non_resident'
     username: "",
-    email: "",
+    email: "", // Optional for elderly users
     password: "",
     confirmPassword: "",
     firstName: "",
@@ -74,10 +72,20 @@ const Register = () => {
     salutation: "",
     nationality: "Filipino",
     phoneNumber: "",
+    // Resident address (Barangay Culiat)
     houseNumber: "",
     street: "",
     subdivision: "",
     area: "",
+    // Non-resident address (outside Barangay Culiat)
+    nonResidentHouseNumber: "",
+    nonResidentStreet: "",
+    nonResidentSubdivision: "",
+    nonResidentBarangay: "",
+    nonResidentCity: "",
+    nonResidentProvince: "",
+    nonResidentRegion: "",
+    nonResidentPostalCode: "",
     tinNumber: "",
     sssGsisNumber: "",
     precinctNumber: "",
@@ -108,93 +116,6 @@ const Register = () => {
     validIDFile: null,
     backOfValidIDFile: null,
     termsAccepted: false,
-    // PSA Birth Certificate optional fields - MATCHES PSABirthCertificateForm.jsx exactly
-    skipPSAStep: true,
-    psaBirthCertificate: {
-      // === CERTIFICATE DETAILS ===
-      certificateNumber: "",
-      registryNumber: "",
-      dateIssued: "",
-      placeIssued: "",
-      province: "",
-      cityMunicipality: "",
-
-      // === YOUR INFORMATION (as registered on birth certificate) ===
-      yourInfo: {
-        firstName: "",
-        middleName: "",
-        lastName: "",
-        sex: "",
-        dateOfBirth: "",
-        placeOfBirth: {
-          hospital: "",
-          cityMunicipality: "",
-          province: "",
-        },
-        typeOfBirth: "Single",
-        birthOrder: "",
-        birthWeight: "",
-      },
-
-      // === MOTHER'S INFORMATION ===
-      mother: {
-        maidenName: {
-          firstName: "",
-          middleName: "",
-          lastName: "",
-        },
-        citizenship: "Filipino",
-        religion: "",
-        occupation: "",
-        ageAtBirth: "",
-        residence: {
-          houseNo: "",
-          street: "",
-          barangay: "",
-          cityMunicipality: "",
-          province: "",
-          country: "Philippines",
-        },
-        totalChildrenBornAlive: "",
-        childrenStillLiving: "",
-        childrenNowDead: "",
-      },
-
-      // === FATHER'S INFORMATION ===
-      father: {
-        name: {
-          firstName: "",
-          middleName: "",
-          lastName: "",
-        },
-        citizenship: "Filipino",
-        religion: "",
-        occupation: "",
-        ageAtBirth: "",
-        residence: {
-          houseNo: "",
-          street: "",
-          barangay: "",
-          cityMunicipality: "",
-          province: "",
-          country: "Philippines",
-        },
-      },
-
-      // === PARENTS' MARRIAGE ===
-      parentsMarriage: {
-        dateOfMarriage: "",
-        placeOfMarriage: {
-          cityMunicipality: "",
-          province: "",
-          country: "Philippines",
-        },
-      },
-
-      // === REMARKS ===
-      remarks: "",
-    },
-    psaCertificateFile: null,
   });
 
   // Preview states for ID uploads
@@ -205,28 +126,14 @@ const Register = () => {
   const [primaryID1BackPreview, setPrimaryID1BackPreview] = useState(null);
   const [primaryID2Preview, setPrimaryID2Preview] = useState(null);
   const [primaryID2BackPreview, setPrimaryID2BackPreview] = useState(null);
-  const [psaCertificatePreview, setPsaCertificatePreview] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  // Valid Government IDs (Philippines) - Primary IDs only
-  const governmentIDOptions = [
-    { value: "", label: "Select ID Type" },
-    { value: "philippine_passport", label: "Philippine Passport" },
-    { value: "drivers_license", label: "Driver's License" },
-    { value: "umid", label: "UMID (Unified Multi-Purpose ID)" },
-    { value: "philhealth", label: "PhilHealth ID" },
-    { value: "sss", label: "SSS ID" },
-    { value: "prc", label: "PRC ID (Professional Regulation Commission)" },
-    { value: "voters_id", label: "Voter's ID / COMELEC ID" },
-    { value: "senior_citizen", label: "Senior Citizen ID" },
-    { value: "pwd", label: "PWD ID" },
-    { value: "philsys", label: "Philippine National ID (PhilSys)" },
-    { value: "nbi_clearance", label: "NBI Clearance" },
-    { value: "postal_id", label: "Postal ID" },
-  ];
+  // Document options now imported from utils/documentTypes.js
+  // Includes government IDs + endorsement letters
+  const governmentIDOptions = documentTypeOptions;
 
   // Philippine occupations dropdown - comprehensive list
   const occupationOptions = [
@@ -622,14 +529,9 @@ const Register = () => {
     const file = e.target.files[0];
     if (file) {
       const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-      const allowedTypesWithPDF = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
 
-      const typesToCheck = fieldName === "psaCertificateFile" ? allowedTypesWithPDF : allowedTypes;
-
-      if (!typesToCheck.includes(file.type)) {
-        setError(fieldName === "psaCertificateFile"
-          ? "Only JPG, JPEG, PNG, and PDF files are allowed"
-          : "Only JPG, JPEG, and PNG files are allowed");
+      if (!allowedTypes.includes(file.type)) {
+        setError("Only JPG, JPEG, and PNG files are allowed");
         return;
       }
 
@@ -659,13 +561,6 @@ const Register = () => {
       } else if (fieldName === "backOfValidIDFile") {
         setFormData({ ...formData, backOfValidIDFile: file });
         setBackOfValidIDPreview(URL.createObjectURL(file));
-      } else if (fieldName === "psaCertificateFile") {
-        setFormData({ ...formData, psaCertificateFile: file });
-        if (file.type === "application/pdf") {
-          setPsaCertificatePreview("pdf");
-        } else {
-          setPsaCertificatePreview(URL.createObjectURL(file));
-        }
       }
       setError("");
     }
@@ -717,29 +612,32 @@ const Register = () => {
         URL.revokeObjectURL(backOfValidIDPreview);
         setBackOfValidIDPreview(null);
       }
-    } else if (fieldName === "psaCertificateFile") {
-      setFormData({ ...formData, psaCertificateFile: null });
-      if (psaCertificatePreview && psaCertificatePreview !== "pdf") {
-        URL.revokeObjectURL(psaCertificatePreview);
-      }
-      setPsaCertificatePreview(null);
     }
   };
 
   const validateStep = (step) => {
     setError("");
 
+    // Step 0: Resident type selection
+    if (step === 0) {
+      if (!formData.residentType) {
+        setError("Please select whether you are a Barangay Culiat resident");
+        return false;
+      }
+    }
+
     if (step === 1) {
+      // Email is optional for elderly users
       if (
         !formData.username ||
-        !formData.email ||
         !formData.password ||
         !formData.confirmPassword
       ) {
         setError("Please fill in all account fields");
         return false;
       }
-      if (!validateEmail(formData.email)) {
+      // Only validate email if provided
+      if (formData.email && !validateEmail(formData.email)) {
         setError("Please enter a valid email address (e.g., example@domain.com)");
         return false;
       }
@@ -768,9 +666,19 @@ const Register = () => {
     }
 
     if (step === 3) {
-      if (!formData.houseNumber || !formData.street) {
-        setError("Please fill in your address");
-        return false;
+      // Address validation depends on resident type
+      if (formData.residentType === "resident") {
+        if (!formData.houseNumber || !formData.street) {
+          setError("Please fill in your address");
+          return false;
+        }
+      } else if (formData.residentType === "non_resident") {
+        if (!formData.nonResidentHouseNumber || !formData.nonResidentStreet || 
+            !formData.nonResidentBarangay || !formData.nonResidentCity || 
+            !formData.nonResidentProvince) {
+          setError("Please fill in your complete address");
+          return false;
+        }
       }
       if (!formData.emergencyName || !formData.emergencyContact) {
         setError("Please provide emergency contact information");
@@ -784,37 +692,46 @@ const Register = () => {
     }
 
     if (step === 4) {
-      // Validate Primary ID 1
+      // Validate Document 1
       if (!formData.primaryID1Type) {
-        setError("Please select the type of your first primary ID");
+        setError("Please select the type of your first document");
         return false;
       }
       if (!formData.primaryID1File) {
-        setError("Please upload the front of your first primary ID");
+        setError("Please upload your first document");
         return false;
       }
-      if (!formData.primaryID1BackFile) {
-        setError("Please upload the back of your first primary ID");
+      // Only require back for non-endorsement letters
+      if (!isEndorsementLetter(formData.primaryID1Type) && !formData.primaryID1BackFile) {
+        setError("Please upload the back of your first ID");
         return false;
       }
 
-      // Validate Primary ID 2
+      // Validate Document 2
       if (!formData.primaryID2Type) {
-        setError("Please select the type of your second primary ID");
+        setError("Please select the type of your second document");
         return false;
       }
       if (!formData.primaryID2File) {
-        setError("Please upload the front of your second primary ID");
+        setError("Please upload your second document");
         return false;
       }
-      if (!formData.primaryID2BackFile) {
-        setError("Please upload the back of your second primary ID");
+      // Only require back for non-endorsement letters
+      if (!isEndorsementLetter(formData.primaryID2Type) && !formData.primaryID2BackFile) {
+        setError("Please upload the back of your second ID");
         return false;
       }
 
-      // Check that both IDs are different types
+      // Check that both documents are different types
       if (formData.primaryID1Type === formData.primaryID2Type) {
-        setError("Please select two different types of government IDs");
+        setError("Please select two different types of documents");
+        return false;
+      }
+
+      // Validate at least one is a valid government ID
+      const docValidation = validateDocumentCombination(formData.primaryID1Type, formData.primaryID2Type);
+      if (!docValidation.valid) {
+        setError(docValidation.message);
         return false;
       }
     }
@@ -839,44 +756,6 @@ const Register = () => {
   const prevStep = () => {
     setCurrentStep(currentStep - 1);
     setError("");
-  };
-
-  // Handle showing optional PSA step
-  const handleShowOptionalPSA = () => {
-    if (validateStep(currentStep)) {
-      setShowOptionalPSA(true);
-      setFormData(prev => ({ ...prev, skipPSAStep: false }));
-    }
-  };
-
-  // Handle skipping PSA step
-  const handleSkipPSA = () => {
-    setShowOptionalPSA(false);
-    setFormData(prev => ({ ...prev, skipPSAStep: true }));
-    // Continue to submit
-    setShowConfirmationModal(true);
-  };
-
-  // Handle PSA field changes
-  const handlePSAChange = (path, value) => {
-    const keys = path.split('.');
-    setFormData(prev => {
-      const newPSA = { ...prev.psaBirthCertificate };
-      let current = newPSA;
-
-      for (let i = 0; i < keys.length - 1; i++) {
-        current[keys[i]] = { ...current[keys[i]] };
-        current = current[keys[i]];
-      }
-
-      current[keys[keys.length - 1]] = value;
-      return { ...prev, psaBirthCertificate: newPSA };
-    });
-  };
-
-  // Toggle PSA sections
-  const togglePSASection = (section) => {
-    setPsaSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
   // Handle terms scroll
@@ -929,7 +808,10 @@ const Register = () => {
       const formDataToSend = new FormData();
 
       formDataToSend.append("username", formData.username);
-      formDataToSend.append("email", formData.email);
+      // Email is optional
+      if (formData.email) {
+        formDataToSend.append("email", formData.email);
+      }
       formDataToSend.append("password", formData.password);
       formDataToSend.append("firstName", formData.firstName);
       formDataToSend.append("lastName", formData.lastName);
@@ -949,11 +831,31 @@ const Register = () => {
       formDataToSend.append("nationality", formData.nationality);
       formDataToSend.append("phoneNumber", formData.phoneNumber);
 
-      formDataToSend.append("address[houseNumber]", formData.houseNumber || "");
-      formDataToSend.append("address[street]", formData.street || "");
-      formDataToSend.append("address[subdivision]", formData.subdivision || "");
-      if (formData.area)
-        formDataToSend.append("address[area]", formData.area);
+      // Resident type
+      formDataToSend.append("residentType", formData.residentType);
+
+      // Address based on resident type
+      if (formData.residentType === "resident") {
+        formDataToSend.append("address[houseNumber]", formData.houseNumber || "");
+        formDataToSend.append("address[street]", formData.street || "");
+        formDataToSend.append("address[subdivision]", formData.subdivision || "");
+        if (formData.area)
+          formDataToSend.append("address[area]", formData.area);
+      } else if (formData.residentType === "non_resident") {
+        // Send non-resident address as JSON
+        const nonResidentAddr = {
+          houseNumber: formData.nonResidentHouseNumber || "",
+          street: formData.nonResidentStreet || "",
+          subdivision: formData.nonResidentSubdivision || "",
+          barangay: formData.nonResidentBarangay || "",
+          city: formData.nonResidentCity || "",
+          province: formData.nonResidentProvince || "",
+          region: formData.nonResidentRegion || "",
+          postalCode: formData.nonResidentPostalCode || "",
+          country: "Philippines",
+        };
+        formDataToSend.append("nonResidentAddress", JSON.stringify(nonResidentAddr));
+      }
 
       // TIN, SSS, GSIS - send "N/A" if empty
       formDataToSend.append("tinNumber", formData.tinNumber || "N/A");
@@ -1027,22 +929,9 @@ const Register = () => {
         formDataToSend.append("primaryID2Back", formData.primaryID2BackFile);
       }
 
-      // PSA Birth Certificate data (optional)
-      formDataToSend.append("skipPSAStep", formData.skipPSAStep);
-
       // Sectoral Groups - send as JSON array
       if (formData.sectoralGroups && formData.sectoralGroups.length > 0) {
         formDataToSend.append("sectoralGroups", JSON.stringify(formData.sectoralGroups));
-      }
-
-      if (!formData.skipPSAStep) {
-        // Include PSA birth certificate data
-        formDataToSend.append("birthCertificate", JSON.stringify(formData.psaBirthCertificate));
-
-        // Include PSA certificate file if uploaded
-        if (formData.psaCertificateFile) {
-          formDataToSend.append("birthCertificateDoc", formData.psaCertificateFile);
-        }
       }
 
       const result = await register(formDataToSend);
@@ -1064,8 +953,8 @@ const Register = () => {
     if (!validateStep(5)) {
       return;
     }
-    // Show confirmation modal instead of direct submit
-    setShowConfirmationModal(true);
+    // Direct submit - no PSA confirmation needed
+    await performRegistration();
   };
 
   const stepLabels = ['Account', 'Personal', 'Address', 'ID Upload', 'Terms'];
@@ -1111,6 +1000,142 @@ const Register = () => {
     </div>
   );
 
+  // Step 0: Resident Type Selection
+  const renderStep0 = () => (
+    <motion.div
+      className="space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.4 }}
+    >
+      {/* Header */}
+      <div className="text-center mb-6">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4"
+        >
+          <Home className="w-8 h-8 text-emerald-600" />
+        </motion.div>
+        <h2 className="text-xl font-bold text-slate-800 mb-2">
+          Welcome to Barangay Culiat
+        </h2>
+        <p className="text-sm text-slate-500">
+          Are you a resident of Barangay Culiat?
+        </p>
+      </div>
+
+      {/* Selection Cards */}
+      <div className="grid grid-cols-1 gap-4">
+        {/* Resident Option */}
+        <motion.button
+          type="button"
+          onClick={() => {
+            setFormData(prev => ({ ...prev, residentType: 'resident' }));
+            setCurrentStep(1);
+          }}
+          className={`relative p-5 rounded-xl border-2 text-left transition-all duration-300 ${
+            formData.residentType === 'resident'
+              ? 'border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-100'
+              : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50'
+          }`}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="flex items-start gap-4">
+            <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+              formData.residentType === 'resident' ? 'bg-emerald-500' : 'bg-slate-100'
+            }`}>
+              <MapPin className={`w-6 h-6 ${
+                formData.residentType === 'resident' ? 'text-white' : 'text-slate-400'
+              }`} />
+            </div>
+            <div className="flex-1">
+              <h3 className={`font-semibold text-base mb-1 ${
+                formData.residentType === 'resident' ? 'text-emerald-700' : 'text-slate-700'
+              }`}>
+                Yes, I am a Barangay Culiat Resident
+              </h3>
+              <p className="text-xs text-slate-500">
+                I currently live within Barangay Culiat, Quezon City
+              </p>
+            </div>
+            {formData.residentType === 'resident' && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute top-3 right-3"
+              >
+                <CheckCircle className="w-5 h-5 text-emerald-500" />
+              </motion.div>
+            )}
+          </div>
+        </motion.button>
+
+        {/* Non-Resident Option */}
+        <motion.button
+          type="button"
+          onClick={() => {
+            setFormData(prev => ({ ...prev, residentType: 'non_resident' }));
+            setCurrentStep(1);
+          }}
+          className={`relative p-5 rounded-xl border-2 text-left transition-all duration-300 ${
+            formData.residentType === 'non_resident'
+              ? 'border-amber-500 bg-amber-50 shadow-lg shadow-amber-100'
+              : 'border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50/50'
+          }`}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="flex items-start gap-4">
+            <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+              formData.residentType === 'non_resident' ? 'bg-amber-500' : 'bg-slate-100'
+            }`}>
+              <Users className={`w-6 h-6 ${
+                formData.residentType === 'non_resident' ? 'text-white' : 'text-slate-400'
+              }`} />
+            </div>
+            <div className="flex-1">
+              <h3 className={`font-semibold text-base mb-1 ${
+                formData.residentType === 'non_resident' ? 'text-amber-700' : 'text-slate-700'
+              }`}>
+                No, I live outside Barangay Culiat
+              </h3>
+              <p className="text-xs text-slate-500">
+                I reside in another barangay, city, or province
+              </p>
+            </div>
+            {formData.residentType === 'non_resident' && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute top-3 right-3"
+              >
+                <CheckCircle className="w-5 h-5 text-amber-500" />
+              </motion.div>
+            )}
+          </div>
+        </motion.button>
+      </div>
+
+      {/* Info Note */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100"
+      >
+        <AlertTriangle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-blue-700">
+          <strong>Note:</strong> Non-residents may have limited access to certain barangay services. 
+          Your residency status will be verified during the approval process.
+        </p>
+      </motion.div>
+    </motion.div>
+  );
+
   const renderStep1 = () => (
     <motion.div
       className="space-y-3"
@@ -1141,7 +1166,7 @@ const Register = () => {
 
       <div>
         <label className="block text-xs font-semibold text-slate-600 mb-1">
-          Email *
+          Email <span className="text-slate-400 font-normal">(Optional - for elderly users without email)</span>
         </label>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1152,14 +1177,16 @@ const Register = () => {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            required
             className={`block w-full pl-10 pr-3 py-2 bg-slate-50 border ${fieldErrors.email ? 'border-red-400' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm`}
-            placeholder="your.email@example.com"
+            placeholder="your.email@example.com (optional)"
           />
         </div>
         {fieldErrors.email && (
           <p className="text-xs text-red-500 mt-1">{fieldErrors.email}</p>
         )}
+        <p className="text-xs text-slate-400 mt-1">
+          Email is used for account recovery and notifications. Leave empty if not available.
+        </p>
       </div>
 
       <div>
@@ -1504,7 +1531,8 @@ const Register = () => {
             { value: 'woman', label: 'Woman', icon: '👩' },
             { value: 'youth', label: 'Youth', icon: '🧑' },
             { value: 'solo_parent', label: 'Solo Parent', icon: '👨‍👧' },
-            { value: 'pwd', label: 'PWD', icon: '♿' }
+            { value: 'pwd', label: 'PWD', icon: '♿' },
+            { value: 'lgbtqia', label: 'LGBTQIA+', icon: '🏳️‍🌈' }
           ].map((group) => (
             <label
               key={group.value}
@@ -1576,81 +1604,239 @@ const Register = () => {
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
     >
+      {/* Resident Type Badge */}
+      <div className={`flex items-center gap-2 p-2 rounded-lg ${
+        formData.residentType === 'resident' 
+          ? 'bg-emerald-50 border border-emerald-200' 
+          : 'bg-amber-50 border border-amber-200'
+      }`}>
+        {formData.residentType === 'resident' ? (
+          <>
+            <MapPin className="h-4 w-4 text-emerald-600" />
+            <span className="text-xs font-medium text-emerald-700">Barangay Culiat Resident</span>
+          </>
+        ) : (
+          <>
+            <Users className="h-4 w-4 text-amber-600" />
+            <span className="text-xs font-medium text-amber-700">Non-Resident (Outside Barangay Culiat)</span>
+          </>
+        )}
+      </div>
+
       <h4 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-emerald-600" /> Your Address
+        <MapPin className="h-4 w-4 text-emerald-600" /> 
+        {formData.residentType === 'resident' ? 'Your Barangay Culiat Address' : 'Your Current Address'}
       </h4>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">
-            House No. *
-          </label>
-          <input
-            type="text"
-            name="houseNumber"
-            value={formData.houseNumber}
-            onChange={handleChange}
-            required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-            placeholder="123"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">
-            Street *
-          </label>
-          <input
-            type="text"
-            name="street"
-            value={formData.street}
-            onChange={handleChange}
-            required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-            placeholder="Main Street"
-          />
-        </div>
-      </div>
+      {/* RESIDENT ADDRESS FORM */}
+      {formData.residentType === 'resident' && (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                House No. *
+              </label>
+              <input
+                type="text"
+                name="houseNumber"
+                value={formData.houseNumber}
+                onChange={handleChange}
+                required
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                placeholder="123"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Street *
+              </label>
+              <input
+                type="text"
+                name="street"
+                value={formData.street}
+                onChange={handleChange}
+                required
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                placeholder="Main Street"
+              />
+            </div>
+          </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">
-            Subdivision
-          </label>
-          <input
-            type="text"
-            name="subdivision"
-            value={formData.subdivision}
-            onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-            placeholder="Village"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">
-            Area / Zone
-          </label>
-          <select
-            name="area"
-            value={formData.area}
-            onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
-          >
-            <option value="">Select Area/Zone</option>
-            {areaOptions.map((area) => (
-              <option key={area} value={area}>
-                {area}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Subdivision
+              </label>
+              <input
+                type="text"
+                name="subdivision"
+                value={formData.subdivision}
+                onChange={handleChange}
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                placeholder="Village"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Area / Zone
+              </label>
+              <select
+                name="area"
+                value={formData.area}
+                onChange={handleChange}
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+              >
+                <option value="">Select Area/Zone</option>
+                {areaOptions.map((area) => (
+                  <option key={area} value={area}>
+                    {area}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-      <div className="bg-slate-100 border border-slate-300 rounded-lg p-3">
-        <p className="text-xs text-slate-600">
-          <strong>Barangay:</strong> Culiat | <strong>City:</strong> Quezon City
-          | <strong>Region:</strong> NCR
-        </p>
-      </div>
+          <div className="bg-slate-100 border border-slate-300 rounded-lg p-3">
+            <p className="text-xs text-slate-600">
+              <strong>Barangay:</strong> Culiat | <strong>City:</strong> Quezon City
+              | <strong>Region:</strong> NCR
+            </p>
+          </div>
+        </>
+      )}
+
+      {/* NON-RESIDENT ADDRESS FORM */}
+      {formData.residentType === 'non_resident' && (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                House No. *
+              </label>
+              <input
+                type="text"
+                name="nonResidentHouseNumber"
+                value={formData.nonResidentHouseNumber}
+                onChange={handleChange}
+                required
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                placeholder="123"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Street *
+              </label>
+              <input
+                type="text"
+                name="nonResidentStreet"
+                value={formData.nonResidentStreet}
+                onChange={handleChange}
+                required
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                placeholder="Main Street"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Subdivision / Village
+              </label>
+              <input
+                type="text"
+                name="nonResidentSubdivision"
+                value={formData.nonResidentSubdivision}
+                onChange={handleChange}
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                placeholder="Optional"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Barangay *
+              </label>
+              <input
+                type="text"
+                name="nonResidentBarangay"
+                value={formData.nonResidentBarangay}
+                onChange={handleChange}
+                required
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                placeholder="Your Barangay"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                City / Municipality *
+              </label>
+              <input
+                type="text"
+                name="nonResidentCity"
+                value={formData.nonResidentCity}
+                onChange={handleChange}
+                required
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                placeholder="City / Municipality"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Province *
+              </label>
+              <input
+                type="text"
+                name="nonResidentProvince"
+                value={formData.nonResidentProvince}
+                onChange={handleChange}
+                required
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                placeholder="Province (e.g., Metro Manila)"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Region
+              </label>
+              <input
+                type="text"
+                name="nonResidentRegion"
+                value={formData.nonResidentRegion}
+                onChange={handleChange}
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                placeholder="e.g., NCR, Region IV-A"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Postal Code
+              </label>
+              <input
+                type="text"
+                name="nonResidentPostalCode"
+                value={formData.nonResidentPostalCode}
+                onChange={handleChange}
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                placeholder="e.g., 1126"
+              />
+            </div>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-xs text-amber-700">
+              <strong>Note:</strong> As a non-resident, you may have limited access to certain barangay services 
+              that are reserved for Barangay Culiat residents only.
+            </p>
+          </div>
+        </>
+      )}
 
       <div className="pt-4 border-t border-slate-200">
         <h4 className="text-sm font-semibold text-slate-800 mb-3">
@@ -1763,27 +1949,28 @@ const Register = () => {
       {/* Requirements Notice */}
       <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
         <h4 className="text-sm font-semibold text-emerald-900 mb-2 flex items-center gap-2">
-          <Shield className="w-4 h-4" /> ID Requirements
+          <Shield className="w-4 h-4" /> Document Requirements
         </h4>
         <ul className="text-xs text-emerald-800 space-y-1 list-disc pl-4">
-          <li>2 different valid government-issued IDs required</li>
-          <li>Both front and back of each ID must be uploaded</li>
-          <li>Full name and address must be clearly visible on each ID</li>
+          <li>At least 1 valid government-issued ID is required</li>
+          <li>You may also upload an Endorsement Letter from Homeowners President or Purok Leaders</li>
+          <li>For IDs: Both front and back must be uploaded</li>
+          <li>For Endorsement Letters: Only one image is required</li>
           <li>Files must be JPG, JPEG, or PNG format (max 5MB each)</li>
         </ul>
       </div>
 
-      {/* PRIMARY ID 1 */}
+      {/* DOCUMENT 1 */}
       <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
         <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
           <IdCard className="h-4 w-4 text-emerald-600" />
-          Primary Government ID #1 *
+          {isEndorsementLetter(formData.primaryID1Type) ? 'Document #1 - Endorsement Letter' : 'Primary Government ID #1 *'}
         </h4>
 
-        {/* ID Type Selector */}
+        {/* Document Type Selector */}
         <div className="mb-4">
           <label className="block text-xs font-semibold text-slate-600 mb-1">
-            Select ID Type *
+            Select Document Type *
           </label>
           <select
             name="primaryID1Type"
@@ -1799,16 +1986,27 @@ const Register = () => {
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {/* Front of ID 1 */}
+        {/* Show warning if endorsement letter selected as first document */}
+        {isEndorsementLetter(formData.primaryID1Type) && (
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-xs text-amber-700">
+              <strong>Note:</strong> An endorsement letter alone is not sufficient. You must also upload at least 1 valid government-issued ID.
+            </p>
+          </div>
+        )}
+
+        <div className={`grid ${isEndorsementLetter(formData.primaryID1Type) ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+          {/* Front of Document 1 */}
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-2">
-              Front of ID *
+              {isEndorsementLetter(formData.primaryID1Type) ? 'Upload Endorsement Letter *' : 'Front of ID *'}
             </label>
             {!primaryID1Preview ? (
               <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-all">
                 <Upload className="w-8 h-8 mb-2 text-slate-400" />
-                <span className="text-xs font-medium text-center">Upload Front</span>
+                <span className="text-xs font-medium text-center">
+                  {isEndorsementLetter(formData.primaryID1Type) ? 'Upload Letter' : 'Upload Front'}
+                </span>
                 <input
                   type="file"
                   className="hidden"
@@ -1824,7 +2022,7 @@ const Register = () => {
               >
                 <img
                   src={primaryID1Preview}
-                  alt="Primary ID 1 Front"
+                  alt="Primary Document 1"
                   className="w-full h-32 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
                 />
                 <button
@@ -1838,57 +2036,63 @@ const Register = () => {
             )}
           </div>
 
-          {/* Back of ID 1 */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-2">
-              Back of ID *
-            </label>
-            {!primaryID1BackPreview ? (
-              <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-all">
-                <Upload className="w-8 h-8 mb-2 text-slate-400" />
-                <span className="text-xs font-medium text-center">Upload Back</span>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/jpeg,image/jpg,image/png"
-                  onChange={(e) => handleFileChange(e, "primaryID1BackFile")}
-                />
+          {/* Back of ID 1 - Only show for government IDs */}
+          {!isEndorsementLetter(formData.primaryID1Type) && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-2">
+                Back of ID *
               </label>
-            ) : (
-              <motion.div
-                className="relative"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-              >
-                <img
-                  src={primaryID1BackPreview}
-                  alt="Primary ID 1 Back"
-                  className="w-full h-32 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeFile("primaryID1BackFile")}
-                  className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+              {!primaryID1BackPreview ? (
+                <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-all">
+                  <Upload className="w-8 h-8 mb-2 text-slate-400" />
+                  <span className="text-xs font-medium text-center">Upload Back</span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/jpeg,image/jpg,image/png"
+                    onChange={(e) => handleFileChange(e, "primaryID1BackFile")}
+                  />
+                </label>
+              ) : (
+                <motion.div
+                  className="relative"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
                 >
-                  <X className="h-3 w-3" />
-                </button>
-              </motion.div>
-            )}
-          </div>
+                  <img
+                    src={primaryID1BackPreview}
+                    alt="Primary ID 1 Back"
+                    className="w-full h-32 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeFile("primaryID1BackFile")}
+                    className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </motion.div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* PRIMARY ID 2 */}
+      {/* DOCUMENT 2 */}
       <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
         <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
           <IdCard className="h-4 w-4 text-green-600" />
-          Primary Government ID #2 *
+          {isEndorsementLetter(formData.primaryID2Type) 
+            ? 'Document #2 - Endorsement Letter' 
+            : isEndorsementLetter(formData.primaryID1Type) 
+              ? 'Primary Government ID #1 * (Required)' 
+              : 'Primary Government ID #2 *'}
         </h4>
 
-        {/* ID Type Selector */}
+        {/* Document Type Selector */}
         <div className="mb-4">
           <label className="block text-xs font-semibold text-slate-600 mb-1">
-            Select ID Type *
+            Select Document Type *
           </label>
           <select
             name="primaryID2Type"
@@ -1905,20 +2109,26 @@ const Register = () => {
               ))}
           </select>
           {formData.primaryID1Type && formData.primaryID2Type && formData.primaryID1Type === formData.primaryID2Type && (
-            <p className="text-xs text-red-500 mt-1">Please select a different ID type from your first ID</p>
+            <p className="text-xs text-red-500 mt-1">Please select a different document type from your first one</p>
+          )}
+          {/* Show requirement if first document is endorsement letter */}
+          {isEndorsementLetter(formData.primaryID1Type) && !isGovernmentID(formData.primaryID2Type) && formData.primaryID2Type && (
+            <p className="text-xs text-red-500 mt-1">Since Document #1 is an endorsement letter, Document #2 must be a valid government ID</p>
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {/* Front of ID 2 */}
+        <div className={`grid ${isEndorsementLetter(formData.primaryID2Type) ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+          {/* Front of Document 2 */}
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-2">
-              Front of ID *
+              {isEndorsementLetter(formData.primaryID2Type) ? 'Upload Endorsement Letter *' : 'Front of ID *'}
             </label>
             {!primaryID2Preview ? (
               <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-green-400 transition-all">
                 <Upload className="w-8 h-8 mb-2 text-slate-400" />
-                <span className="text-xs font-medium text-center">Upload Front</span>
+                <span className="text-xs font-medium text-center">
+                  {isEndorsementLetter(formData.primaryID2Type) ? 'Upload Letter' : 'Upload Front'}
+                </span>
                 <input
                   type="file"
                   className="hidden"
@@ -1934,7 +2144,7 @@ const Register = () => {
               >
                 <img
                   src={primaryID2Preview}
-                  alt="Primary ID 2 Front"
+                  alt="Primary Document 2"
                   className="w-full h-32 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
                 />
                 <button
@@ -1948,43 +2158,45 @@ const Register = () => {
             )}
           </div>
 
-          {/* Back of ID 2 */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-2">
-              Back of ID *
-            </label>
-            {!primaryID2BackPreview ? (
-              <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-green-400 transition-all">
-                <Upload className="w-8 h-8 mb-2 text-slate-400" />
-                <span className="text-xs font-medium text-center">Upload Back</span>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/jpeg,image/jpg,image/png"
-                  onChange={(e) => handleFileChange(e, "primaryID2BackFile")}
-                />
+          {/* Back of ID 2 - Only show for government IDs */}
+          {!isEndorsementLetter(formData.primaryID2Type) && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-2">
+                Back of ID *
               </label>
-            ) : (
-              <motion.div
-                className="relative"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-              >
-                <img
-                  src={primaryID2BackPreview}
-                  alt="Primary ID 2 Back"
-                  className="w-full h-32 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeFile("primaryID2BackFile")}
-                  className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+              {!primaryID2BackPreview ? (
+                <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-green-400 transition-all">
+                  <Upload className="w-8 h-8 mb-2 text-slate-400" />
+                  <span className="text-xs font-medium text-center">Upload Back</span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/jpeg,image/jpg,image/png"
+                    onChange={(e) => handleFileChange(e, "primaryID2BackFile")}
+                  />
+                </label>
+              ) : (
+                <motion.div
+                  className="relative"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
                 >
-                  <X className="h-3 w-3" />
-                </button>
-              </motion.div>
-            )}
-          </div>
+                  <img
+                    src={primaryID2BackPreview}
+                    alt="Primary ID 2 Back"
+                    className="w-full h-32 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeFile("primaryID2BackFile")}
+                    className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </motion.div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -1993,23 +2205,23 @@ const Register = () => {
         <h4 className="text-xs font-semibold text-slate-700 mb-2">Upload Progress</h4>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            {formData.primaryID1Type && formData.primaryID1File && formData.primaryID1BackFile ? (
+            {formData.primaryID1Type && formData.primaryID1File && (isEndorsementLetter(formData.primaryID1Type) || formData.primaryID1BackFile) ? (
               <CheckCircle className="w-4 h-4 text-green-500" />
             ) : (
               <div className="w-4 h-4 rounded-full border-2 border-slate-300" />
             )}
-            <span className={`text-xs ${formData.primaryID1Type && formData.primaryID1File && formData.primaryID1BackFile ? 'text-green-700' : 'text-slate-500'}`}>
-              Primary ID #1: {formData.primaryID1Type ? governmentIDOptions.find(o => o.value === formData.primaryID1Type)?.label : 'Not selected'}
+            <span className={`text-xs ${formData.primaryID1Type && formData.primaryID1File && (isEndorsementLetter(formData.primaryID1Type) || formData.primaryID1BackFile) ? 'text-green-700' : 'text-slate-500'}`}>
+              Document #1: {formData.primaryID1Type ? getDocumentTypeLabel(formData.primaryID1Type) : 'Not selected'}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            {formData.primaryID2Type && formData.primaryID2File && formData.primaryID2BackFile ? (
+            {formData.primaryID2Type && formData.primaryID2File && (isEndorsementLetter(formData.primaryID2Type) || formData.primaryID2BackFile) ? (
               <CheckCircle className="w-4 h-4 text-green-500" />
             ) : (
               <div className="w-4 h-4 rounded-full border-2 border-slate-300" />
             )}
-            <span className={`text-xs ${formData.primaryID2Type && formData.primaryID2File && formData.primaryID2BackFile ? 'text-green-700' : 'text-slate-500'}`}>
-              Primary ID #2: {formData.primaryID2Type ? governmentIDOptions.find(o => o.value === formData.primaryID2Type)?.label : 'Not selected'}
+            <span className={`text-xs ${formData.primaryID2Type && formData.primaryID2File && (isEndorsementLetter(formData.primaryID2Type) || formData.primaryID2BackFile) ? 'text-green-700' : 'text-slate-500'}`}>
+              Document #2: {formData.primaryID2Type ? getDocumentTypeLabel(formData.primaryID2Type) : 'Not selected'}
             </span>
           </div>
         </div>
@@ -2283,760 +2495,6 @@ const Register = () => {
     </motion.div>
   );
 
-  // Optional PSA Birth Certificate Step
-  const renderOptionalPSAStep = () => (
-    <motion.div
-      className="space-y-4"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-          <FileCheck className="w-5 h-5 text-emerald-600" />
-          PSA Birth Certificate Information
-        </h3>
-        <button
-          type="button"
-          onClick={handleSkipPSA}
-          className="text-sm text-slate-500 hover:text-slate-700 underline"
-        >
-          Skip & Continue
-        </button>
-      </div>
-
-      <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-4">
-        <div className="flex items-start gap-3">
-          <FileText className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-emerald-800">
-            <p className="font-semibold mb-1">Why provide PSA Birth Certificate details?</p>
-            <ul className="list-disc list-inside space-y-1 text-emerald-700">
-              <li>Faster document request processing</li>
-              <li>Pre-verified identity for barangay services</li>
-              <li>Complete your profile now instead of later</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Certificate Details Section */}
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
-        <button
-          type="button"
-          onClick={() => togglePSASection('certificate')}
-          className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
-        >
-          <span className="font-semibold text-slate-700 flex items-center gap-2">
-            <FileText className="w-4 h-4" /> Certificate Details
-          </span>
-          {psaSections.certificate ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
-
-        {psaSections.certificate && (
-          <div className="p-4 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Certificate Number</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.certificateNumber}
-                  onChange={(e) => handlePSAChange('certificateNumber', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Certificate #"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Registry Number</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.registryNumber}
-                  onChange={(e) => handlePSAChange('registryNumber', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="e.g., 2000-12345"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Date Issued</label>
-                <input
-                  type="date"
-                  value={formData.psaBirthCertificate.dateIssued}
-                  onChange={(e) => handlePSAChange('dateIssued', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Place Issued</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.placeIssued}
-                  onChange={(e) => handlePSAChange('placeIssued', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Place issued"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Province</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.province}
-                  onChange={(e) => handlePSAChange('province', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Province"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">City/Municipality</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.cityMunicipality}
-                  onChange={(e) => handlePSAChange('cityMunicipality', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="City/Municipality"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Your Information Section (As Registered on Birth Certificate) */}
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
-        <button
-          type="button"
-          onClick={() => togglePSASection('yourInfo')}
-          className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
-        >
-          <span className="font-semibold text-slate-700 flex items-center gap-2">
-            <Baby className="w-4 h-4" /> Your Information (As Registered)
-          </span>
-          {psaSections.yourInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
-
-        {psaSections.yourInfo && (
-          <div className="p-4 space-y-3">
-            <p className="text-xs text-slate-500 mb-2">Name as it appears on your birth certificate</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">First Name</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.yourInfo.firstName}
-                  onChange={(e) => handlePSAChange('yourInfo.firstName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="First Name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Middle Name</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.yourInfo.middleName}
-                  onChange={(e) => handlePSAChange('yourInfo.middleName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Middle Name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Last Name</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.yourInfo.lastName}
-                  onChange={(e) => handlePSAChange('yourInfo.lastName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Last Name"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Sex</label>
-                <select
-                  value={formData.psaBirthCertificate.yourInfo.sex}
-                  onChange={(e) => handlePSAChange('yourInfo.sex', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                >
-                  <option value="">Select...</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Date of Birth</label>
-                <input
-                  type="date"
-                  value={formData.psaBirthCertificate.yourInfo.dateOfBirth}
-                  onChange={(e) => handlePSAChange('yourInfo.dateOfBirth', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                />
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 mt-3 mb-2">Place of Birth</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Hospital/Institution</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.yourInfo.placeOfBirth.hospital}
-                  onChange={(e) => handlePSAChange('yourInfo.placeOfBirth.hospital', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Hospital name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">City/Municipality</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.yourInfo.placeOfBirth.cityMunicipality}
-                  onChange={(e) => handlePSAChange('yourInfo.placeOfBirth.cityMunicipality', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="City"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Province</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.yourInfo.placeOfBirth.province}
-                  onChange={(e) => handlePSAChange('yourInfo.placeOfBirth.province', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Province"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Type of Birth</label>
-                <select
-                  value={formData.psaBirthCertificate.yourInfo.typeOfBirth}
-                  onChange={(e) => handlePSAChange('yourInfo.typeOfBirth', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                >
-                  <option value="Single">Single</option>
-                  <option value="Twin">Twin</option>
-                  <option value="Triplet">Triplet</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Birth Order</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.yourInfo.birthOrder}
-                  onChange={(e) => handlePSAChange('yourInfo.birthOrder', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="e.g., 1st, 2nd"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Birth Weight (g)</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.yourInfo.birthWeight}
-                  onChange={(e) => handlePSAChange('yourInfo.birthWeight', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Weight in grams"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Mother's Information Section */}
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
-        <button
-          type="button"
-          onClick={() => togglePSASection('mother')}
-          className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
-        >
-          <span className="font-semibold text-slate-700 flex items-center gap-2">
-            <User className="w-4 h-4" /> Mother's Information
-          </span>
-          {psaSections.mother ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
-
-        {psaSections.mother && (
-          <div className="p-4 space-y-3">
-            <p className="text-xs text-slate-500 mb-2">Mother's Maiden Name</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">First Name</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.maidenName.firstName}
-                  onChange={(e) => handlePSAChange('mother.maidenName.firstName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="First Name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Middle Name</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.maidenName.middleName}
-                  onChange={(e) => handlePSAChange('mother.maidenName.middleName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Middle Name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Last Name (Maiden)</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.maidenName.lastName}
-                  onChange={(e) => handlePSAChange('mother.maidenName.lastName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Last Name"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Citizenship</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.citizenship}
-                  onChange={(e) => handlePSAChange('mother.citizenship', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="e.g., Filipino"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Religion</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.religion}
-                  onChange={(e) => handlePSAChange('mother.religion', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Religion"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Occupation</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.occupation}
-                  onChange={(e) => handlePSAChange('mother.occupation', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Occupation"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Age at Your Birth</label>
-                <input
-                  type="number"
-                  value={formData.psaBirthCertificate.mother.ageAtBirth}
-                  onChange={(e) => handlePSAChange('mother.ageAtBirth', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Age"
-                />
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 mt-3 mb-2">Residence at Time of Birth</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">House No.</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.residence.houseNo}
-                  onChange={(e) => handlePSAChange('mother.residence.houseNo', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="House No."
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Street</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.residence.street}
-                  onChange={(e) => handlePSAChange('mother.residence.street', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Street"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Barangay</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.residence.barangay}
-                  onChange={(e) => handlePSAChange('mother.residence.barangay', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Barangay"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">City/Municipality</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.residence.cityMunicipality}
-                  onChange={(e) => handlePSAChange('mother.residence.cityMunicipality', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="City"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Province</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.residence.province}
-                  onChange={(e) => handlePSAChange('mother.residence.province', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Province"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Country</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.mother.residence.country}
-                  onChange={(e) => handlePSAChange('mother.residence.country', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Country"
-                />
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 mt-3 mb-2">Children Information</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Total Born Alive</label>
-                <input
-                  type="number"
-                  value={formData.psaBirthCertificate.mother.totalChildrenBornAlive}
-                  onChange={(e) => handlePSAChange('mother.totalChildrenBornAlive', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Total"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Still Living</label>
-                <input
-                  type="number"
-                  value={formData.psaBirthCertificate.mother.childrenStillLiving}
-                  onChange={(e) => handlePSAChange('mother.childrenStillLiving', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Living"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Now Dead</label>
-                <input
-                  type="number"
-                  value={formData.psaBirthCertificate.mother.childrenNowDead}
-                  onChange={(e) => handlePSAChange('mother.childrenNowDead', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Deceased"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Father's Information Section */}
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
-        <button
-          type="button"
-          onClick={() => togglePSASection('father')}
-          className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
-        >
-          <span className="font-semibold text-slate-700 flex items-center gap-2">
-            <Users className="w-4 h-4" /> Father's Information
-          </span>
-          {psaSections.father ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
-
-        {psaSections.father && (
-          <div className="p-4 space-y-3">
-            <p className="text-xs text-slate-500 mb-2">Father's Name</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">First Name</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.name.firstName}
-                  onChange={(e) => handlePSAChange('father.name.firstName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="First Name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Middle Name</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.name.middleName}
-                  onChange={(e) => handlePSAChange('father.name.middleName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Middle Name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Last Name</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.name.lastName}
-                  onChange={(e) => handlePSAChange('father.name.lastName', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Last Name"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Citizenship</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.citizenship}
-                  onChange={(e) => handlePSAChange('father.citizenship', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="e.g., Filipino"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Religion</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.religion}
-                  onChange={(e) => handlePSAChange('father.religion', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Religion"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Occupation</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.occupation}
-                  onChange={(e) => handlePSAChange('father.occupation', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Occupation"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Age at Your Birth</label>
-                <input
-                  type="number"
-                  value={formData.psaBirthCertificate.father.ageAtBirth}
-                  onChange={(e) => handlePSAChange('father.ageAtBirth', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Age"
-                />
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 mt-3 mb-2">Residence at Time of Birth</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">House No.</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.residence.houseNo}
-                  onChange={(e) => handlePSAChange('father.residence.houseNo', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="House No."
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Street</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.residence.street}
-                  onChange={(e) => handlePSAChange('father.residence.street', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Street"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Barangay</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.residence.barangay}
-                  onChange={(e) => handlePSAChange('father.residence.barangay', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Barangay"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">City/Municipality</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.residence.cityMunicipality}
-                  onChange={(e) => handlePSAChange('father.residence.cityMunicipality', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="City"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Province</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.residence.province}
-                  onChange={(e) => handlePSAChange('father.residence.province', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Province"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Country</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.father.residence.country}
-                  onChange={(e) => handlePSAChange('father.residence.country', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Country"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Parents' Marriage Section */}
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
-        <button
-          type="button"
-          onClick={() => togglePSASection('marriage')}
-          className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
-        >
-          <span className="font-semibold text-slate-700 flex items-center gap-2">
-            <Heart className="w-4 h-4" /> Parents' Marriage (if applicable)
-          </span>
-          {psaSections.marriage ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
-
-        {psaSections.marriage && (
-          <div className="p-4 space-y-3">
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Date of Marriage</label>
-                <input
-                  type="date"
-                  value={formData.psaBirthCertificate.parentsMarriage.dateOfMarriage}
-                  onChange={(e) => handlePSAChange('parentsMarriage.dateOfMarriage', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">City/Municipality</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.parentsMarriage.placeOfMarriage.cityMunicipality}
-                  onChange={(e) => handlePSAChange('parentsMarriage.placeOfMarriage.cityMunicipality', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="City/Municipality"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Province</label>
-                <input
-                  type="text"
-                  value={formData.psaBirthCertificate.parentsMarriage.placeOfMarriage.province}
-                  onChange={(e) => handlePSAChange('parentsMarriage.placeOfMarriage.province', e.target.value)}
-                  className="block w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-                  placeholder="Province"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Remarks Section */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-slate-700">Remarks (Optional)</label>
-        <textarea
-          value={formData.psaBirthCertificate.remarks}
-          onChange={(e) => handlePSAChange('remarks', e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600"
-          rows={2}
-          placeholder="Any additional remarks or annotations on the certificate..."
-        />
-      </div>
-
-      {/* PSA Certificate Upload */}
-      <div className="mt-4">
-        <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
-          <Upload className="w-4 h-4 text-emerald-600" />
-          Upload PSA Birth Certificate
-        </label>
-        <p className="text-xs text-slate-500 mb-3">
-          Upload a scanned copy or photo of your PSA Birth Certificate (JPG, PNG, or PDF)
-        </p>
-
-        {!psaCertificatePreview ? (
-          <label className="flex flex-col items-center px-6 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-all">
-            <Upload className="w-10 h-10 mb-2 text-slate-400" />
-            <span className="text-sm font-medium">Click to upload PSA Certificate</span>
-            <span className="text-xs mt-1">JPG, PNG, or PDF (Max 5MB)</span>
-            <input
-              type="file"
-              className="hidden"
-              accept="image/jpeg,image/jpg,image/png,application/pdf"
-              onChange={(e) => handleFileChange(e, "psaCertificateFile")}
-            />
-          </label>
-        ) : (
-          <motion.div
-            className="relative"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-          >
-            {psaCertificatePreview === "pdf" ? (
-              <div className="flex items-center justify-center p-6 bg-slate-100 border-2 border-slate-200 rounded-lg">
-                <FileText className="w-12 h-12 text-red-500 mr-3" />
-                <div>
-                  <p className="font-medium text-slate-700">PDF Document</p>
-                  <p className="text-xs text-slate-500">{formData.psaCertificateFile?.name}</p>
-                </div>
-              </div>
-            ) : (
-              <img
-                src={psaCertificatePreview}
-                alt="PSA Certificate Preview"
-                className="w-full h-48 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
-              />
-            )}
-            <button
-              type="button"
-              onClick={() => removeFile("psaCertificateFile")}
-              className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </motion.div>
-        )}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 mt-6">
-        <button
-          type="button"
-          onClick={handleSkipPSA}
-          className="flex-1 px-4 py-3 border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-colors text-sm"
-        >
-          Skip & Register
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setFormData(prev => ({ ...prev, skipPSAStep: false }));
-            // Proceed directly to registration since user will provide PSA info
-            performRegistration();
-          }}
-          className="flex-1 bg-gradient-to-r from-[#1a73e8] to-[#1557b0] hover:from-[#1557b0] hover:to-[#0d47a1] text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg text-sm"
-        >
-          Register with PSA Info
-        </button>
-      </div>
-    </motion.div>
-  );
-
   // Terms & Conditions Modal
   const renderTermsModal = () => (
     <AnimatePresence>
@@ -3055,23 +2513,49 @@ const Register = () => {
             className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col my-8"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-indigo-50">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-white" />
+            {/* Header with Tabs */}
+            <div className="border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-indigo-50">
+              <div className="flex items-center justify-between p-6 pb-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-800">Legal Information</h2>
+                    <p className="text-sm text-slate-600">Please review before continuing</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-800">Terms & Conditions</h2>
-                  <p className="text-sm text-slate-600">Barangay Culiat Resident Registration</p>
-                </div>
+                <button
+                  onClick={() => setShowTermsModal(false)}
+                  className="p-2 hover:bg-white rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6 text-slate-600" />
+                </button>
               </div>
-              <button
-                onClick={() => setShowTermsModal(false)}
-                className="p-2 hover:bg-white rounded-lg transition-colors"
-              >
-                <X className="w-6 h-6 text-slate-600" />
-              </button>
+
+              {/* Tabs */}
+              <div className="flex gap-2 px-6 pt-4">
+                <button
+                  onClick={() => setTermsTab('privacy')}
+                  className={`flex-1 py-3 px-4 font-semibold rounded-t-lg transition-all ${
+                    termsTab === 'privacy'
+                      ? 'bg-white text-emerald-600 shadow-sm'
+                      : 'text-slate-600 hover:bg-white/50'
+                  }`}
+                >
+                  Privacy Policy
+                </button>
+                <button
+                  onClick={() => setTermsTab('terms')}
+                  className={`flex-1 py-3 px-4 font-semibold rounded-t-lg transition-all ${
+                    termsTab === 'terms'
+                      ? 'bg-white text-indigo-600 shadow-sm'
+                      : 'text-slate-600 hover:bg-white/50'
+                  }`}
+                >
+                  Terms of Service
+                </button>
+              </div>
             </div>
 
             {/* Scrollable Content */}
@@ -3079,181 +2563,188 @@ const Register = () => {
               className="flex-1 overflow-y-auto p-6 space-y-6"
               onScroll={handleTermsScroll}
             >
-              {/* Privacy Policy Section */}
-              <section>
-                <h3 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-                  <div className="w-2 h-8 bg-emerald-600 rounded-full"></div>
-                  Privacy Policy
-                </h3>
-                <div className="space-y-3 text-slate-700 leading-relaxed">
-                  <p>
-                    Barangay Culiat ("we," "our," or "us") is committed to protecting your privacy and personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you register and use our barangay services.
-                  </p>
+              {/* Privacy Policy Tab */}
+              {termsTab === 'privacy' && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <section>
+                    <div className="space-y-4 text-slate-700 leading-relaxed">
+                      <p>
+                        Barangay Culiat ("we," "our," or "us") is committed to protecting your privacy and personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you register and use our barangay services.
+                      </p>
 
-                  <div className="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg">
-                    <h4 className="font-semibold text-slate-800 mb-2">Information We Collect</h4>
-                    <ul className="list-disc list-inside space-y-1 text-sm">
-                      <li>Personal identification information (Name, Date of Birth, Gender)</li>
-                      <li>Contact information (Phone number, Email address)</li>
-                      <li>Address and residency information</li>
-                      <li>Government-issued identification documents</li>
-                      <li>PSA Birth Certificate details (if provided)</li>
-                      <li>Emergency contact information</li>
-                    </ul>
-                  </div>
+                      <div className="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg">
+                        <h4 className="font-semibold text-slate-800 mb-2">Information We Collect</h4>
+                        <ul className="list-disc list-inside space-y-1 text-sm">
+                          <li>Personal identification information (Name, Date of Birth, Gender)</li>
+                          <li>Contact information (Phone number, Email address)</li>
+                          <li>Address and residency information</li>
+                          <li>Government-issued identification documents</li>
+                          <li>Emergency contact information</li>
+                          <li>Cookies and tracking technologies for functionality</li>
+                          <li>IP address and device information for security</li>
+                          <li>Usage data to improve our services</li>
+                        </ul>
+                      </div>
 
-                  <div className="bg-indigo-50 border-l-4 border-indigo-600 p-4 rounded-r-lg">
-                    <h4 className="font-semibold text-slate-800 mb-2">How We Use Your Information</h4>
-                    <ul className="list-disc list-inside space-y-1 text-sm">
-                      <li>Process your resident registration and verification</li>
-                      <li>Provide access to barangay services and document requests</li>
-                      <li>Send important announcements and emergency notifications</li>
-                      <li>Maintain accurate records for government reporting</li>
-                      <li>Improve our services and user experience</li>
-                      <li>Comply with legal obligations and regulations</li>
-                    </ul>
-                  </div>
+                      <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg">
+                        <h4 className="font-semibold text-slate-800 mb-2">Cookies & Tracking Technologies</h4>
+                        <p className="text-sm mb-2">
+                          We use cookies to enhance your experience and maintain security:
+                        </p>
+                        <ul className="list-disc list-inside space-y-1 text-sm">
+                          <li><strong>Essential Cookies:</strong> Required for authentication and basic functionality</li>
+                          <li><strong>Preference Cookies:</strong> Remember your settings</li>
+                          <li><strong>Analytics Cookies:</strong> Help us understand site usage</li>
+                          <li><strong>Security Cookies:</strong> Log IP addresses to prevent fraud and abuse</li>
+                        </ul>
+                        <p className="text-sm mt-2">
+                          You can control cookies through your browser settings. Disabling essential cookies may limit functionality.
+                        </p>
+                      </div>
 
-                  <p>
-                    <strong>Data Security:</strong> We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. Your data is stored securely and access is restricted to authorized personnel only.
-                  </p>
+                      <div className="bg-indigo-50 border-l-4 border-indigo-600 p-4 rounded-r-lg">
+                        <h4 className="font-semibold text-slate-800 mb-2">How We Use Your Information</h4>
+                        <ul className="list-disc list-inside space-y-1 text-sm">
+                          <li>Process registration and verification</li>
+                          <li>Provide access to barangay services</li>
+                          <li>Send important announcements</li>
+                          <li>Maintain records for government reporting</li>
+                          <li>Improve services and user experience</li>
+                          <li>Comply with legal obligations</li>
+                        </ul>
+                      </div>
 
-                  <p>
-                    <strong>Data Retention:</strong> We retain your personal information for as long as your account is active or as needed to provide services. We will retain and use your information as necessary to comply with legal obligations, resolve disputes, and enforce agreements.
-                  </p>
-                </div>
-              </section>
+                      <p>
+                        <strong>Data Security:</strong> We implement appropriate technical measures to protect your personal information against unauthorized access, alteration, or destruction.
+                      </p>
 
-              {/* Terms of Service */}
-              <section>
-                <h3 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-                  <div className="w-2 h-8 bg-indigo-600 rounded-full"></div>
-                  Terms of Service
-                </h3>
-                <div className="space-y-3 text-slate-700 leading-relaxed">
-                  <p>
-                    By registering for Barangay Culiat services, you agree to comply with and be bound by the following terms and conditions. Please review these terms carefully.
-                  </p>
+                      <p>
+                        <strong>Data Retention:</strong> We retain your personal information for as long as your account is active or as needed to provide services and comply with legal obligations.
+                      </p>
 
-                  <div className="bg-amber-50 border-l-4 border-amber-600 p-4 rounded-r-lg">
-                    <h4 className="font-semibold text-slate-800 mb-2">Account Registration</h4>
-                    <ul className="list-disc list-inside space-y-1 text-sm">
-                      <li>You must be a resident or stakeholder of Barangay Culiat to register</li>
-                      <li>You must provide accurate and complete information</li>
-                      <li>You are responsible for maintaining the confidentiality of your account</li>
-                      <li>Your registration is subject to admin verification and approval</li>
-                      <li>False information may result in account suspension or termination</li>
-                    </ul>
-                  </div>
+                      <p>
+                        <strong>Data Sharing:</strong> We do not sell or rent your personal information. We may share data with government agencies as required by law, or with service providers under strict confidentiality agreements.
+                      </p>
 
-                  <div className="bg-green-50 border-l-4 border-green-600 p-4 rounded-r-lg">
-                    <h4 className="font-semibold text-slate-800 mb-2">User Responsibilities</h4>
-                    <ul className="list-disc list-inside space-y-1 text-sm">
-                      <li>Provide truthful and accurate information during registration</li>
-                      <li>Update your profile information when changes occur</li>
-                      <li>Complete PSA Birth Certificate verification within 90 days (if applicable)</li>
-                      <li>Use the services in compliance with applicable laws and regulations</li>
-                      <li>Respect the privacy and rights of other users</li>
-                      <li>Report any suspicious activity or security concerns</li>
-                    </ul>
-                  </div>
+                      <div className="bg-green-50 border-l-4 border-green-600 p-4 rounded-r-lg">
+                        <h4 className="font-semibold text-slate-800 mb-2">Your Rights (Data Privacy Act 2012)</h4>
+                        <ul className="list-disc list-inside space-y-1 text-sm">
+                          <li>Right to access your personal information</li>
+                          <li>Right to request correction of inaccurate data</li>
+                          <li>Right to erasure/deletion of your data</li>
+                          <li>Right to object to processing</li>
+                        </ul>
+                        <p className="text-sm mt-2">
+                          Contact our Data Protection Officer at <strong>bautista.vergel.agripa@gmail.com</strong> to exercise these rights.
+                        </p>
+                      </div>
 
-                  <div className="bg-red-50 border-l-4 border-red-600 p-4 rounded-r-lg">
-                    <h4 className="font-semibold text-slate-800 mb-2">Account Restrictions</h4>
-                    <p className="text-sm mb-2">Your account may be suspended or terminated if you:</p>
-                    <ul className="list-disc list-inside space-y-1 text-sm">
-                      <li>Provide false or misleading information</li>
-                      <li>Violate any terms or conditions</li>
-                      <li>Fail to complete PSA verification within 90 days</li>
-                      <li>Engage in fraudulent or illegal activities</li>
-                      <li>Abuse or misuse barangay services</li>
-                    </ul>
-                  </div>
+                      <p className="text-sm text-slate-500">
+                        <strong>Last Updated:</strong> February 1, 2026
+                      </p>
 
-                  <p>
-                    <strong>Service Availability:</strong> While we strive to provide uninterrupted service, we do not guarantee that our services will be available at all times. We may suspend or discontinue services for maintenance, updates, or other reasons without prior notice.
-                  </p>
-                </div>
-              </section>
-
-              {/* User Rights */}
-              <section>
-                <h3 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-                  <div className="w-2 h-8 bg-green-600 rounded-full"></div>
-                  Your Rights
-                </h3>
-                <div className="space-y-3 text-slate-700 leading-relaxed">
-                  <p>Under the Data Privacy Act of 2012 (Republic Act No. 10173), you have the following rights:</p>
-
-                  <div className="grid md:grid-cols-2 gap-3">
-                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                      <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        Right to Access
-                      </h4>
-                      <p className="text-sm">Request access to your personal information we hold</p>
+                      <div className="pt-4">
+                        <a
+                          href="/legal#privacy"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-600 hover:text-emerald-700 font-semibold underline text-sm"
+                        >
+                          View full Privacy Policy on dedicated page →
+                        </a>
+                      </div>
                     </div>
+                  </section>
+                </motion.div>
+              )}
 
-                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                      <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        Right to Correction
-                      </h4>
-                      <p className="text-sm">Request correction of inaccurate information</p>
+              {/* Terms of Service Tab */}
+              {termsTab === 'terms' && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <section>
+                    <div className="space-y-4 text-slate-700 leading-relaxed">
+                      <p>
+                        By registering for Barangay Culiat services, you agree to comply with and be bound by the following terms and conditions.
+                      </p>
+
+                      <div className="bg-amber-50 border-l-4 border-amber-600 p-4 rounded-r-lg">
+                        <h4 className="font-semibold text-slate-800 mb-2">Account Registration</h4>
+                        <ul className="list-disc list-inside space-y-1 text-sm">
+                          <li>You must be a resident or stakeholder of Barangay Culiat</li>
+                          <li>You must provide accurate and complete information</li>
+                          <li>You are responsible for account confidentiality</li>
+                          <li>Registration subject to admin verification</li>
+                          <li>False information may result in account suspension</li>
+                        </ul>
+                      </div>
+
+                      <div className="bg-green-50 border-l-4 border-green-600 p-4 rounded-r-lg">
+                        <h4 className="font-semibold text-slate-800 mb-2">User Responsibilities</h4>
+                        <ul className="list-disc list-inside space-y-1 text-sm">
+                          <li>Provide truthful and accurate information</li>
+                          <li>Update your profile when changes occur</li>
+                          <li>Use services in compliance with applicable laws</li>
+                          <li>Respect privacy and rights of other users</li>
+                          <li>Report suspicious activity or security concerns</li>
+                        </ul>
+                      </div>
+
+                      <div className="bg-red-50 border-l-4 border-red-600 p-4 rounded-r-lg">
+                        <h4 className="font-semibold text-slate-800 mb-2">Account Restrictions</h4>
+                        <p className="text-sm mb-2">Your account may be suspended if you:</p>
+                        <ul className="list-disc list-inside space-y-1 text-sm">
+                          <li>Provide false or misleading information</li>
+                          <li>Violate any terms or conditions</li>
+                          <li>Engage in fraudulent or illegal activities</li>
+                          <li>Abuse or misuse barangay services</li>
+                        </ul>
+                      </div>
+
+                      <p>
+                        <strong>Service Availability:</strong> While we strive to provide uninterrupted service, we do not guarantee availability at all times. We may suspend services for maintenance or updates.
+                      </p>
+
+                      <p>
+                        <strong>Changes to Terms:</strong> We reserve the right to modify these terms at any time. Significant changes will be communicated through email or system notifications.
+                      </p>
+
+                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <p className="text-sm">
+                          <strong>Contact Us:</strong><br />
+                          Barangay Culiat, Quezon City<br />
+                          Email: brgy.culiat@yahoo.com<br />
+                          Cellphone: 0962-582-1531 <br />
+                          Telephone: 856722-60 <br />
+                          Office Hours: Monday-Friday, 8:00 AM - 5:00 PM
+                        </p>
+                      </div>
+
+                      <p className="text-sm text-slate-500">
+                        <strong>Last Updated:</strong> February 1, 2026
+                      </p>
+
+                      <div className="pt-4">
+                        <a
+                          href="/legal#terms"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 hover:text-indigo-700 font-semibold underline text-sm"
+                        >
+                          View full Terms of Service on dedicated page →
+                        </a>
+                      </div>
                     </div>
-
-                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                      <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        Right to Erasure
-                      </h4>
-                      <p className="text-sm">Request deletion of your personal data</p>
-                    </div>
-
-                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                      <h4 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        Right to Object
-                      </h4>
-                      <p className="text-sm">Object to processing of your personal information</p>
-                    </div>
-                  </div>
-
-                  <p className="text-sm">
-                    To exercise these rights or for any privacy concerns, please contact the Barangay Data Protection Officer at <strong>dpo@barangayculiat.gov.ph</strong>
-                  </p>
-                </div>
-              </section>
-
-              {/* Contact Information */}
-              <section>
-                <h3 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
-                  <div className="w-2 h-8 bg-purple-600 rounded-full"></div>
-                  Contact & Updates
-                </h3>
-                <div className="space-y-3 text-slate-700 leading-relaxed">
-                  <p>
-                    <strong>Questions or Concerns:</strong> If you have questions about these terms or our privacy practices, please contact us at:
-                  </p>
-
-                  <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                    <p className="text-sm space-y-1">
-                      <strong>Barangay Culiat, Quezon City</strong><br />
-                      Email: info@barangayculiat.gov.ph<br />
-                      Phone: (02) 8XXX-XXXX<br />
-                      Office Hours: Monday-Friday, 8:00 AM - 5:00 PM
-                    </p>
-                  </div>
-
-                  <p className="text-sm">
-                    <strong>Changes to Terms:</strong> We reserve the right to modify these terms at any time. Significant changes will be communicated through email or system notifications. Continued use of services after changes constitutes acceptance of updated terms.
-                  </p>
-
-                  <p className="text-sm">
-                    <strong>Last Updated:</strong> January 6, 2026
-                  </p>
-                </div>
-              </section>
+                  </section>
+                </motion.div>
+              )}
 
               {/* Scroll indicator */}
               {!canAcceptTerms && (
@@ -3277,7 +2768,7 @@ const Register = () => {
                       You may now accept the terms
                     </span>
                   ) : (
-                    "Please read all terms and conditions"
+                    "Please read both Privacy Policy and Terms of Service"
                   )}
                 </p>
                 <div className="flex gap-3 w-full sm:w-auto">
@@ -3306,155 +2797,33 @@ const Register = () => {
     </AnimatePresence>
   );
 
-  // Confirmation Modal
-  const renderConfirmationModal = () => (
-    <AnimatePresence>
-      {showConfirmationModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowConfirmationModal(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-8 h-8 text-amber-600" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2">
-                Important Notice
-              </h3>
-              <p className="text-slate-600 text-sm">
-                Please read carefully before completing registration
-              </p>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-              <h4 className="font-bold text-amber-800 mb-3 flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                Profile Completion Requirement
-              </h4>
-              <ul className="text-sm text-amber-700 space-y-2">
-                <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <span>
-                    You have <strong className="text-amber-900">90 days</strong> from registration to complete your profile with PSA birth certificate information.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <span>
-                    You must upload a copy of your <strong className="text-amber-900">PSA Birth Certificate</strong> for verification.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <span>
-                    If not completed within 90 days, your account will be <strong className="text-red-700">locked</strong>.
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <span>
-                    To unlock, complete the missing fields and wait for <strong className="text-amber-900">admin review</strong>.
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            {formData.skipPSAStep && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6">
-                <p className="text-sm text-emerald-800 flex items-start gap-2">
-                  <FileText className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>
-                    You can complete your PSA birth certificate details anytime from your profile page after registration.
-                  </span>
-                </p>
-              </div>
-            )}
-
-            <div className="flex items-start gap-3 mb-6 p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <input
-                type="checkbox"
-                id="acceptDeadlineTerms"
-                checked={acceptedDeadlineTerms}
-                onChange={(e) => setAcceptedDeadlineTerms(e.target.checked)}
-                className="mt-1 w-5 h-5 text-emerald-600 border-2 border-slate-300 rounded focus:ring-2 focus:ring-emerald-500 cursor-pointer"
-              />
-              <label htmlFor="acceptDeadlineTerms" className="text-sm text-slate-700 cursor-pointer">
-                I understand and agree that I must complete my profile with PSA birth certificate information within <strong>90 days</strong>, or my account may be locked until verification is complete.
-              </label>
-            </div>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            )}
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowConfirmationModal(false);
-                  setAcceptedDeadlineTerms(false);
-                  setError("");
-                }}
-                className="flex-1 px-4 py-3 border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmedSubmit}
-                disabled={!acceptedDeadlineTerms || loading}
-                className="flex-1 bg-gradient-to-r from-[#1a73e8] to-[#1557b0] hover:from-[#1557b0] hover:to-[#0d47a1] text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Processing..." : "Confirm & Register"}
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-50 overflow-auto">
       {/* Premium Left Panel - Hidden on mobile */}
-      <div className="hidden lg:flex lg:w-[340px] xl:w-[400px] relative bg-gradient-to-br from-[#0a1628] via-[#1e3a5f] to-[#0d2847] overflow-hidden flex-col">
+      <div className="hidden lg:flex lg:w-[300px] xl:w-[340px] 2xl:w-[380px] relative overflow-hidden flex-col flex-shrink-0">
+        {/* Nature Background Image */}
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1200')] bg-cover bg-center"></div>
+        {/* Subtle dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/30 to-black/50"></div>
         {/* Animated Background Elements */}
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,rgba(59,130,246,0.15),transparent_50%)]"></div>
-          <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,rgba(99,102,241,0.1),transparent_50%)]"></div>
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.1),transparent_50%)]"></div>
+          <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,rgba(0,0,0,0.2),transparent_50%)]"></div>
         </div>
-
-        {/* Floating Orbs */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-40 right-5 w-40 h-40 bg-indigo-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
 
         <div className="relative z-10 flex flex-col h-full p-8 xl:p-10">
           {/* Header with Logo */}
           <Link to="/" className="group inline-flex items-center gap-3 mb-10">
-            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-all duration-300 group-hover:scale-105">
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-xl shadow-black/40 group-hover:shadow-black/60 transition-all duration-300 group-hover:scale-105">
               <img
                 src="/images/logo/brgy-culiat-logo.svg"
                 alt="Logo"
                 className="w-9 h-9 object-contain"
               />
             </div>
-            <div>
-              <span className="block text-white/90 font-semibold text-sm tracking-wide">Barangay</span>
-              <span className="block text-white font-bold text-lg -mt-0.5">Culiat</span>
+            <div className="drop-shadow-lg">
+              <span className="block text-white font-semibold text-sm tracking-wide drop-shadow-md">Barangay</span>
+              <span className="block text-white font-bold text-lg -mt-0.5 drop-shadow-md">Culiat</span>
             </div>
           </Link>
 
@@ -3462,62 +2831,62 @@ const Register = () => {
           <div className="flex-1 flex flex-col justify-center -mt-10">
             <div className="space-y-6">
               <div>
-                <span className="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-medium rounded-full mb-4 border border-emerald-400/20">
+                <span className="inline-block px-3 py-1 bg-white/25 text-white text-xs font-medium rounded-full mb-4 border border-white/40 backdrop-blur-md shadow-lg">
                   Resident Portal
                 </span>
-                <h1 className="text-3xl xl:text-4xl font-bold text-white leading-tight">
+                <h1 className="text-3xl xl:text-4xl font-bold text-white leading-tight drop-shadow-xl">
                   Join Your
-                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300">
+                  <span className="block text-white drop-shadow-xl">
                     Community Today
                   </span>
                 </h1>
               </div>
-              <p className="text-white/70 text-sm leading-relaxed max-w-xs">
+              <p className="text-white text-sm leading-relaxed max-w-xs drop-shadow-lg">
                 Register to access barangay services, request documents, and stay connected with your community.
               </p>
             </div>
 
             {/* Feature Cards */}
             <div className="mt-10 space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg">
+              <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/20 backdrop-blur-md hover:bg-white/15 transition-colors shadow-lg">
+                <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-xl">
                   <FileText className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <span className="block text-white text-xs font-semibold">Document Requests</span>
-                  <span className="text-white/50 text-[10px]">Barangay clearance, certificates & more</span>
+                  <span className="block text-white text-xs font-semibold drop-shadow-md">Document Requests</span>
+                  <span className="text-white/80 text-[10px] drop-shadow">Barangay clearance, certificates & more</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg">
+              <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/20 backdrop-blur-md hover:bg-white/15 transition-colors shadow-lg">
+                <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-xl">
                   <CheckCircle className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <span className="block text-white text-xs font-semibold">Quick Verification</span>
-                  <span className="text-white/50 text-[10px]">Fast approval with valid ID</span>
+                  <span className="block text-white text-xs font-semibold drop-shadow-md">Quick Verification</span>
+                  <span className="text-white/80 text-[10px] drop-shadow">Fast approval with valid ID</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                <div className="w-9 h-9 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg flex items-center justify-center shadow-lg">
+              <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/20 backdrop-blur-md hover:bg-white/15 transition-colors shadow-lg">
+                <div className="w-9 h-9 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center shadow-xl">
                   <Mail className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <span className="block text-white text-xs font-semibold">Stay Informed</span>
-                  <span className="text-white/50 text-[10px]">Announcements & emergency alerts</span>
+                  <span className="block text-white text-xs font-semibold drop-shadow-md">Stay Informed</span>
+                  <span className="text-white/80 text-[10px] drop-shadow">Announcements & emergency alerts</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="pt-6 border-t border-white/10">
-            <p className="text-white/40 text-[10px]">
+          <div className="pt-6 border-t border-white/20">
+            <p className="text-white/90 text-[10px] drop-shadow-md">
               © 2025 Barangay Culiat, Quezon City
             </p>
-            <p className="text-white/30 text-[10px] mt-1">
+            <p className="text-white/80 text-[10px] mt-1 drop-shadow">
               Secure • Trusted • Community-Driven
             </p>
-            <p className="text-white/25 text-[9px] mt-3 leading-relaxed">
+            <p className="text-white/70 text-[9px] mt-3 leading-relaxed drop-shadow">
               Your personal data is protected under the Data Privacy Act of 2012 (R.A. 10173). 
               By registering, you consent to the collection and processing of your information 
               for barangay services and official purposes.
@@ -3527,7 +2896,7 @@ const Register = () => {
       </div>
 
       {/* Right Panel - Form Area */}
-      <div className="flex-1 flex items-center justify-center p-4 md:p-6 lg:p-8 relative overflow-y-auto">
+      <div className="flex-1 flex items-stretch justify-center p-0 lg:p-4 xl:p-6 relative overflow-hidden">
         <Link
           to="/"
           className="lg:hidden absolute top-4 left-4 inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors text-xs font-medium group z-20"
@@ -3542,9 +2911,9 @@ const Register = () => {
           <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-indigo-50 rounded-full opacity-30 blur-3xl"></div>
         </div>
 
-        <div className="w-full max-w-xl relative my-auto">
+        <div className="w-full max-w-2xl xl:max-w-3xl 2xl:max-w-4xl relative flex flex-col h-full">
           {/* Mobile Header */}
-          <div className="lg:hidden text-center mb-5 mt-10">
+          <div className="lg:hidden text-center mb-4 mt-6 px-4">
             <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center mx-auto mb-2.5 shadow-lg ring-1 ring-slate-200">
               <img
                 src="/images/logo/brgy-culiat-logo.svg"
@@ -3559,38 +2928,34 @@ const Register = () => {
           </div>
 
           {/* Main Form Card */}
-          <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
-            <div className="p-5 md:p-6">
+          <div className="bg-slate-100 lg:rounded-2xl shadow-xl shadow-slate-300/50 border-0 lg:border border-slate-300/80 overflow-hidden flex-1 lg:my-0 flex flex-col max-h-full">
+            <div className="p-4 md:p-5 lg:p-6 overflow-y-auto flex-1">
               {/* Form Header */}
-              <div className="mb-5">
+              <div className="mb-4">
                 <div className="flex items-center justify-between mb-1">
                   <h2 className="text-lg font-bold text-slate-800">
                     Create Account
                   </h2>
                   <span className="text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                    {showOptionalPSA ? 'Optional' : `Step ${currentStep}/5`}
+                    Step {currentStep}/5
                   </span>
                 </div>
                 <p className="text-slate-500 text-xs">
-                  {showOptionalPSA ? (
-                    "PSA Birth Certificate Information"
-                  ) : (
-                    <>
-                      {currentStep === 1
-                        ? "Set up your login credentials"
-                        : currentStep === 2
-                          ? "Tell us about yourself"
-                          : currentStep === 3
-                            ? "Your address & emergency contact"
-                            : currentStep === 4
-                              ? "Upload valid government ID"
-                              : "Review and accept terms"}
-                    </>
-                  )}
+                  {currentStep === 0
+                    ? "Select your residency status"
+                    : currentStep === 1
+                    ? "Set up your login credentials"
+                    : currentStep === 2
+                      ? "Tell us about yourself"
+                      : currentStep === 3
+                        ? "Your address & emergency contact"
+                        : currentStep === 4
+                          ? "Upload verification documents"
+                          : "Review and accept terms"}
                 </p>
               </div>
 
-              {!showOptionalPSA && renderStepIndicator()}
+              {renderStepIndicator()}
 
               <AnimatePresence mode="wait">
                 {error && (
@@ -3610,25 +2975,19 @@ const Register = () => {
 
               <form onSubmit={handleSubmit}>
                 <AnimatePresence mode="wait">
-                  {showOptionalPSA ? (
-                    renderOptionalPSAStep()
-                  ) : (
-                    <>
-                      {currentStep === 1 && renderStep1()}
-                      {currentStep === 2 && renderStep2()}
-                      {currentStep === 3 && renderStep3()}
-                      {currentStep === 4 && renderStep4()}
-                      {currentStep === 5 && renderStep5()}
-                    </>
-                  )}
+                  {currentStep === 0 && renderStep0()}
+                  {currentStep === 1 && renderStep1()}
+                  {currentStep === 2 && renderStep2()}
+                  {currentStep === 3 && renderStep3()}
+                  {currentStep === 4 && renderStep4()}
+                  {currentStep === 5 && renderStep5()}
                 </AnimatePresence>
 
-                {!showOptionalPSA && (
-                  <div className="mt-6">
-                    {/* Navigation Buttons for Steps 1-4 */}
+                <div className="mt-6">
+                    {/* Navigation Buttons for Steps 0-4 */}
                     {currentStep < 5 ? (
                       <div className="grid grid-cols-[auto_1fr] gap-3">
-                        {currentStep > 1 && (
+                        {currentStep > 0 && (
                           <motion.button
                             type="button"
                             onClick={prevStep}
@@ -3642,7 +3001,7 @@ const Register = () => {
                         <motion.button
                           type="button"
                           onClick={nextStep}
-                          className={`bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg text-sm ${currentStep === 1 ? 'col-span-2' : ''}`}
+                          className={`bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg text-sm ${currentStep === 0 ? 'col-span-2' : ''}`}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
@@ -3679,41 +3038,10 @@ const Register = () => {
                             {loading ? "Processing..." : "Complete Registration"}
                           </motion.button>
                         </div>
-
-                        {/* Divider */}
-                        <div className="relative">
-                          <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-slate-200"></div>
-                          </div>
-                          <div className="relative flex justify-center text-xs">
-                            <span className="bg-white px-3 text-slate-500 font-medium">or add optional info</span>
-                          </div>
-                        </div>
-
-                        {/* Optional PSA Button */}
-                        <motion.button
-                          type="button"
-                          onClick={handleShowOptionalPSA}
-                          disabled={!formData.termsAccepted}
-                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-50 border-2 border-dashed border-slate-300 text-slate-600 font-semibold rounded-lg hover:bg-slate-100 hover:border-slate-400 transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow"
-                          whileHover={{ scale: formData.termsAccepted ? 1.01 : 1 }}
-                          whileTap={{ scale: formData.termsAccepted ? 0.98 : 1 }}
-                        >
-                          <FileCheck className="w-5 h-5" />
-                          Add PSA Birth Certificate (Recommended)
-                        </motion.button>
-
-                        <p className="text-xs text-center text-slate-500">
-                          Optional - Complete later within 90 days
-                        </p>
                       </div>
                     )}
-                  </div>
-                )}
+                </div>
               </form>
-
-              {/* Render Confirmation Modal */}
-              {renderConfirmationModal()}
 
               <div className="mt-5 pt-4 border-t border-slate-100 text-center">
                 <p className="text-[11px] text-slate-500">
@@ -3739,7 +3067,6 @@ const Register = () => {
 
       {/* Modals */}
       {renderTermsModal()}
-      {renderConfirmationModal()}
     </div>
   );
 };

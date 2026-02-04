@@ -41,11 +41,6 @@ export const AuthProvider = ({ children }) => {
   const sessionTimeoutRef = useRef(null);
   const lastActivityRef = useRef(Date.now());
   const [sessionExpired, setSessionExpired] = useState(false);
-  
-  // PSA Profile completion warning modal state
-  const [showPsaWarningModal, setShowPsaWarningModal] = useState(false);
-  const [psaWarningData, setPsaWarningData] = useState(null);
-  const [pendingPsaModal, setPendingPsaModal] = useState(false); // Flag to show PSA modal after approved doc modal closes
 
   // Approved document notification modal state
   const [showApprovedDocModal, setShowApprovedDocModal] = useState(false);
@@ -61,8 +56,6 @@ export const AuthProvider = ({ children }) => {
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
     // Clear modal states
-    setShowPsaWarningModal(false);
-    setPsaWarningData(null);
     setShowApprovedDocModal(false);
     setApprovedDocRequests([]);
   }, []);
@@ -129,64 +122,7 @@ export const AuthProvider = ({ children }) => {
   // Close approved document modal
   const closeApprovedDocModal = useCallback(() => {
     setShowApprovedDocModal(false);
-    // If PSA modal is pending, show it now
-    if (pendingPsaModal) {
-      console.log('🔔 [ApprovedDocModal] Closed, now showing PSA modal...');
-      setTimeout(() => {
-        setShowPsaWarningModal(true);
-        setPendingPsaModal(false);
-      }, 300); // Small delay for smooth transition
-    }
-  }, [pendingPsaModal]);
-
-  // Check if PSA warning modal should be shown
-  const checkPsaCompletionWarning = (userData, hasApprovedDocs = false) => {
-    console.log('PSA Warning check - userData:', userData?.psaCompletion);
-    
-    // Only for residents
-    if (userData?.roleCode !== 74934 && userData?.role !== 'Resident') return;
-    
-    const psaCompletion = userData?.psaCompletion;
-    const profileVerification = userData?.profileVerification;
-    
-    // Don't show if profile is complete
-    if (psaCompletion?.isComplete) return;
-    
-    // Don't show if verification is pending
-    if (profileVerification?.status === 'pending') return;
-    
-    // Don't show if no deadline set - critical check to prevent broken modal
-    if (!psaCompletion?.deadline) {
-      console.log('PSA Warning: No deadline set, skipping modal');
-      return;
-    }
-    
-    const daysLeft = psaCompletion?.daysLeft;
-    
-    // Additional validation - ensure daysLeft is a valid number
-    if (typeof daysLeft !== 'number' || isNaN(daysLeft)) {
-      console.log('PSA Warning: Invalid daysLeft value, skipping modal');
-      return;
-    }
-    
-    // Set PSA warning data
-    setPsaWarningData({
-      daysLeft,
-      deadline: psaCompletion.deadline,
-      verificationStatus: profileVerification?.status,
-      rejectionReason: profileVerification?.rejectionReason,
-    });
-    
-    // If there are approved documents, mark PSA modal as pending and show it after
-    if (hasApprovedDocs) {
-      console.log('PSA Warning: Has approved docs, will show PSA modal after approved doc modal closes');
-      setPendingPsaModal(true);
-    } else {
-      // Show PSA modal immediately if no approved docs
-      console.log('PSA Warning: No approved docs, showing PSA modal immediately');
-      setShowPsaWarningModal(true);
-    }
-  };
+  }, []);
 
   // Check for existing session on mount
   useEffect(() => {
@@ -272,8 +208,7 @@ export const AuthProvider = ({ children }) => {
           }
         }
         
-        // For Residents: Check approved documents first, then PSA warning
-        let hasApprovedDocs = false;
+        // For Residents: Check approved documents
         if (fullUserData.roleName === 'Resident' || fullUserData.role === 'Resident' || fullUserData.roleCode === 74934) {
           console.log('🔔 [Login] User is a Resident, checking for approved documents...');
           try {
@@ -287,7 +222,6 @@ export const AuthProvider = ({ children }) => {
             });
             
             if (pendingPaymentRequests.length > 0) {
-              hasApprovedDocs = true;
               setApprovedDocRequests(pendingPaymentRequests);
               // Show approved doc modal immediately
               console.log('🔔 [Login] Found approved docs, showing modal immediately');
@@ -297,9 +231,6 @@ export const AuthProvider = ({ children }) => {
             console.error('🔔 [Login] Error checking approved documents:', error);
           }
         }
-        
-        // Check for PSA profile completion warning (will be queued if there are approved docs)
-        checkPsaCompletionWarning(fullUserData, hasApprovedDocs);
         
         return { success: true, user: fullUserData };
       } catch (meError) {
@@ -362,9 +293,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('documentRequestForm'); // Clear saved form data
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
-    // Clear PSA warning state
-    setShowPsaWarningModal(false);
-    setPsaWarningData(null);
     // Clear approved document modal state
     setShowApprovedDocModal(false);
     setApprovedDocRequests([]);
@@ -375,11 +303,6 @@ export const AuthProvider = ({ children }) => {
   // Clear session expired state (for use after redirect to login)
   const clearSessionExpired = () => {
     setSessionExpired(false);
-  };
-
-  // Close PSA warning modal
-  const closePsaWarningModal = () => {
-    setShowPsaWarningModal(false);
   };
 
   // Check if user is Admin or SuperAdmin
@@ -402,11 +325,6 @@ export const AuthProvider = ({ children }) => {
     // Session management
     sessionExpired,
     clearSessionExpired,
-    // PSA Profile completion
-    showPsaWarningModal,
-    psaWarningData,
-    closePsaWarningModal,
-    checkPsaCompletionWarning,
     // Approved document notifications
     showApprovedDocModal,
     approvedDocRequests,

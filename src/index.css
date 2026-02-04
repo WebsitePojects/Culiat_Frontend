@@ -76,6 +76,76 @@
   }
 }
 
+/* Smooth scroll behavior with snap and navbar offset */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Scroll snap for full-page sections - Desktop only */
+.scroll-snap-container {
+  /* Disable scroll snap on mobile - allow natural scrolling */
+  @media (max-width: 768px) {
+    scroll-snap-type: none;
+    overflow-y: visible;
+    height: auto;
+  }
+  
+  /* Enable scroll snap on desktop */
+  @media (min-width: 769px) {
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+    height: 100vh;
+  }
+}
+
+.scroll-snap-section {
+  @media (max-width: 768px) {
+    scroll-snap-align: none;
+    scroll-snap-stop: normal;
+    min-height: auto;
+  }
+  
+  @media (min-width: 769px) {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    min-height: 100vh;
+  }
+}
+
+/* Hero section - auto height on mobile, full viewport on desktop */
+.scroll-snap-hero {
+  @media (max-width: 768px) {
+    scroll-snap-align: none;
+    scroll-snap-stop: normal;
+    min-height: auto;
+    height: auto;
+  }
+  
+  @media (min-width: 769px) {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    min-height: 100vh;
+  }
+}
+
+/* Sections below navbar - visible on mobile, snap on desktop */
+.scroll-snap-below-nav {
+  @media (max-width: 768px) {
+    scroll-snap-align: none;
+    scroll-snap-stop: normal;
+    min-height: 500px;
+    height: auto;
+    padding-top: 0;
+  }
+  
+  @media (min-width: 769px) {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    min-height: 100vh;
+    padding-top: 5rem; /* 80px navbar height */
+  }
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",

@@ -19,6 +19,10 @@ import {
   XCircle,
   Info,
   AlertTriangle,
+  Briefcase,
+  IdCard,
+  Home,
+  UserCheck,
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 
@@ -28,7 +32,9 @@ const SettingsPage = () => {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState(null);
   const [formData, setFormData] = useState({
-    system: {},
+    system: {
+      residentOnlyServices: [],
+    },
   });
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -42,9 +48,11 @@ const SettingsPage = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
+      
       const response = await axios.get(`${API_URL}/api/settings`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      
       const data = response.data.data;
       setSettings(data);
       
@@ -52,8 +60,6 @@ const SettingsPage = () => {
       const systemSettings = data.system || {};
       setFormData({
         system: {
-          maintenanceMode: systemSettings.maintenanceMode ?? false,
-          maintenanceMessage: systemSettings.maintenanceMessage || "System is currently under maintenance. Please try again later.",
           emailNotificationsEnabled: systemSettings.emailNotificationsEnabled ?? true,
           registrationEnabled: systemSettings.registrationEnabled ?? true,
           documentRequestEnabled: systemSettings.documentRequestEnabled ?? true,
@@ -64,6 +70,9 @@ const SettingsPage = () => {
           maxLoginAttempts: systemSettings.maxLoginAttempts || 5,
           maxFileSize: systemSettings.maxFileSize || 5,
           allowedFileTypes: systemSettings.allowedFileTypes || ["pdf", "jpg", "jpeg", "png", "doc", "docx"],
+          residentOnlyServices: Array.isArray(systemSettings.residentOnlyServices) 
+            ? systemSettings.residentOnlyServices 
+            : [],
         },
       });
     } catch (error) {
@@ -82,6 +91,24 @@ const SettingsPage = () => {
         [field]: value,
       },
     }));
+    setHasChanges(true);
+  };
+
+  const handleServiceRestrictionToggle = (serviceValue) => {
+    setFormData((prev) => {
+      const currentServices = prev.system.residentOnlyServices || [];
+      const isCurrentlyRestricted = currentServices.includes(serviceValue);
+      
+      return {
+        ...prev,
+        system: {
+          ...prev.system,
+          residentOnlyServices: isCurrentlyRestricted
+            ? currentServices.filter(s => s !== serviceValue)
+            : [...currentServices, serviceValue]
+        }
+      };
+    });
     setHasChanges(true);
   };
 
@@ -116,11 +143,27 @@ const SettingsPage = () => {
 
   const handleReset = () => {
     setFormData({
-      system: settings.system || {},
+      system: {
+        ...settings.system,
+        residentOnlyServices: settings.system?.residentOnlyServices || [],
+      },
     });
     setHasChanges(false);
     showSuccess("Changes discarded");
   };
+
+  // Service types available in the system
+  const availableServices = [
+    { value: "clearance", label: "Barangay Clearance", icon: Shield },
+    { value: "residency", label: "Certificate of Residency", icon: FileText },
+    { value: "indigency", label: "Certificate of Indigency", icon: FileText },
+    { value: "business_permit", label: "Business Permit", icon: Briefcase },
+    { value: "business_clearance", label: "Business Clearance", icon: Briefcase },
+    { value: "good_moral", label: "Good Moral Certificate", icon: FileText },
+    { value: "barangay_id", label: "Barangay ID", icon: IdCard },
+    { value: "ctc", label: "Community Tax Certificate", icon: FileText },
+    { value: "liquor_permit", label: "Liquor Permit", icon: FileText },
+  ];
 
   if (loading) {
     return (
@@ -255,50 +298,6 @@ const SettingsPage = () => {
               </div>
             </div>
 
-            {/* Maintenance Mode */}
-            <div className={`rounded-xl p-4 md:p-6 border-2 ${
-              formData.system.maintenanceMode 
-                ? 'bg-amber-50 border-amber-300 dark:bg-amber-900/20 dark:border-amber-700' 
-                : 'bg-gray-50 border-gray-200 dark:bg-gray-700/50 dark:border-gray-600'
-            }`}>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-xl ${formData.system.maintenanceMode ? 'bg-amber-100' : 'bg-gray-100'}`}>
-                    <Wrench className={`w-6 h-6 ${formData.system.maintenanceMode ? 'text-amber-600' : 'text-gray-600'}`} />
-                  </div>
-                  <div>
-                    <h3 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
-                      Maintenance Mode
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      When enabled, the public site will show a maintenance message. Admin access remains available.
-                    </p>
-                    {formData.system.maintenanceMode && (
-                      <div className="flex items-center gap-2 mt-3 px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
-                        <AlertTriangle className="w-4 h-4" />
-                        Site is in maintenance mode
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                  <input
-                    type="checkbox"
-                    checked={formData.system.maintenanceMode === true}
-                    onChange={(e) =>
-                      handleInputChange(
-                        "system",
-                        "maintenanceMode",
-                        e.target.checked
-                      )
-                    }
-                    className="sr-only peer"
-                  />
-                  <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 dark:peer-focus:ring-amber-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-amber-500"></div>
-                </label>
-              </div>
-            </div>
-
             {/* Feature Controls Grid */}
             <div>
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -415,6 +414,104 @@ const SettingsPage = () => {
                     <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
                   </label>
                 </div>
+              </div>
+            </div>
+
+            {/* Service Restrictions for Non-Residents */}
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <Home className="w-4 h-4" />
+                Resident-Only Service Restrictions
+              </h3>
+              
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                      Non-Resident Access Control
+                    </h4>
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                      Check services that should be restricted to Barangay Culiat residents only. 
+                      Non-residents will not be able to request these services.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {availableServices.map((service) => {
+                  const Icon = service.icon;
+                  const isRestricted = (formData.system?.residentOnlyServices || []).includes(service.value);
+                  
+                  return (
+                    <div
+                      key={service.value}
+                      className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
+                        isRestricted
+                          ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700'
+                          : 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          isRestricted 
+                            ? 'bg-red-100 dark:bg-red-900/40' 
+                            : 'bg-green-100 dark:bg-green-900/40'
+                        }`}>
+                          <Icon className={`w-5 h-5 ${
+                            isRestricted 
+                              ? 'text-red-600 dark:text-red-400' 
+                              : 'text-green-600 dark:text-green-400'
+                          }`} />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                            {service.label}
+                          </h4>
+                          <p className={`text-xs ${
+                            isRestricted 
+                              ? 'text-red-600 dark:text-red-400' 
+                              : 'text-green-600 dark:text-green-400'
+                          }`}>
+                            {isRestricted ? (
+                              <span className="flex items-center gap-1">
+                                <Lock className="w-3 h-3" />
+                                Residents Only
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1">
+                                <UserCheck className="w-3 h-3" />
+                                All Users
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isRestricted}
+                          onChange={() => handleServiceRestrictionToggle(service.value)}
+                          className="sr-only peer"
+                        />
+                        <div className={`w-11 h-6 rounded-full peer transition-colors peer-focus:ring-4 ${
+                          isRestricted 
+                            ? 'bg-red-500 peer-focus:ring-red-300 dark:peer-focus:ring-red-800' 
+                            : 'bg-green-500 peer-focus:ring-green-300 dark:peer-focus:ring-green-800'
+                        } after:content-[''] after:absolute after:top-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${
+                          isRestricted ? 'after:left-[26px]' : 'after:left-[2px]'
+                        }`}></div>
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  <strong>Tip:</strong> Restricted services will display a notice to non-residents explaining they need to be Barangay Culiat residents to access these services.
+                </p>
               </div>
             </div>
 
