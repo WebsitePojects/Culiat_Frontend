@@ -65,6 +65,10 @@ const Reports = () => {
             setReports([]);
          }
       } catch (error) {
+         // Silently handle auth errors for non-logged in users
+         if (error.response?.status !== 401) {
+            console.error('Error fetching reports:', error);
+         }
          setReports([]);
       } finally {
          setLoading(false);

@@ -162,9 +162,11 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (username, password, isAdminLogin = false) => {
     try {
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
+      // Use different endpoint based on login type
+      const endpoint = isAdminLogin ? '/api/auth/admin-login' : '/api/auth/login';
+      const response = await axios.post(`${API_URL}${endpoint}`, {
         username,
         password,
       });

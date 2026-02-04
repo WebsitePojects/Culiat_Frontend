@@ -26,7 +26,8 @@ export default function SignInForm() {
       setLoading(true);
 
       try {
-         const response = await login(username, password);
+         // Use the dedicated admin login endpoint with stricter rate limiting
+         const response = await login(username, password, true); // Pass true for admin login
 
          if (response.success && response.user) {
             // Check if user is admin (roleCode 74933 or 74932)
@@ -36,15 +37,48 @@ export default function SignInForm() {
             ) {
                navigate("/admin/dashboard");
             } else {
-               navigate("/dashboard");
+               // Prevent residents from accessing admin portal
+               setError("⚠️ Access Denied: Only administrators can access this portal. Residents should use the resident login page. This unauthorized access attempt has been logged for security purposes.");
+               // Clear any stored auth data
+               localStorage.removeItem('token');
+               localStorage.removeItem('user');
             }
          } else {
             setError("Invalid username or password");
          }
       } catch (err) {
-         setError(
-            err.response?.data?.message || "Login failed. Please try again."
-         );
+         // Handle specific error cases
+         const status = err.response?.status;
+         const message = err.response?.data?.message;
+         const retryAfter = err.response?.data?.retryAfter;
+         const attemptsRemaining = err.response?.data?.attemptsRemaining;
+
+         console.log('🔍 Login Error Details:', {
+            status,
+            message,
+            retryAfter,
+            attemptsRemaining,
+            fullResponse: err.response?.data
+         });
+
+         if (status === 429) {
+            // Rate limit exceeded
+            const minutes = retryAfter ? Math.ceil(retryAfter / 60) : 15;
+            setError(`🔒 Too many login attempts. For security, admin logins are limited to 3 attempts per 15 minutes. Please try again in ${minutes} minutes. All attempts are being monitored.`);
+         } else if (status === 401) {
+            // Display the server's message directly for 401 errors
+            if (message) {
+               setError(`❌ ${message}`);
+            } else {
+               setError("❌ Invalid username or password. Please verify your credentials and try again.");
+            }
+         } else if (status === 403) {
+            setError("🚫 Access forbidden. Your account may be locked or suspended. Please contact the system administrator.");
+         } else if (message) {
+            setError(message);
+         } else {
+            setError("❌ Login failed. Please check your connection and try again.");
+         }
       } finally {
          setLoading(false);
       }

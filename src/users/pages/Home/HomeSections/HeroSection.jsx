@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -24,10 +24,26 @@ const fadeIn = {
 };
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   const [barangayInfo, setBarangayInfo] = useState(null);
   const [backgroundImage, setBackgroundImage] = useState(
     "../../../../../images/brgy/heroSectionBg.png"
   );
+
+  // Check if user is logged in
+  const isLoggedIn = () => {
+    return !!localStorage.getItem("token");
+  };
+
+  const handleRequestDocument = (e) => {
+    e.preventDefault();
+    if (isLoggedIn()) {
+      navigate("/services");
+    } else {
+      // Redirect to services page for non-logged in users
+      navigate("/services-info");
+    }
+  };
 
   useEffect(() => {
     const fetchBarangayInfo = async () => {
@@ -114,12 +130,12 @@ const HeroSection = () => {
           custom={0.7}
           className="w-full max-w-md mx-auto px-5 mt-8 md:mt-10 space-y-3"
         >
-          <Link
-            to="/services"
+          <button
+            onClick={handleRequestDocument}
             className="w-full block px-6 py-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-center text-base md:text-base"
           >
             Request Document
-          </Link>
+          </button>
           <Link
             to="/about"
             className="w-full block px-6 py-4 bg-white/10 hover:bg-white/20 active:bg-white/25 backdrop-blur-md text-white font-semibold rounded-xl border-2 border-white/30 hover:border-white/50 transition-all duration-300 text-center text-base md:text-base"

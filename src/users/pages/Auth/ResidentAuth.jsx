@@ -45,6 +45,12 @@ export default function ResidentAuth() {
             // Default redirect to home instead of dashboard
             navigate("/");
           }
+        } else if (response.user.roleCode === 74933 || response.user.roleCode === 74932) {
+          // Admin trying to log in through resident portal
+          setError("⚠️ Admin Access: You are logging in as an administrator. Please use the admin portal to access administrative features. Click the 'Admin Sign In' link below.");
+          // Clear auth data to force redirect
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
         } else {
           setError("Invalid username or password");
         }
@@ -52,9 +58,24 @@ export default function ResidentAuth() {
         setError("Invalid username or password");
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Login failed. Please try again."
-      );
+      // Handle specific error cases
+      const status = err.response?.status;
+      const message = err.response?.data?.message;
+      const retryAfter = err.response?.data?.retryAfter;
+
+      if (status === 429) {
+        // Rate limit exceeded
+        const minutes = retryAfter ? Math.ceil(retryAfter / 60) : 15;
+        setError(`🔒 Too many login attempts. Please wait ${minutes} minutes before trying again. This helps protect your account from unauthorized access.`);
+      } else if (status === 401) {
+        setError("❌ Invalid username or password. Please check your credentials and try again.");
+      } else if (status === 403) {
+        setError("🚫 Your account may be suspended or pending approval. Please contact barangay officials for assistance.");
+      } else if (message) {
+        setError(message);
+      } else {
+        setError("❌ Unable to connect to the server. Please check your internet connection and try again.");
+      }
     } finally {
       setLoading(false);
     }

@@ -685,7 +685,9 @@ export default function Services() {
           ></div>
         </div>
 
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-12 sm:pt-28 sm:pb-16 md:pt-36 md:pb-28 text-center">
+        <div className={`relative max-w-6xl mx-auto px-4 sm:px-6 pb-12 sm:pb-16 md:pb-28 text-center ${
+          user ? 'pt-24 sm:pt-28 md:pt-36' : 'pt-32 sm:pt-36 md:pt-44'
+        }`}>
           {/* Animated Icon Badge */}
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
