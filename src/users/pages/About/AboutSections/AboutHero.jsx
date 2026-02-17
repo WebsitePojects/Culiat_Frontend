@@ -71,7 +71,7 @@ const AboutHero = () => {
         </div>
 
         {/* Content */}
-        <div className="relative max-w-6xl mx-auto px-6 pt-24 pb-16 sm:pt-28 sm:pb-20 md:pt-32 md:pb-28 text-center">
+        <div className="relative max-w-6xl mx-auto px-6 pt-24 pb-8 sm:pt-28 sm:pb-12 md:pt-32 md:pb-16 text-center">
           {/* Animated Icon Badge */}
           <motion.div
             initial={{ scale: 0, rotate: -180 }}

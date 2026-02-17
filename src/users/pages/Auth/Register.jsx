@@ -68,7 +68,6 @@ const Register = () => {
     dateOfBirth: "",
     placeOfBirth: "",
     gender: "",
-    civilStatus: "",
     salutation: "",
     nationality: "Filipino",
     phoneNumber: "",
@@ -77,6 +76,7 @@ const Register = () => {
     street: "",
     subdivision: "",
     area: "",
+    compound: "",
     // Non-resident address (outside Barangay Culiat)
     nonResidentHouseNumber: "",
     nonResidentStreet: "",
@@ -86,8 +86,6 @@ const Register = () => {
     nonResidentProvince: "",
     nonResidentRegion: "",
     nonResidentPostalCode: "",
-    tinNumber: "",
-    sssGsisNumber: "",
     precinctNumber: "",
     religion: "",
     heightWeight: "",
@@ -96,14 +94,9 @@ const Register = () => {
     spouseName: "",
     spouseOccupation: "",
     spouseContact: "",
-    emergencyName: "",
-    emergencyRelationship: "",
-    emergencyContact: "",
-    emergencyHouseNumber: "",
-    emergencyStreet: "",
-    emergencySubdivision: "",
     // Sectoral Groups (multiple selection)
     sectoralGroups: [],
+    womensOrganization: "",
     // Primary ID 1
     primaryID1Type: "",
     primaryID1File: null,
@@ -334,17 +327,22 @@ const Register = () => {
     "PUROK 6",
   ];
 
-  // Auto-determine salutation based on sex and civil status
-  const getSalutation = (gender, civilStatus) => {
+  const compoundOptions = [
+    "Vargas Compound",
+    "MACHIACA Compound",
+    "SALAM Compound",
+    "CRUZ Compound",
+    "DESIRE Compound",
+    "BISTEKVILLE 4",
+    "BISTEKVILLE 16",
+  ];
+
+  // Auto-determine salutation based on gender
+  const getSalutation = (gender) => {
     if (gender === "Male") {
       return "Mr.";
     } else if (gender === "Female") {
-      if (civilStatus === "Single") {
-        return "Ms.";
-      } else {
-        // Married, Widowed, Separated are all Mrs.
-        return "Mrs.";
-      }
+      return "Ms.";
     }
     return "";
   };
@@ -406,30 +404,7 @@ const Register = () => {
     return false;
   };
 
-  // TIN formatting - ###-###-###-###
-  const formatTIN = (value) => {
-    const cleaned = value.replace(/\D/g, "").substring(0, 12);
-    const parts = [];
-    for (let i = 0; i < cleaned.length; i += 3) {
-      parts.push(cleaned.substring(i, i + 3));
-    }
-    return parts.join("-");
-  };
-
-  // SSS formatting - ##-#######-#
-  const formatSSS = (value) => {
-    const cleaned = value.replace(/\D/g, "").substring(0, 10);
-    if (cleaned.length <= 2) return cleaned;
-    if (cleaned.length <= 9) return `${cleaned.substring(0, 2)}-${cleaned.substring(2)}`;
-    return `${cleaned.substring(0, 2)}-${cleaned.substring(2, 9)}-${cleaned.substring(9)}`;
-  };
-
-  // GSIS formatting - 11 digits
-  const formatGSIS = (value) => {
-    return value.replace(/\D/g, "").substring(0, 11);
-  };
-
-  // Filtered occupation options based on search
+  // Phone number formatting - auto prepend +63 and validate
   const filteredOccupations = occupationOptions.filter((occ) =>
     occ.toLowerCase().includes(occupationSearch.toLowerCase())
   );
@@ -458,41 +433,6 @@ const Register = () => {
       }
     }
 
-    // Special handling for TIN
-    if (name === "tinNumber") {
-      newValue = formatTIN(value);
-      const tinRegex = /^\d{3}-\d{3}-\d{3}-\d{3}$/;
-      if (newValue && newValue.length > 0 && !tinRegex.test(newValue) && newValue.replace(/-/g, "").length === 12) {
-        // Only show error when fully typed
-      } else if (newValue && newValue.replace(/-/g, "").length === 12 && !tinRegex.test(newValue)) {
-        newFieldErrors.tinNumber = "Invalid TIN format (###-###-###-###)";
-      } else {
-        delete newFieldErrors.tinNumber;
-      }
-    }
-
-    // Special handling for SSS/GSIS
-    if (name === "sssGsisNumber") {
-      // Detect format based on length
-      const cleaned = value.replace(/\D/g, "");
-      if (cleaned.length <= 10) {
-        newValue = formatSSS(value);
-      } else {
-        newValue = formatGSIS(value);
-      }
-      delete newFieldErrors.sssGsisNumber;
-    }
-
-    // Special handling for emergency contact phone number
-    if (name === "emergencyContact") {
-      newValue = formatPhoneNumber(value);
-      if (newValue && !validatePhone(newValue)) {
-        newFieldErrors.emergencyContact = "Phone must start with 9 after +63";
-      } else {
-        delete newFieldErrors.emergencyContact;
-      }
-    }
-
     setFieldErrors(newFieldErrors);
 
     // Create updated form data
@@ -501,11 +441,9 @@ const Register = () => {
       [name]: newValue,
     };
 
-    // Auto-determine salutation when gender or civil status changes
-    if (name === "gender" || name === "civilStatus") {
-      const gender = name === "gender" ? newValue : formData.gender;
-      const civilStatus = name === "civilStatus" ? newValue : formData.civilStatus;
-      updatedFormData.salutation = getSalutation(gender, civilStatus);
+    // Auto-determine salutation when gender changes
+    if (name === "gender") {
+      updatedFormData.salutation = getSalutation(newValue);
     }
 
     setFormData(updatedFormData);
@@ -517,7 +455,12 @@ const Register = () => {
       const currentGroups = prev.sectoralGroups || [];
       if (currentGroups.includes(group)) {
         // Remove if already selected
-        return { ...prev, sectoralGroups: currentGroups.filter(g => g !== group) };
+        const updatedData = { ...prev, sectoralGroups: currentGroups.filter(g => g !== group) };
+        // Clear women's org if 'woman' is removed
+        if (group === 'woman') {
+          updatedData.womensOrganization = "";
+        }
+        return updatedData;
       } else {
         // Add if not selected
         return { ...prev, sectoralGroups: [...currentGroups, group] };
@@ -617,50 +560,63 @@ const Register = () => {
 
   const validateStep = (step) => {
     setError("");
+    const errors = {};
 
     // Step 0: Resident type selection
     if (step === 0) {
       if (!formData.residentType) {
         setError("Please select whether you are a Barangay Culiat resident");
+        errors.residentType = true;
+        setFieldErrors(errors);
         return false;
       }
     }
 
     if (step === 1) {
-      // Email is optional for elderly users
-      if (
-        !formData.username ||
-        !formData.password ||
-        !formData.confirmPassword
-      ) {
-        setError("Please fill in all account fields");
-        return false;
+      // Username validation
+      if (!formData.username) {
+        errors.username = "Username is required";
       }
-      // Only validate email if provided
+      
+      // Email validation - only if provided
       if (formData.email && !validateEmail(formData.email)) {
-        setError("Please enter a valid email address (e.g., example@domain.com)");
-        return false;
+        errors.email = "Please enter a valid email address";
       }
-      if (formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match");
-        return false;
+      
+      // Password validation
+      if (!formData.password) {
+        errors.password = "Password is required";
+      } else if (formData.password.length < 6) {
+        errors.password = "Password must be at least 6 characters";
       }
-      if (formData.password.length < 6) {
-        setError("Password must be at least 6 characters");
+      
+      // Confirm password validation
+      if (!formData.confirmPassword) {
+        errors.confirmPassword = "Please confirm your password";
+      } else if (formData.password !== formData.confirmPassword) {
+        errors.confirmPassword = "Passwords do not match";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        setError("Please fill in all required account fields correctly");
+        scrollToFirstError(errors);
         return false;
       }
     }
 
     if (step === 2) {
-      if (
-        !formData.firstName ||
-        !formData.lastName ||
-        !formData.dateOfBirth ||
-        !formData.gender ||
-        !formData.civilStatus ||
-        !formData.phoneNumber
-      ) {
+      // Personal information validation
+      if (!formData.firstName) errors.firstName = "First name is required";
+      if (!formData.lastName) errors.lastName = "Last name is required";
+      if (!formData.dateOfBirth) errors.dateOfBirth = "Date of birth is required";
+      if (!formData.gender) errors.gender = "Gender is required";
+      if (!formData.phoneNumber) errors.phoneNumber = "Phone number is required";
+
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
         setError("Please fill in all required personal information fields");
+        scrollToFirstError(errors);
         return false;
       }
     }
@@ -668,25 +624,20 @@ const Register = () => {
     if (step === 3) {
       // Address validation depends on resident type
       if (formData.residentType === "resident") {
-        if (!formData.houseNumber || !formData.street) {
-          setError("Please fill in your address");
-          return false;
-        }
+        if (!formData.houseNumber) errors.houseNumber = "House number is required";
+        if (!formData.street) errors.street = "Street is required";
       } else if (formData.residentType === "non_resident") {
-        if (!formData.nonResidentHouseNumber || !formData.nonResidentStreet || 
-            !formData.nonResidentBarangay || !formData.nonResidentCity || 
-            !formData.nonResidentProvince) {
-          setError("Please fill in your complete address");
-          return false;
-        }
+        if (!formData.nonResidentHouseNumber) errors.nonResidentHouseNumber = "House number is required";
+        if (!formData.nonResidentStreet) errors.nonResidentStreet = "Street is required";
+        if (!formData.nonResidentBarangay) errors.nonResidentBarangay = "Barangay is required";
+        if (!formData.nonResidentCity) errors.nonResidentCity = "City is required";
+        if (!formData.nonResidentProvince) errors.nonResidentProvince = "Province is required";
       }
-      if (!formData.emergencyName || !formData.emergencyContact) {
-        setError("Please provide emergency contact information");
-        return false;
-      }
-      // Validate emergency contact phone format
-      if (formData.emergencyContact && !validatePhone(formData.emergencyContact)) {
-        setError("Please enter a valid emergency contact number (must start with 9 after +63)");
+
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        setError("Please fill in your complete address");
+        scrollToFirstError(errors);
         return false;
       }
     }
@@ -694,44 +645,56 @@ const Register = () => {
     if (step === 4) {
       // Validate Document 1
       if (!formData.primaryID1Type) {
+        errors.primaryID1Type = "Document type is required";
         setError("Please select the type of your first document");
-        return false;
       }
       if (!formData.primaryID1File) {
-        setError("Please upload your first document");
-        return false;
+        errors.primaryID1File = "Document file is required";
+        if (!errors.primaryID1Type) setError("Please upload your first document");
       }
       // Only require back for non-endorsement letters
       if (!isEndorsementLetter(formData.primaryID1Type) && !formData.primaryID1BackFile) {
-        setError("Please upload the back of your first ID");
-        return false;
+        errors.primaryID1BackFile = "Back of ID is required";
+        if (!errors.primaryID1Type && !errors.primaryID1File) setError("Please upload the back of your first ID");
       }
 
-      // Validate Document 2
-      if (!formData.primaryID2Type) {
-        setError("Please select the type of your second document");
-        return false;
-      }
-      if (!formData.primaryID2File) {
-        setError("Please upload your second document");
-        return false;
-      }
-      // Only require back for non-endorsement letters
-      if (!isEndorsementLetter(formData.primaryID2Type) && !formData.primaryID2BackFile) {
-        setError("Please upload the back of your second ID");
-        return false;
-      }
+      // Check for Primary ID 2 only for Non-Residents
+      if (formData.residentType === 'non_resident') {
+        // Validate Document 2
+        if (!formData.primaryID2Type) {
+          errors.primaryID2Type = "Second document type is required";
+          if (Object.keys(errors).length === 0) setError("Please select the type of your second document");
+        }
+        if (!formData.primaryID2File) {
+          errors.primaryID2File = "Second document file is required";
+          if (Object.keys(errors).length === 0) setError("Please upload your second document");
+        }
+        // Only require back for non-endorsement letters
+        if (!isEndorsementLetter(formData.primaryID2Type) && !formData.primaryID2BackFile) {
+          errors.primaryID2BackFile = "Back of second ID is required";
+          if (Object.keys(errors).length === 0) setError("Please upload the back of your second ID");
+        }
 
-      // Check that both documents are different types
-      if (formData.primaryID1Type === formData.primaryID2Type) {
-        setError("Please select two different types of documents");
-        return false;
+        // Check that both documents are different types
+        if (formData.primaryID1Type === formData.primaryID2Type && formData.primaryID1Type && formData.primaryID2Type) {
+          errors.primaryID2Type = "Must be different from first document";
+          if (Object.keys(errors).length === 1) setError("Please select two different types of documents");
+        }
       }
 
       // Validate at least one is a valid government ID
-      const docValidation = validateDocumentCombination(formData.primaryID1Type, formData.primaryID2Type);
-      if (!docValidation.valid) {
-        setError(docValidation.message);
+      if (Object.keys(errors).length === 0) {
+        const docValidation = validateDocumentCombination(formData.primaryID1Type, formData.primaryID2Type, formData.residentType);
+        if (!docValidation.valid) {
+          setError(docValidation.message);
+          errors.primaryID1Type = docValidation.message;
+          setFieldErrors(errors);
+          scrollToFirstError(errors);
+          return false;
+        }
+      } else {
+        setFieldErrors(errors);
+        scrollToFirstError(errors);
         return false;
       }
     }
@@ -739,11 +702,33 @@ const Register = () => {
     if (step === 5) {
       if (!formData.termsAccepted) {
         setError("You must accept the Terms and Conditions to register");
+        errors.termsAccepted = true;
+        setFieldErrors(errors);
         return false;
       }
     }
 
+    setFieldErrors({});
     return true;
+  };
+
+  // Scroll to first field with error
+  const scrollToFirstError = (errors) => {
+    const firstErrorField = Object.keys(errors)[0];
+    if (firstErrorField) {
+      // Try to find the input element
+      const element = document.querySelector(`[name="${firstErrorField}"]`) || 
+                     document.querySelector(`#${firstErrorField}`) ||
+                     document.querySelector(`.error-${firstErrorField}`);
+      
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Focus on the element after a short delay
+        setTimeout(() => {
+          element.focus?.();
+        }, 300);
+      }
+    }
   };
 
   const nextStep = () => {
@@ -822,10 +807,9 @@ const Register = () => {
       if (formData.placeOfBirth)
         formDataToSend.append("placeOfBirth", formData.placeOfBirth);
       formDataToSend.append("gender", formData.gender);
-      formDataToSend.append("civilStatus", formData.civilStatus);
 
-      // Auto-calculated salutation based on sex and civil status
-      const autoSalutation = getSalutation(formData.gender, formData.civilStatus);
+      // Auto-calculated salutation based on gender
+      const autoSalutation = getSalutation(formData.gender);
       formDataToSend.append("salutation", autoSalutation);
 
       formDataToSend.append("nationality", formData.nationality);
@@ -836,11 +820,14 @@ const Register = () => {
 
       // Address based on resident type
       if (formData.residentType === "resident") {
-        formDataToSend.append("address[houseNumber]", formData.houseNumber || "");
-        formDataToSend.append("address[street]", formData.street || "");
-        formDataToSend.append("address[subdivision]", formData.subdivision || "");
-        if (formData.area)
-          formDataToSend.append("address[area]", formData.area);
+        const residentAddr = {
+          houseNumber: formData.houseNumber || "",
+          street: formData.street || "",
+          subdivision: formData.subdivision || "",
+          area: formData.area || "",
+          compound: formData.compound || ""
+        };
+        formDataToSend.append("address", JSON.stringify(residentAddr));
       } else if (formData.residentType === "non_resident") {
         // Send non-resident address as JSON
         const nonResidentAddr = {
@@ -852,14 +839,10 @@ const Register = () => {
           province: formData.nonResidentProvince || "",
           region: formData.nonResidentRegion || "",
           postalCode: formData.nonResidentPostalCode || "",
-          country: "Philippines",
         };
         formDataToSend.append("nonResidentAddress", JSON.stringify(nonResidentAddr));
       }
 
-      // TIN, SSS, GSIS - send "N/A" if empty
-      formDataToSend.append("tinNumber", formData.tinNumber || "N/A");
-      formDataToSend.append("sssGsisNumber", formData.sssGsisNumber || "N/A");
       if (formData.precinctNumber)
         formDataToSend.append("precinctNumber", formData.precinctNumber);
       if (formData.religion)
@@ -871,44 +854,15 @@ const Register = () => {
       if (formData.occupation)
         formDataToSend.append("occupation", formData.occupation);
 
-      if (formData.spouseName)
-        formDataToSend.append("spouseInfo[name]", formData.spouseName);
-      if (formData.spouseOccupation)
-        formDataToSend.append(
-          "spouseInfo[occupation]",
-          formData.spouseOccupation
-        );
-      if (formData.spouseContact)
-        formDataToSend.append(
-          "spouseInfo[contactNumber]",
-          formData.spouseContact
-        );
-
-      formDataToSend.append(
-        "emergencyContact[fullName]",
-        formData.emergencyName
-      );
-      if (formData.emergencyRelationship)
-        formDataToSend.append(
-          "emergencyContact[relationship]",
-          formData.emergencyRelationship
-        );
-      formDataToSend.append(
-        "emergencyContact[contactNumber]",
-        formData.emergencyContact
-      );
-      formDataToSend.append(
-        "emergencyContact[address][houseNumber]",
-        formData.emergencyHouseNumber || ""
-      );
-      formDataToSend.append(
-        "emergencyContact[address][street]",
-        formData.emergencyStreet || ""
-      );
-      formDataToSend.append(
-        "emergencyContact[address][subdivision]",
-        formData.emergencySubdivision || ""
-      );
+      // Spouse info - only if provided
+      if (formData.spouseName) {
+        const spouseInfo = {
+          name: formData.spouseName || "",
+          occupation: formData.spouseOccupation || "",
+          contactNumber: formData.spouseContact || ""
+        };
+        formDataToSend.append("spouseInfo", JSON.stringify(spouseInfo));
+      }
 
       // Primary ID 1 - use validID/backOfValidID field names for backward compatibility
       // Only send each file once to avoid multer "unexpected field" error
@@ -932,6 +886,10 @@ const Register = () => {
       // Sectoral Groups - send as JSON array
       if (formData.sectoralGroups && formData.sectoralGroups.length > 0) {
         formDataToSend.append("sectoralGroups", JSON.stringify(formData.sectoralGroups));
+      }
+
+      if (formData.womensOrganization) {
+        formDataToSend.append("womensOrganization", formData.womensOrganization);
       }
 
       const result = await register(formDataToSend);
@@ -977,10 +935,10 @@ const Register = () => {
           <div key={step} className="flex flex-col items-center">
             <motion.div
               className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${currentStep > step
-                  ? "bg-emerald-600 text-white"
-                  : currentStep === step
-                    ? "bg-emerald-600 text-white ring-4 ring-emerald-100"
-                    : "bg-slate-100 text-slate-400 border border-slate-200"
+                ? "bg-emerald-600 text-white"
+                : currentStep === step
+                  ? "bg-emerald-600 text-white ring-4 ring-emerald-100"
+                  : "bg-slate-100 text-slate-400 border border-slate-200"
                 }`}
               initial={false}
               animate={{
@@ -1036,26 +994,22 @@ const Register = () => {
             setFormData(prev => ({ ...prev, residentType: 'resident' }));
             setCurrentStep(1);
           }}
-          className={`relative p-5 rounded-xl border-2 text-left transition-all duration-300 ${
-            formData.residentType === 'resident'
-              ? 'border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-100'
-              : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50'
-          }`}
+          className={`relative p-5 rounded-xl border-2 text-left transition-all duration-300 ${formData.residentType === 'resident'
+            ? 'border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-100'
+            : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/50'
+            }`}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-start gap-4">
-            <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-              formData.residentType === 'resident' ? 'bg-emerald-500' : 'bg-slate-100'
-            }`}>
-              <MapPin className={`w-6 h-6 ${
-                formData.residentType === 'resident' ? 'text-white' : 'text-slate-400'
-              }`} />
+            <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${formData.residentType === 'resident' ? 'bg-emerald-500' : 'bg-slate-100'
+              }`}>
+              <MapPin className={`w-6 h-6 ${formData.residentType === 'resident' ? 'text-white' : 'text-slate-400'
+                }`} />
             </div>
             <div className="flex-1">
-              <h3 className={`font-semibold text-base mb-1 ${
-                formData.residentType === 'resident' ? 'text-emerald-700' : 'text-slate-700'
-              }`}>
+              <h3 className={`font-semibold text-base mb-1 ${formData.residentType === 'resident' ? 'text-emerald-700' : 'text-slate-700'
+                }`}>
                 Yes, I am a Barangay Culiat Resident
               </h3>
               <p className="text-xs text-slate-500">
@@ -1081,26 +1035,22 @@ const Register = () => {
             setFormData(prev => ({ ...prev, residentType: 'non_resident' }));
             setCurrentStep(1);
           }}
-          className={`relative p-5 rounded-xl border-2 text-left transition-all duration-300 ${
-            formData.residentType === 'non_resident'
-              ? 'border-amber-500 bg-amber-50 shadow-lg shadow-amber-100'
-              : 'border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50/50'
-          }`}
+          className={`relative p-5 rounded-xl border-2 text-left transition-all duration-300 ${formData.residentType === 'non_resident'
+            ? 'border-amber-500 bg-amber-50 shadow-lg shadow-amber-100'
+            : 'border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50/50'
+            }`}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
           <div className="flex items-start gap-4">
-            <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-              formData.residentType === 'non_resident' ? 'bg-amber-500' : 'bg-slate-100'
-            }`}>
-              <Users className={`w-6 h-6 ${
-                formData.residentType === 'non_resident' ? 'text-white' : 'text-slate-400'
-              }`} />
+            <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${formData.residentType === 'non_resident' ? 'bg-amber-500' : 'bg-slate-100'
+              }`}>
+              <Users className={`w-6 h-6 ${formData.residentType === 'non_resident' ? 'text-white' : 'text-slate-400'
+                }`} />
             </div>
             <div className="flex-1">
-              <h3 className={`font-semibold text-base mb-1 ${
-                formData.residentType === 'non_resident' ? 'text-amber-700' : 'text-slate-700'
-              }`}>
+              <h3 className={`font-semibold text-base mb-1 ${formData.residentType === 'non_resident' ? 'text-amber-700' : 'text-slate-700'
+                }`}>
                 No, I live outside Barangay Culiat
               </h3>
               <p className="text-xs text-slate-500">
@@ -1129,7 +1079,7 @@ const Register = () => {
       >
         <AlertTriangle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
         <p className="text-xs text-blue-700">
-          <strong>Note:</strong> Non-residents may have limited access to certain barangay services. 
+          <strong>Note:</strong> Non-residents may have limited access to certain barangay services.
           Your residency status will be verified during the approval process.
         </p>
       </motion.div>
@@ -1158,10 +1108,13 @@ const Register = () => {
             value={formData.username}
             onChange={handleChange}
             required
-            className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className={`block w-full pl-10 pr-3 py-2 bg-slate-50 border ${fieldErrors.username ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
             placeholder="Choose a username"
           />
         </div>
+        {fieldErrors.username && (
+          <p className="text-xs text-red-500 mt-1">{fieldErrors.username}</p>
+        )}
       </div>
 
       <div>
@@ -1203,7 +1156,7 @@ const Register = () => {
             value={formData.password}
             onChange={handleChange}
             required
-            className="block w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className={`block w-full pl-10 pr-10 py-2 bg-slate-50 border ${fieldErrors.password ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
             placeholder="Minimum 6 characters"
           />
           <button
@@ -1218,6 +1171,9 @@ const Register = () => {
             )}
           </button>
         </div>
+        {fieldErrors.password && (
+          <p className="text-xs text-red-500 mt-1">{fieldErrors.password}</p>
+        )}
       </div>
 
       <div>
@@ -1234,7 +1190,7 @@ const Register = () => {
             value={formData.confirmPassword}
             onChange={handleChange}
             required
-            className="block w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className={`block w-full pl-10 pr-10 py-2 bg-slate-50 border ${fieldErrors.confirmPassword ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
             placeholder="Re-enter your password"
           />
           <button
@@ -1249,6 +1205,9 @@ const Register = () => {
             )}
           </button>
         </div>
+        {fieldErrors.confirmPassword && (
+          <p className="text-xs text-red-500 mt-1">{fieldErrors.confirmPassword}</p>
+        )}
       </div>
     </motion.div>
   );
@@ -1261,15 +1220,6 @@ const Register = () => {
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Salutation is auto-calculated based on sex and civil status */}
-      {formData.salutation && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-          <p className="text-xs text-emerald-800">
-            <strong>Salutation:</strong> {formData.salutation} (auto-determined based on sex and civil status)
-          </p>
-        </div>
-      )}
-
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">
@@ -1281,9 +1231,12 @@ const Register = () => {
             value={formData.firstName}
             onChange={handleChange}
             required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.firstName ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
             placeholder="Juan"
           />
+          {fieldErrors.firstName && (
+            <p className="text-xs text-red-500 mt-1">{fieldErrors.firstName}</p>
+          )}
         </div>
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">
@@ -1295,9 +1248,12 @@ const Register = () => {
             value={formData.lastName}
             onChange={handleChange}
             required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+            className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.lastName ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
             placeholder="Dela Cruz"
           />
+          {fieldErrors.lastName && (
+            <p className="text-xs text-red-500 mt-1">{fieldErrors.lastName}</p>
+          )}
         </div>
       </div>
 
@@ -1350,9 +1306,12 @@ const Register = () => {
               value={formData.dateOfBirth}
               onChange={handleChange}
               required
-              className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+              className={`block w-full pl-10 pr-3 py-2 bg-slate-50 border ${fieldErrors.dateOfBirth ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm`}
             />
           </div>
+          {fieldErrors.dateOfBirth && (
+            <p className="text-xs text-red-500 mt-1">{fieldErrors.dateOfBirth}</p>
+          )}
         </div>
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">
@@ -1363,12 +1322,15 @@ const Register = () => {
             value={formData.gender}
             onChange={handleChange}
             required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+            className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.gender ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm`}
           >
             <option value="">Select Sex</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
           </select>
+          {fieldErrors.gender && (
+            <p className="text-xs text-red-500 mt-1">{fieldErrors.gender}</p>
+          )}
         </div>
       </div>
 
@@ -1387,24 +1349,6 @@ const Register = () => {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">
-            Civil Status *
-          </label>
-          <select
-            name="civilStatus"
-            value={formData.civilStatus}
-            onChange={handleChange}
-            required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
-          >
-            <option value="">Select Status</option>
-            <option value="Single">Single</option>
-            <option value="Married">Married</option>
-            <option value="Widowed">Widowed</option>
-            <option value="Separated">Separated</option>
-          </select>
-        </div>
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">
             Phone Number *
@@ -1532,15 +1476,17 @@ const Register = () => {
             { value: 'youth', label: 'Youth', icon: '🧑' },
             { value: 'solo_parent', label: 'Solo Parent', icon: '👨‍👧' },
             { value: 'pwd', label: 'PWD', icon: '♿' },
-            { value: 'lgbtqia', label: 'LGBTQIA+', icon: '🏳️‍🌈' }
+            { value: 'lgbtqia', label: 'LGBTQIA+', icon: '🏳️‍🌈' },
+            { value: 'toda', label: 'TODA', icon: '🚗' },
+            { value: 'vendor', label: 'Vendors', icon: '🏪' },
+            { value: '4ps', label: '4Ps', icon: '👨‍👩‍👧‍👦' }
           ].map((group) => (
             <label
               key={group.value}
-              className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${
-                formData.sectoralGroups?.includes(group.value)
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                  : 'bg-white border-slate-200 hover:border-emerald-200 text-slate-700'
-              }`}
+              className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${formData.sectoralGroups?.includes(group.value)
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                : 'bg-white border-slate-200 hover:border-emerald-200 text-slate-700'
+                }`}
             >
               <input
                 type="checkbox"
@@ -1553,46 +1499,35 @@ const Register = () => {
             </label>
           ))}
         </div>
-      </div>
 
-      {formData.civilStatus === "Married" && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-3"
-        >
-          <h4 className="text-sm font-semibold text-emerald-900 flex items-center gap-2">
-            <Heart className="h-4 w-4" /> Spouse Information
-          </h4>
-          <input
-            type="text"
-            name="spouseName"
-            value={formData.spouseName}
-            onChange={handleChange}
-            className="block w-full px-3 py-2.5 bg-white border-2 border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-            placeholder="Spouse Full Name"
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              type="text"
-              name="spouseOccupation"
-              value={formData.spouseOccupation}
-              onChange={handleChange}
-              className="block w-full px-3 py-2.5 bg-white border-2 border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-              placeholder="Spouse Occupation"
-            />
-            <input
-              type="tel"
-              name="spouseContact"
-              value={formData.spouseContact}
-              onChange={handleChange}
-              className="block w-full px-3 py-2.5 bg-white border-2 border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-              placeholder="Spouse Contact"
-            />
-          </div>
-        </motion.div>
-      )}
+        {/* Women's Organization Sub-dropdown */}
+        <AnimatePresence>
+          {formData.sectoralGroups?.includes('woman') && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-3 p-3 bg-white border border-slate-100 rounded-lg shadow-sm"
+            >
+              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                Women's Organization (Optional)
+              </label>
+              <select
+                name="womensOrganization"
+                value={formData.womensOrganization}
+                onChange={handleChange}
+                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+              >
+                <option value="">Select Organization</option>
+                <option value="K.K.K">K.K.K</option>
+                <option value="B.A.B.A.E">B.A.B.A.E</option>
+                <option value="MSKC">MSKC</option>
+                <option value="BANTAY BUNTIS">BANTAY BUNTIS</option>
+              </select>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 
@@ -1605,11 +1540,10 @@ const Register = () => {
       transition={{ duration: 0.3 }}
     >
       {/* Resident Type Badge */}
-      <div className={`flex items-center gap-2 p-2 rounded-lg ${
-        formData.residentType === 'resident' 
-          ? 'bg-emerald-50 border border-emerald-200' 
-          : 'bg-amber-50 border border-amber-200'
-      }`}>
+      <div className={`flex items-center gap-2 p-2 rounded-lg ${formData.residentType === 'resident'
+        ? 'bg-emerald-50 border border-emerald-200'
+        : 'bg-amber-50 border border-amber-200'
+        }`}>
         {formData.residentType === 'resident' ? (
           <>
             <MapPin className="h-4 w-4 text-emerald-600" />
@@ -1624,7 +1558,7 @@ const Register = () => {
       </div>
 
       <h4 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
-        <MapPin className="h-4 w-4 text-emerald-600" /> 
+        <MapPin className="h-4 w-4 text-emerald-600" />
         {formData.residentType === 'resident' ? 'Your Barangay Culiat Address' : 'Your Current Address'}
       </h4>
 
@@ -1642,9 +1576,12 @@ const Register = () => {
                 value={formData.houseNumber}
                 onChange={handleChange}
                 required
-                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.houseNumber ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
                 placeholder="123"
               />
+              {fieldErrors.houseNumber && (
+                <p className="text-xs text-red-500 mt-1">{fieldErrors.houseNumber}</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
@@ -1656,9 +1593,12 @@ const Register = () => {
                 value={formData.street}
                 onChange={handleChange}
                 required
-                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.street ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
                 placeholder="Main Street"
               />
+              {fieldErrors.street && (
+                <p className="text-xs text-red-500 mt-1">{fieldErrors.street}</p>
+              )}
             </div>
           </div>
 
@@ -1678,7 +1618,7 @@ const Register = () => {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
-                Area / Zone
+                Purok / Area
               </label>
               <select
                 name="area"
@@ -1686,7 +1626,7 @@ const Register = () => {
                 onChange={handleChange}
                 className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
               >
-                <option value="">Select Area/Zone</option>
+                <option value="">Select Area (If any)</option>
                 {areaOptions.map((area) => (
                   <option key={area} value={area}>
                     {area}
@@ -1694,6 +1634,25 @@ const Register = () => {
                 ))}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Compound
+            </label>
+            <select
+              name="compound"
+              value={formData.compound}
+              onChange={handleChange}
+              className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+            >
+              <option value="">Select Compound (if any)</option>
+              {compoundOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="bg-slate-100 border border-slate-300 rounded-lg p-3">
@@ -1719,9 +1678,12 @@ const Register = () => {
                 value={formData.nonResidentHouseNumber}
                 onChange={handleChange}
                 required
-                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.nonResidentHouseNumber ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
                 placeholder="123"
               />
+              {fieldErrors.nonResidentHouseNumber && (
+                <p className="text-xs text-red-500 mt-1">{fieldErrors.nonResidentHouseNumber}</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
@@ -1733,9 +1695,12 @@ const Register = () => {
                 value={formData.nonResidentStreet}
                 onChange={handleChange}
                 required
-                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.nonResidentStreet ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
                 placeholder="Main Street"
               />
+              {fieldErrors.nonResidentStreet && (
+                <p className="text-xs text-red-500 mt-1">{fieldErrors.nonResidentStreet}</p>
+              )}
             </div>
           </div>
 
@@ -1763,9 +1728,12 @@ const Register = () => {
                 value={formData.nonResidentBarangay}
                 onChange={handleChange}
                 required
-                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.nonResidentBarangay ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
                 placeholder="Your Barangay"
               />
+              {fieldErrors.nonResidentBarangay && (
+                <p className="text-xs text-red-500 mt-1">{fieldErrors.nonResidentBarangay}</p>
+              )}
             </div>
           </div>
 
@@ -1780,9 +1748,12 @@ const Register = () => {
                 value={formData.nonResidentCity}
                 onChange={handleChange}
                 required
-                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.nonResidentCity ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
                 placeholder="City / Municipality"
               />
+              {fieldErrors.nonResidentCity && (
+                <p className="text-xs text-red-500 mt-1">{fieldErrors.nonResidentCity}</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
@@ -1794,9 +1765,12 @@ const Register = () => {
                 value={formData.nonResidentProvince}
                 onChange={handleChange}
                 required
-                className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.nonResidentProvince ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
                 placeholder="Province (e.g., Metro Manila)"
               />
+              {fieldErrors.nonResidentProvince && (
+                <p className="text-xs text-red-500 mt-1">{fieldErrors.nonResidentProvince}</p>
+              )}
             </div>
           </div>
 
@@ -1831,110 +1805,12 @@ const Register = () => {
 
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <p className="text-xs text-amber-700">
-              <strong>Note:</strong> As a non-resident, you may have limited access to certain barangay services 
+              <strong>Note:</strong> As a non-resident, you may have limited access to certain barangay services
               that are reserved for Barangay Culiat residents only.
             </p>
           </div>
         </>
       )}
-
-      <div className="pt-4 border-t border-slate-200">
-        <h4 className="text-sm font-semibold text-slate-800 mb-3">
-          Emergency Contact *
-        </h4>
-
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <input
-            type="text"
-            name="emergencyName"
-            value={formData.emergencyName}
-            onChange={handleChange}
-            required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-            placeholder="Full Name"
-          />
-          <input
-            type="text"
-            name="emergencyRelationship"
-            value={formData.emergencyRelationship}
-            onChange={handleChange}
-            required
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-            placeholder="Relationship"
-          />
-        </div>
-
-        <div className="mb-3">
-          <input
-            type="tel"
-            name="emergencyContact"
-            value={formData.emergencyContact}
-            onChange={handleChange}
-            required
-            className={`block w-full px-3 py-2 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm ${fieldErrors.emergencyContact ? 'border-red-500' : 'border-slate-200'}`}
-            placeholder="Contact Number (e.g., +63 9XX XXX XXXX)"
-          />
-          {fieldErrors.emergencyContact && (
-            <p className="text-red-500 text-xs mt-1">{fieldErrors.emergencyContact}</p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-3 gap-3">
-          <input
-            type="text"
-            name="emergencyHouseNumber"
-            value={formData.emergencyHouseNumber}
-            onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-            placeholder="House No."
-          />
-          <input
-            type="text"
-            name="emergencyStreet"
-            value={formData.emergencyStreet}
-            onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-            placeholder="Street"
-          />
-          <input
-            type="text"
-            name="emergencySubdivision"
-            value={formData.emergencySubdivision}
-            onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-            placeholder="Subdivision"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">
-            TIN Number
-          </label>
-          <input
-            type="text"
-            name="tinNumber"
-            value={formData.tinNumber}
-            onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-            placeholder="000-000-000"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 mb-1">
-            SSS/GSIS Number
-          </label>
-          <input
-            type="text"
-            name="sssGsisNumber"
-            value={formData.sssGsisNumber}
-            onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
-            placeholder="00-0000000-0"
-          />
-        </div>
-      </div>
     </motion.div>
   );
 
@@ -1952,8 +1828,22 @@ const Register = () => {
           <Shield className="w-4 h-4" /> Document Requirements
         </h4>
         <ul className="text-xs text-emerald-800 space-y-1 list-disc pl-4">
-          <li>At least 1 valid government-issued ID is required</li>
-          <li>You may also upload an Endorsement Letter from Homeowners President or Purok Leaders</li>
+          {formData.residentType === 'resident' ? (
+            <>
+              <li>Only 1 valid government-issued ID is required for residents</li>
+              {(calculateAge(formData.dateOfBirth) < 18 || formData.sectoralGroups?.includes('youth')) && (
+                <li>Minors and Youth may provide a Barangay ID or Birth Certificate</li>
+              )}
+            </>
+          ) : (
+            <>
+              <li>Non-residents must provide 1 valid government ID AND 1 endorsement letter</li>
+              {calculateAge(formData.dateOfBirth) < 18 || formData.sectoralGroups?.includes('youth') ? (
+                <li>For the ID, minors/youth may use Barangay ID or Birth Certificate</li>
+              ) : null}
+              <li>Endorsement letter must be from Homeowners President or Purok Leaders</li>
+            </>
+          )}
           <li>For IDs: Both front and back must be uploaded</li>
           <li>For Endorsement Letters: Only one image is required</li>
           <li>Files must be JPG, JPEG, or PNG format (max 5MB each)</li>
@@ -1964,7 +1854,11 @@ const Register = () => {
       <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
         <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
           <IdCard className="h-4 w-4 text-emerald-600" />
-          {isEndorsementLetter(formData.primaryID1Type) ? 'Document #1 - Endorsement Letter' : 'Primary Government ID #1 *'}
+          {formData.residentType === 'resident'
+            ? 'Valid Government ID *'
+            : isEndorsementLetter(formData.primaryID1Type)
+              ? 'Document #1 - Endorsement Letter'
+              : 'Primary Government ID #1 *'}
         </h4>
 
         {/* Document Type Selector */}
@@ -1978,19 +1872,34 @@ const Register = () => {
             onChange={handleChange}
             className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
           >
-            {governmentIDOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
+            {governmentIDOptions
+              .filter(option => {
+                const age = calculateAge(formData.dateOfBirth);
+                const isChildOrYouth = age < 18 || formData.sectoralGroups?.includes('youth');
+                const isSpecialID = option.value === 'barangay_id' || option.value === 'birth_certificate';
+
+                if (isSpecialID && !isChildOrYouth) {
+                  return false;
+                }
+
+                if (formData.residentType === 'resident') {
+                  return option.value === "" || isGovernmentID(option.value);
+                }
+                return true;
+              })
+              .map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
           </select>
         </div>
 
-        {/* Show warning if endorsement letter selected as first document */}
-        {isEndorsementLetter(formData.primaryID1Type) && (
+        {/* Show warning if endorsement letter selected as first document for non-residents */}
+        {formData.residentType === 'non_resident' && isEndorsementLetter(formData.primaryID1Type) && (
           <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-xs text-amber-700">
-              <strong>Note:</strong> An endorsement letter alone is not sufficient. You must also upload at least 1 valid government-issued ID.
+              <strong>Note:</strong> Since Document #1 is an endorsement letter, Document #2 must be a valid government ID.
             </p>
           </div>
         )}
@@ -2078,101 +1987,74 @@ const Register = () => {
         </div>
       </div>
 
-      {/* DOCUMENT 2 */}
-      <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
-        <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-          <IdCard className="h-4 w-4 text-green-600" />
-          {isEndorsementLetter(formData.primaryID2Type) 
-            ? 'Document #2 - Endorsement Letter' 
-            : isEndorsementLetter(formData.primaryID1Type) 
-              ? 'Primary Government ID #1 * (Required)' 
-              : 'Primary Government ID #2 *'}
-        </h4>
+      {/* DOCUMENT 2 - ONLY FOR NON-RESIDENTS */}
+      {formData.residentType === 'non_resident' && (
+        <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
+          <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <IdCard className="h-4 w-4 text-green-600" />
+            {isEndorsementLetter(formData.primaryID2Type)
+              ? 'Document #2 - Endorsement Letter'
+              : isEndorsementLetter(formData.primaryID1Type)
+                ? 'Primary Government ID * (Required)'
+                : 'Primary Government ID #2 *'}
+          </h4>
 
-        {/* Document Type Selector */}
-        <div className="mb-4">
-          <label className="block text-xs font-semibold text-slate-600 mb-1">
-            Select Document Type *
-          </label>
-          <select
-            name="primaryID2Type"
-            value={formData.primaryID2Type}
-            onChange={handleChange}
-            className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
-          >
-            {governmentIDOptions
-              .filter(option => option.value !== formData.primaryID1Type || option.value === "")
-              .map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-          </select>
-          {formData.primaryID1Type && formData.primaryID2Type && formData.primaryID1Type === formData.primaryID2Type && (
-            <p className="text-xs text-red-500 mt-1">Please select a different document type from your first one</p>
-          )}
-          {/* Show requirement if first document is endorsement letter */}
-          {isEndorsementLetter(formData.primaryID1Type) && !isGovernmentID(formData.primaryID2Type) && formData.primaryID2Type && (
-            <p className="text-xs text-red-500 mt-1">Since Document #1 is an endorsement letter, Document #2 must be a valid government ID</p>
-          )}
-        </div>
-
-        <div className={`grid ${isEndorsementLetter(formData.primaryID2Type) ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
-          {/* Front of Document 2 */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-2">
-              {isEndorsementLetter(formData.primaryID2Type) ? 'Upload Endorsement Letter *' : 'Front of ID *'}
+          {/* Document Type Selector */}
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Select Document Type *
             </label>
-            {!primaryID2Preview ? (
-              <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-green-400 transition-all">
-                <Upload className="w-8 h-8 mb-2 text-slate-400" />
-                <span className="text-xs font-medium text-center">
-                  {isEndorsementLetter(formData.primaryID2Type) ? 'Upload Letter' : 'Upload Front'}
-                </span>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/jpeg,image/jpg,image/png"
-                  onChange={(e) => handleFileChange(e, "primaryID2File")}
-                />
-              </label>
-            ) : (
-              <motion.div
-                className="relative"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-              >
-                <img
-                  src={primaryID2Preview}
-                  alt="Primary Document 2"
-                  className="w-full h-32 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeFile("primaryID2File")}
-                  className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </motion.div>
+            <select
+              name="primaryID2Type"
+              value={formData.primaryID2Type}
+              onChange={handleChange}
+              className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
+            >
+              {governmentIDOptions
+                .filter(option => {
+                  const age = calculateAge(formData.dateOfBirth);
+                  const isChildOrYouth = age < 18 || formData.sectoralGroups?.includes('youth');
+                  const isSpecialID = option.value === 'barangay_id' || option.value === 'birth_certificate';
+
+                  if (isSpecialID && !isChildOrYouth) return false;
+                  return option.value !== formData.primaryID1Type || option.value === "";
+                })
+                .map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+            </select>
+            {formData.primaryID1Type && formData.primaryID2Type && formData.primaryID1Type === formData.primaryID2Type && (
+              <p className="text-xs text-red-500 mt-1">Please select a different document type from your first one</p>
+            )}
+            {/* Show requirement if first document is endorsement letter */}
+            {isEndorsementLetter(formData.primaryID1Type) && !isGovernmentID(formData.primaryID2Type) && formData.primaryID2Type && (
+              <p className="text-xs text-red-500 mt-1">Since Document #1 is an endorsement letter, Document #2 must be a valid government ID</p>
+            )}
+            {/* Show requirement if first document is government ID */}
+            {isGovernmentID(formData.primaryID1Type) && !isEndorsementLetter(formData.primaryID2Type) && formData.primaryID2Type && (
+              <p className="text-xs text-red-500 mt-1">Since Document #1 is a government ID, Document #2 must be an endorsement letter</p>
             )}
           </div>
 
-          {/* Back of ID 2 - Only show for government IDs */}
-          {!isEndorsementLetter(formData.primaryID2Type) && (
+          <div className={`grid ${isEndorsementLetter(formData.primaryID2Type) ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+            {/* Front of Document 2 */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-2">
-                Back of ID *
+                {isEndorsementLetter(formData.primaryID2Type) ? 'Upload Endorsement Letter *' : 'Front of ID *'}
               </label>
-              {!primaryID2BackPreview ? (
+              {!primaryID2Preview ? (
                 <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-green-400 transition-all">
                   <Upload className="w-8 h-8 mb-2 text-slate-400" />
-                  <span className="text-xs font-medium text-center">Upload Back</span>
+                  <span className="text-xs font-medium text-center">
+                    {isEndorsementLetter(formData.primaryID2Type) ? 'Upload Letter' : 'Upload Front'}
+                  </span>
                   <input
                     type="file"
                     className="hidden"
                     accept="image/jpeg,image/jpg,image/png"
-                    onChange={(e) => handleFileChange(e, "primaryID2BackFile")}
+                    onChange={(e) => handleFileChange(e, "primaryID2File")}
                   />
                 </label>
               ) : (
@@ -2182,13 +2064,13 @@ const Register = () => {
                   animate={{ opacity: 1, scale: 1 }}
                 >
                   <img
-                    src={primaryID2BackPreview}
-                    alt="Primary ID 2 Back"
+                    src={primaryID2Preview}
+                    alt="Primary Document 2"
                     className="w-full h-32 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
                   />
                   <button
                     type="button"
-                    onClick={() => removeFile("primaryID2BackFile")}
+                    onClick={() => removeFile("primaryID2File")}
                     className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
                   >
                     <X className="h-3 w-3" />
@@ -2196,9 +2078,49 @@ const Register = () => {
                 </motion.div>
               )}
             </div>
-          )}
+
+            {/* Back of ID 2 - Only show for government IDs */}
+            {!isEndorsementLetter(formData.primaryID2Type) && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-2">
+                  Back of ID *
+                </label>
+                {!primaryID2BackPreview ? (
+                  <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-green-400 transition-all">
+                    <Upload className="w-8 h-8 mb-2 text-slate-400" />
+                    <span className="text-xs font-medium text-center">Upload Back</span>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/jpeg,image/jpg,image/png"
+                      onChange={(e) => handleFileChange(e, "primaryID2BackFile")}
+                    />
+                  </label>
+                ) : (
+                  <motion.div
+                    className="relative"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                  >
+                    <img
+                      src={primaryID2BackPreview}
+                      alt="Primary ID 2 Back"
+                      className="w-full h-32 object-contain border-2 border-slate-200 rounded-lg bg-slate-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeFile("primaryID2BackFile")}
+                      className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </motion.div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Upload Progress Indicator */}
       <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
@@ -2214,16 +2136,18 @@ const Register = () => {
               Document #1: {formData.primaryID1Type ? getDocumentTypeLabel(formData.primaryID1Type) : 'Not selected'}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            {formData.primaryID2Type && formData.primaryID2File && (isEndorsementLetter(formData.primaryID2Type) || formData.primaryID2BackFile) ? (
-              <CheckCircle className="w-4 h-4 text-green-500" />
-            ) : (
-              <div className="w-4 h-4 rounded-full border-2 border-slate-300" />
-            )}
-            <span className={`text-xs ${formData.primaryID2Type && formData.primaryID2File && (isEndorsementLetter(formData.primaryID2Type) || formData.primaryID2BackFile) ? 'text-green-700' : 'text-slate-500'}`}>
-              Document #2: {formData.primaryID2Type ? getDocumentTypeLabel(formData.primaryID2Type) : 'Not selected'}
-            </span>
-          </div>
+          {formData.residentType === 'non_resident' && (
+            <div className="flex items-center gap-2">
+              {formData.primaryID2Type && formData.primaryID2File && (isEndorsementLetter(formData.primaryID2Type) || formData.primaryID2BackFile) ? (
+                <CheckCircle className="w-4 h-4 text-green-500" />
+              ) : (
+                <div className="w-4 h-4 rounded-full border-2 border-slate-300" />
+              )}
+              <span className={`text-xs ${formData.primaryID2Type && formData.primaryID2File && (isEndorsementLetter(formData.primaryID2Type) || formData.primaryID2BackFile) ? 'text-green-700' : 'text-slate-500'}`}>
+                Document #2: {formData.primaryID2Type ? getDocumentTypeLabel(formData.primaryID2Type) : 'Not selected'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -2286,6 +2210,28 @@ const Register = () => {
           </p>
         </div>
       </div>
+
+      {/* Instructions Box */}
+      <motion.div
+        className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div className="flex items-start gap-3">
+          <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+            <span className="text-white text-sm font-bold">i</span>
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-blue-900 mb-1 text-sm">Important Instructions:</h4>
+            <ol className="list-decimal list-inside text-sm text-blue-800 space-y-1">
+              <li>Click on the <span className="font-semibold underline">Terms and Conditions</span> and <span className="font-semibold underline">Privacy Policy</span> buttons below to read each document</li>
+              <li>Scroll down to the bottom of each document in the popup window</li>
+              <li>After reading both documents completely, check the acceptance box</li>
+            </ol>
+          </div>
+        </div>
+      </motion.div>
 
       <motion.div
         className="bg-white border-2 border-slate-200 rounded-lg p-6 h-80 overflow-y-auto text-sm text-slate-700 shadow-inner"
@@ -2449,17 +2395,12 @@ const Register = () => {
             type="checkbox"
             checked={formData.termsAccepted}
             onChange={handleChange}
-            disabled={!formData.termsAccepted}
-            className={`w-5 h-5 text-emerald-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 ${
-              formData.termsAccepted ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'
-            }`}
+            className="w-5 h-5 text-emerald-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-emerald-500 cursor-pointer"
           />
         </div>
         <label
           htmlFor="termsAccepted"
-          className={`text-sm text-slate-700 select-none ${
-            formData.termsAccepted ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'
-          }`}
+          className="text-sm text-slate-700 select-none cursor-pointer"
         >
           I have read and agree to the{" "}
           <button
@@ -2542,21 +2483,19 @@ const Register = () => {
               <div className="flex gap-2 px-6 pt-4">
                 <button
                   onClick={() => setTermsTab('privacy')}
-                  className={`flex-1 py-3 px-4 font-semibold rounded-t-lg transition-all ${
-                    termsTab === 'privacy'
-                      ? 'bg-white text-emerald-600 shadow-sm'
-                      : 'text-slate-600 hover:bg-white/50'
-                  }`}
+                  className={`flex-1 py-3 px-4 font-semibold rounded-t-lg transition-all ${termsTab === 'privacy'
+                    ? 'bg-white text-emerald-600 shadow-sm'
+                    : 'text-slate-600 hover:bg-white/50'
+                    }`}
                 >
                   Privacy Policy
                 </button>
                 <button
                   onClick={() => setTermsTab('terms')}
-                  className={`flex-1 py-3 px-4 font-semibold rounded-t-lg transition-all ${
-                    termsTab === 'terms'
-                      ? 'bg-white text-indigo-600 shadow-sm'
-                      : 'text-slate-600 hover:bg-white/50'
-                  }`}
+                  className={`flex-1 py-3 px-4 font-semibold rounded-t-lg transition-all ${termsTab === 'terms'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-slate-600 hover:bg-white/50'
+                    }`}
                 >
                   Terms of Service
                 </button>
@@ -2588,7 +2527,6 @@ const Register = () => {
                           <li>Contact information (Phone number, Email address)</li>
                           <li>Address and residency information</li>
                           <li>Government-issued identification documents</li>
-                          <li>Emergency contact information</li>
                           <li>Cookies and tracking technologies for functionality</li>
                           <li>IP address and device information for security</li>
                           <li>Usage data to improve our services</li>
@@ -2787,8 +2725,8 @@ const Register = () => {
                     onClick={handleAcceptTerms}
                     disabled={!canAcceptTerms}
                     className={`flex-1 sm:flex-none px-6 py-3 font-semibold rounded-lg transition-all ${canAcceptTerms
-                        ? 'bg-gradient-to-r from-emerald-600 to-indigo-600 text-white hover:from-emerald-700 hover:to-indigo-700 shadow-lg'
-                        : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                      ? 'bg-gradient-to-r from-emerald-600 to-indigo-600 text-white hover:from-emerald-700 hover:to-indigo-700 shadow-lg'
+                      : 'bg-slate-300 text-slate-500 cursor-not-allowed'
                       }`}
                   >
                     I Agree
@@ -2892,8 +2830,8 @@ const Register = () => {
               Secure • Trusted • Community-Driven
             </p>
             <p className="text-white/70 text-[9px] mt-3 leading-relaxed drop-shadow">
-              Your personal data is protected under the Data Privacy Act of 2012 (R.A. 10173). 
-              By registering, you consent to the collection and processing of your information 
+              Your personal data is protected under the Data Privacy Act of 2012 (R.A. 10173).
+              By registering, you consent to the collection and processing of your information
               for barangay services and official purposes.
             </p>
           </div>
@@ -2949,14 +2887,14 @@ const Register = () => {
                   {currentStep === 0
                     ? "Select your residency status"
                     : currentStep === 1
-                    ? "Set up your login credentials"
-                    : currentStep === 2
-                      ? "Tell us about yourself"
-                      : currentStep === 3
-                        ? "Your address & emergency contact"
-                        : currentStep === 4
-                          ? "Upload verification documents"
-                          : "Review and accept terms"}
+                      ? "Set up your login credentials"
+                      : currentStep === 2
+                        ? "Tell us about yourself"
+                        : currentStep === 3
+                          ? "Your address information"
+                          : currentStep === 4
+                            ? "Upload verification documents"
+                            : "Review and accept terms"}
                 </p>
               </div>
 
@@ -2989,62 +2927,62 @@ const Register = () => {
                 </AnimatePresence>
 
                 <div className="mt-6">
-                    {/* Navigation Buttons for Steps 0-4 */}
-                    {currentStep < 5 ? (
-                      <div className="grid grid-cols-[auto_1fr] gap-3">
-                        {currentStep > 0 && (
-                          <motion.button
-                            type="button"
-                            onClick={prevStep}
-                            className="px-5 py-2.5 border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 text-sm shadow-sm hover:shadow"
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            Previous
-                          </motion.button>
-                        )}
+                  {/* Navigation Buttons for Steps 0-4 */}
+                  {currentStep < 5 ? (
+                    <div className="grid grid-cols-[auto_1fr] gap-3">
+                      {currentStep > 0 && (
                         <motion.button
                           type="button"
-                          onClick={nextStep}
-                          className={`bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg text-sm ${currentStep === 0 ? 'col-span-2' : ''}`}
+                          onClick={prevStep}
+                          className="px-5 py-2.5 border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 text-sm shadow-sm hover:shadow"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          Continue
+                          Previous
+                        </motion.button>
+                      )}
+                      <motion.button
+                        type="button"
+                        onClick={nextStep}
+                        className={`bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg text-sm ${currentStep === 0 ? 'col-span-2' : ''}`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        Continue
+                      </motion.button>
+                    </div>
+                  ) : (
+                    /* Step 5: Final Submission Layout */
+                    <div className="space-y-4">
+                      {/* Action Buttons Row */}
+                      <div className="grid grid-cols-[auto_1fr] gap-3">
+                        <motion.button
+                          type="button"
+                          onClick={prevStep}
+                          className="px-5 py-3 border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 text-sm shadow-sm hover:shadow"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          Previous
+                        </motion.button>
+
+                        <motion.button
+                          type="submit"
+                          disabled={loading || !formData.termsAccepted}
+                          className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
+                          whileHover={{
+                            scale: loading || !formData.termsAccepted ? 1 : 1.02,
+                          }}
+                          whileTap={{
+                            scale: loading || !formData.termsAccepted ? 1 : 0.98,
+                          }}
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                          {loading ? "Processing..." : "Complete Registration"}
                         </motion.button>
                       </div>
-                    ) : (
-                      /* Step 5: Final Submission Layout */
-                      <div className="space-y-4">
-                        {/* Action Buttons Row */}
-                        <div className="grid grid-cols-[auto_1fr] gap-3">
-                          <motion.button
-                            type="button"
-                            onClick={prevStep}
-                            className="px-5 py-3 border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 text-sm shadow-sm hover:shadow"
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            Previous
-                          </motion.button>
-
-                          <motion.button
-                            type="submit"
-                            disabled={loading || !formData.termsAccepted}
-                            className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
-                            whileHover={{
-                              scale: loading || !formData.termsAccepted ? 1 : 1.02,
-                            }}
-                            whileTap={{
-                              scale: loading || !formData.termsAccepted ? 1 : 0.98,
-                            }}
-                          >
-                            <CheckCircle className="w-5 h-5" />
-                            {loading ? "Processing..." : "Complete Registration"}
-                          </motion.button>
-                        </div>
-                      </div>
-                    )}
+                    </div>
+                  )}
                 </div>
               </form>
 
@@ -3063,7 +3001,7 @@ const Register = () => {
 
             <div className="bg-gradient-to-r from-slate-50 to-slate-100/80 px-5 md:px-6 py-2.5 text-center border-t border-slate-100">
               <p className="text-[10px] text-slate-400">
-                � 2025 Barangay Culiat, Quezon City � All rights reserved
+                2025 Barangay Culiat, Quezon City All rights reserved
               </p>
             </div>
           </div>

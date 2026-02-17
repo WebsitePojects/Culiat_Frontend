@@ -127,7 +127,7 @@ const Council = () => {
             className="flex-1 basis-xs"
           >
             <h3 className="text-3xl md:text-5xl font-extrabold text-primary-dark mb-6">
-              Meet the Barangay Captain of Culiat
+              Kilalanin ang Punong Barangay ng Culiat
             </h3>
             {captainLoading ? (
               <div className="animate-pulse space-y-4">

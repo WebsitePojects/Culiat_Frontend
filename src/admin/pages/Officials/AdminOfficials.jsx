@@ -43,6 +43,7 @@ const AdminOfficials = () => {
   const [saving, setSaving] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [committees, setCommittees] = useState([]);
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -51,13 +52,41 @@ const AdminOfficials = () => {
     middleName: "",
     position: "barangay_kagawad",
     committee: "",
+    branch: "Legislative",
+    committeeRef: "",
+    committeeRole: "",
+    bio: "",
+    contactNumber: "",
+    email: "",
+    officeHours: "",
+    education: "",
     isActive: true,
     displayOrder: 0,
   });
 
+  const COMMITTEE_ROLE_OPTIONS = [
+    { value: "", label: "No Role" },
+    { value: "chairperson", label: "Chairperson" },
+    { value: "co_chairperson", label: "Co-Chairperson" },
+    { value: "coordinator", label: "Coordinator" },
+    { value: "member", label: "Member" },
+  ];
+
   useEffect(() => {
     fetchOfficials();
+    fetchCommittees();
   }, []);
+
+  const fetchCommittees = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/committees`);
+      if (response.data.success) {
+        setCommittees(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch committees", error);
+    }
+  };
 
   const fetchOfficials = async () => {
     try {
@@ -96,6 +125,14 @@ const AdminOfficials = () => {
       middleName: "",
       position: "barangay_kagawad",
       committee: "",
+      branch: "Legislative",
+      committeeRef: "",
+      committeeRole: "",
+      bio: "",
+      contactNumber: "",
+      email: "",
+      officeHours: "",
+      education: "",
       isActive: true,
       displayOrder: officials.length,
     });
@@ -113,6 +150,14 @@ const AdminOfficials = () => {
         middleName: official.middleName || "",
         position: official.position || "barangay_kagawad",
         committee: official.committee || "",
+        branch: official.branch || "Legislative",
+        committeeRef: official.committeeRef?._id || official.committeeRef || "",
+        committeeRole: official.committeeRole || "",
+        bio: official.bio || "",
+        contactNumber: official.contactNumber || "",
+        email: official.email || "",
+        officeHours: official.officeHours || "",
+        education: official.education || "",
         isActive: official.isActive ?? true,
         displayOrder: official.displayOrder || 0,
       });
@@ -144,13 +189,21 @@ const AdminOfficials = () => {
       };
 
       const submitData = new FormData();
-      
+
       // Properly handle each field to ensure correct types
       submitData.append("firstName", formData.firstName);
       submitData.append("lastName", formData.lastName);
       submitData.append("middleName", formData.middleName || "");
       submitData.append("position", formData.position);
       submitData.append("committee", formData.committee || "");
+      submitData.append("branch", formData.branch);
+      submitData.append("committeeRef", formData.committeeRef || "");
+      submitData.append("committeeRole", formData.committeeRole || "");
+      submitData.append("bio", formData.bio || "");
+      submitData.append("contactNumber", formData.contactNumber || "");
+      submitData.append("email", formData.email || "");
+      submitData.append("officeHours", formData.officeHours || "");
+      submitData.append("education", formData.education || "");
       submitData.append("isActive", formData.isActive.toString());
       submitData.append("displayOrder", formData.displayOrder.toString());
 
@@ -288,9 +341,8 @@ const AdminOfficials = () => {
           {officials.map((official) => (
             <div
               key={official._id}
-              className={`bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700 ${
-                !official.isActive ? "opacity-60" : ""
-              }`}
+              className={`bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700 ${!official.isActive ? "opacity-60" : ""
+                }`}
             >
               {/* Photo */}
               <div className="h-28 sm:h-36 md:h-48 bg-gray-100 dark:bg-gray-700 relative">
@@ -307,11 +359,10 @@ const AdminOfficials = () => {
                 )}
                 {/* Status Badge */}
                 <div
-                  className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-medium ${
-                    official.isActive
+                  className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-medium ${official.isActive
                       ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
                       : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                  }`}
+                    }`}
                 >
                   {official.isActive ? "Active" : "Inactive"}
                 </div>
@@ -369,201 +420,342 @@ const AdminOfficials = () => {
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={closeModal}></div>
           <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
             <div className="relative bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200">
-            {/* Modal Header */}
-            <div className="flex justify-between items-center p-4 sm:p-6 border-b dark:border-gray-700">
-              <h2 className="text-base sm:text-xl font-semibold text-gray-900 dark:text-white">
-                {editingOfficial ? "Edit Official" : "Add New Official"}
-              </h2>
-              <button
-                onClick={closeModal}
-                className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400"
-              >
-                <X className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto max-h-[calc(90vh-8rem)]">
-              {/* Photo Upload */}
-              <div className="flex flex-col items-center">
-                <div
-                  className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400"
-                  onClick={() => fileInputRef.current?.click()}
+              {/* Modal Header */}
+              <div className="flex justify-between items-center p-4 sm:p-6 border-b dark:border-gray-700">
+                <h2 className="text-base sm:text-xl font-semibold text-gray-900 dark:text-white">
+                  {editingOfficial ? "Edit Official" : "Add New Official"}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400"
                 >
-                  {previewUrl ? (
-                    <img
-                      src={previewUrl}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="text-center">
-                      <Upload className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-gray-400 dark:text-gray-500" />
-                      <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Upload</span>
-                    </div>
-                  )}
-                </div>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/jpeg,image/jpg,image/png"
-                  className="hidden"
-                />
-                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1.5 sm:mt-2">
-                  Click to upload (JPG, PNG, max 5MB)
-                </p>
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
               </div>
 
-              {/* Name Fields */}
-              <div className="grid grid-cols-3 gap-2 sm:gap-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, firstName: e.target.value })
-                    }
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    M.I.
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.middleName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, middleName: e.target.value })
-                    }
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, lastName: e.target.value })
-                    }
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Position & Committee */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Position *
-                  </label>
-                  <select
-                    value={formData.position}
-                    onChange={(e) =>
-                      setFormData({ ...formData, position: e.target.value })
-                    }
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
+              {/* Modal Body */}
+              <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto max-h-[calc(90vh-8rem)]">
+                {/* Photo Upload */}
+                <div className="flex flex-col items-center">
+                  <div
+                    className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden cursor-pointer border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400"
+                    onClick={() => fileInputRef.current?.click()}
                   >
-                    {POSITION_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Committee
-                  </label>
+                    {previewUrl ? (
+                      <img
+                        src={previewUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <Upload className="w-5 h-5 sm:w-6 sm:h-6 mx-auto text-gray-400 dark:text-gray-500" />
+                        <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Upload</span>
+                      </div>
+                    )}
+                  </div>
                   <input
-                    type="text"
-                    value={formData.committee}
-                    onChange={(e) =>
-                      setFormData({ ...formData, committee: e.target.value })
-                    }
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., Health & Sanitation"
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/jpeg,image/jpg,image/png"
+                    className="hidden"
                   />
-                </div>
-              </div>
-
-              {/* Display Order & Active Status */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Display Order
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.displayOrder}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        displayOrder: parseInt(e.target.value) || 0,
-                      })
-                    }
-                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min="0"
-                  />
-                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1">
-                    Lower = appears first
+                  <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1.5 sm:mt-2">
+                    Click to upload (JPG, PNG, max 5MB)
                   </p>
                 </div>
-                <div className="flex items-center pt-5 sm:pt-6">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.isActive}
-                      onChange={(e) =>
-                        setFormData({ ...formData, isActive: e.target.checked })
-                      }
-                      className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
-                    />
-                    <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Active (visible)
-                    </span>
-                  </label>
-                </div>
-              </div>
 
-              {/* Submit Buttons */}
-              <div className="flex justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t dark:border-gray-700">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-3 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex items-center gap-1.5 sm:gap-2 bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:bg-blue-700 disabled:bg-blue-400 shadow-lg shadow-blue-600/25 text-xs sm:text-sm"
-                >
-                  {saving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-3.5 w-3.5 sm:h-4 sm:w-4 border-b-2 border-white"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      {editingOfficial ? "Update" : "Create"}
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+                {/* Name Fields */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      First Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.firstName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, firstName: e.target.value })
+                      }
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      M.I.
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.middleName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, middleName: e.target.value })
+                      }
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Last Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.lastName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, lastName: e.target.value })
+                      }
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Position & Branch */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Position *
+                    </label>
+                    <select
+                      value={formData.position}
+                      onChange={(e) =>
+                        setFormData({ ...formData, position: e.target.value })
+                      }
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    >
+                      {POSITION_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Branch
+                    </label>
+                    <select
+                      value={formData.branch}
+                      onChange={(e) =>
+                        setFormData({ ...formData, branch: e.target.value })
+                      }
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="Executive">Executive</option>
+                      <option value="Legislative">Legislative</option>
+                      <option value="Administrative">Administrative</option>
+                      <option value="Lupong Tagapamayapa">Lupong Tagapamayapa</option>
+                      <option value="SK Council">SK Council</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Committee Assignment */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Committee
+                    </label>
+                    <select
+                      value={formData.committeeRef}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormData({
+                          ...formData,
+                          committeeRef: val,
+                          // Auto-fill plain text committee name
+                          committee: val
+                            ? committees.find((c) => c._id === val)?.name || ""
+                            : "",
+                          // Clear role if no committee
+                          committeeRole: val ? formData.committeeRole : "",
+                        });
+                      }}
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">No Committee</option>
+                      {committees.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Committee Role
+                    </label>
+                    <select
+                      value={formData.committeeRole}
+                      onChange={(e) =>
+                        setFormData({ ...formData, committeeRole: e.target.value })
+                      }
+                      disabled={!formData.committeeRef}
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {COMMITTEE_ROLE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                    {!formData.committeeRef && (
+                      <p className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                        Select a committee first
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Contact Info */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Contact Number
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.contactNumber}
+                      onChange={(e) =>
+                        setFormData({ ...formData, contactNumber: e.target.value })
+                      }
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="09xx xxxx xxx"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="email@example.com"
+                    />
+                  </div>
+                </div>
+
+                {/* Bio */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Brief Biography
+                  </label>
+                  <textarea
+                    value={formData.bio}
+                    onChange={(e) =>
+                      setFormData({ ...formData, bio: e.target.value })
+                    }
+                    className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[80px]"
+                    placeholder="Tell us about this official..."
+                  />
+                </div>
+
+                {/* Additional Options */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Office Hours
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.officeHours}
+                      onChange={(e) =>
+                        setFormData({ ...formData, officeHours: e.target.value })
+                      }
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Mon-Fri 8am-5pm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Education
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.education}
+                      onChange={(e) =>
+                        setFormData({ ...formData, education: e.target.value })
+                      }
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g. BS in Law"
+                    />
+                  </div>
+                </div>
+
+                {/* Display Order & Active Status */}
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Display Order
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.displayOrder}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          displayOrder: parseInt(e.target.value) || 0,
+                        })
+                      }
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      min="0"
+                    />
+                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1">
+                      Lower = appears first
+                    </p>
+                  </div>
+                  <div className="flex items-center pt-5 sm:pt-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isActive}
+                        onChange={(e) =>
+                          setFormData({ ...formData, isActive: e.target.checked })
+                        }
+                        className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Active (visible)
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Submit Buttons */}
+                <div className="flex justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t dark:border-gray-700">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-3 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="flex items-center gap-1.5 sm:gap-2 bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg sm:rounded-xl hover:bg-blue-700 disabled:bg-blue-400 shadow-lg shadow-blue-600/25 text-xs sm:text-sm"
+                  >
+                    {saving ? (
+                      <>
+                        <div className="animate-spin rounded-full h-3.5 w-3.5 sm:h-4 sm:w-4 border-b-2 border-white"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        {editingOfficial ? "Update" : "Create"}
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

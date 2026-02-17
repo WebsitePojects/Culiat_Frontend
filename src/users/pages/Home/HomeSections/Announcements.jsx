@@ -80,7 +80,7 @@ const Announcements = () => {
 
    if (loading) {
       return (
-         <section className="py-8 px-4 sm:px-6 md:px-8 mb-12 md:mb-[7em] bg-neutral">
+         <section className="py-8 px-4 sm:px-6 md:px-8 mb-12 md:mb-[7em] bg-neutral" id="announcements">
             <div className="max-w-6xl mx-auto flex items-center justify-center py-20">
                <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
             </div>
@@ -90,7 +90,7 @@ const Announcements = () => {
 
    if (announcements.length === 0) {
       return (
-         <section className="py-8 px-4 sm:px-6 md:px-8 mb-12 md:mb-[7em] bg-neutral">
+         <section className="py-8 px-4 sm:px-6 md:px-8 mb-12 md:mb-[7em] bg-neutral" id="announcements">
             <div className="max-w-6xl mx-auto">
                <div className="flex justify-between items-end mb-8 gap-2">
                   <div>
@@ -112,7 +112,7 @@ const Announcements = () => {
    }
 
    return (
-      <section className="py-8 px-4 sm:px-6 md:px-8 mb-12 md:mb-[7em] bg-neutral">
+      <section className="py-8 px-4 sm:px-6 md:px-8 mb-12 md:mb-[7em] bg-neutral" id="announcements">
          <motion.div
             initial="hidden"
             whileInView="show"

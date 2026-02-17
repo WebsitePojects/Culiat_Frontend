@@ -28,6 +28,7 @@ import {
   ShieldCheck,
   FileEdit,
   Image,
+  UsersRound,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -111,6 +112,7 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
         },
         { name: "Achievements", path: "/admin/achievements", icon: Trophy },
         { name: "Officials", path: "/admin/officials", icon: UserCircle },
+        { name: "Committees", path: "/admin/committees", icon: UsersRound },
         { name: "About Us", path: "/admin/cms/about-us", icon: Info },
         { name: "Services", path: "/admin/cms/services", icon: Briefcase },
         { name: "Homepage Carousel", path: "/admin/cms/banners", icon: Image },

@@ -33,6 +33,7 @@ import {
   ZoomIn,
   Play,
   Youtube,
+  Users,
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 import { extractYouTubeVideoId, isValidYouTubeUrl } from "../../../utils/youtubeHelpers";
@@ -70,12 +71,14 @@ const AdminAnnouncements = () => {
   const [availableHashtags, setAvailableHashtags] = useState([]);
   const [hashtagSearch, setHashtagSearch] = useState("");
   const [showHashtagDropdown, setShowHashtagDropdown] = useState(false);
+  const [committees, setCommittees] = useState([]);
 
   const [formData, setFormData] = useState({
     title: "",
     content: "",
     category: "General",
     status: "published",
+    committeeRef: "",
     location: "Barangay Culiat",
     eventDate: "",
     images: [], // Changed to array for multiple images
@@ -106,7 +109,20 @@ const AdminAnnouncements = () => {
   useEffect(() => {
     fetchAnnouncements();
     fetchHashtags();
+    fetchCommittees();
   }, []);
+
+  const fetchCommittees = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/committees`);
+      if (response.data.success) {
+        setCommittees(response.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching committees:", error);
+      setCommittees([]);
+    }
+  };
 
   const fetchHashtags = async () => {
     try {
@@ -233,6 +249,7 @@ const AdminAnnouncements = () => {
       content: "",
       category: "General",
       status: "published",
+      committeeRef: "",
       location: "Barangay Culiat",
       eventDate: "",
       images: [],
@@ -261,6 +278,8 @@ const AdminAnnouncements = () => {
       content: announcement.content,
       category: announcement.category || "General",
       status: announcement.status || "published",
+      committeeRef:
+        announcement.committeeRef?._id || announcement.committeeRef || "",
       location: announcement.location || "Barangay Culiat",
       eventDate: announcement.eventDate ? new Date(announcement.eventDate).toISOString().split('T')[0] : "",
       images: [],
@@ -351,6 +370,7 @@ const AdminAnnouncements = () => {
       submitData.append("content", formData.content);
       submitData.append("category", formData.category);
       submitData.append("status", formData.status);
+      submitData.append("committeeRef", formData.committeeRef || "");
       submitData.append("location", formData.location);
       if (formData.eventDate) {
         submitData.append("eventDate", formData.eventDate);
@@ -562,6 +582,15 @@ const AdminAnnouncements = () => {
       day: "numeric",
       year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
     });
+  };
+
+  const getCommitteeName = (committeeRef) => {
+    if (!committeeRef) return "";
+    if (typeof committeeRef === "object") {
+      return committeeRef.name || committeeRef.nameEnglish || "";
+    }
+    const committee = committees.find((c) => c._id === committeeRef);
+    return committee?.name || committee?.nameEnglish || "";
   };
 
   // Image gallery handlers
@@ -890,6 +919,12 @@ const AdminAnnouncements = () => {
                         <Tag className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
                         {announcement.category}
                       </span>
+                      {getCommitteeName(announcement.committeeRef) && (
+                        <span className="inline-flex items-center mt-1 ml-1.5 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-medium rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                          <Users className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
+                          {getCommitteeName(announcement.committeeRef)}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -1066,6 +1101,20 @@ const AdminAnnouncements = () => {
                     <div className="min-w-0">
                       <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Published By</p>
                       <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">{selectedAnnouncement.publishedBy.firstName} {selectedAnnouncement.publishedBy.lastName}</p>
+                    </div>
+                  </div>
+                )}
+
+                {getCommitteeName(selectedAnnouncement.committeeRef) && (
+                  <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 md:p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg sm:rounded-xl">
+                    <div className="p-1.5 sm:p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-md sm:rounded-lg">
+                      <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Committee</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {getCommitteeName(selectedAnnouncement.committeeRef)}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -1249,6 +1298,24 @@ const AdminAnnouncements = () => {
                     <option value="archived">Archived</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                  Committee <span className="text-gray-400">(Optional)</span>
+                </label>
+                <select
+                  value={formData.committeeRef}
+                  onChange={(e) => setFormData({ ...formData, committeeRef: e.target.value })}
+                  className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">No Committee Linked</option>
+                  {committees.map((committee) => (
+                    <option key={committee._id} value={committee._id}>
+                      {committee.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">

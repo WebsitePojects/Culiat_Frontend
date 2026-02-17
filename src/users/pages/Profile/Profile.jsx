@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, memo } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
-import { 
+import {
   User, Mail, Phone, MapPin, Calendar, Briefcase, Heart, Users, IdCard, Shield,
   FileText, Clock, CheckCircle, XCircle, AlertTriangle, Upload, Loader2, Edit, History,
   Save, X, ChevronDown, ChevronUp, Info, Image, Plus, Trash2, UsersRound
@@ -31,7 +31,7 @@ const EditableInput = memo(({ label, name, value, type = 'text', options = null,
       </div>
     );
   }
-  
+
   return (
     <div>
       <label className="block text-sm text-gray-600 mb-1">{label}</label>
@@ -189,7 +189,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'updates'
   const [updateHistory, setUpdateHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
-  
+
   // Edit mode states for Overview sections
   const [editSection, setEditSection] = useState(null);
   const [editFormData, setEditFormData] = useState({});
@@ -205,7 +205,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchUpdateHistory = async () => {
       if (!isResident || activeTab !== 'updates') return;
-      
+
       setLoadingHistory(true);
       try {
         const response = await axios.get(`${API_URL}/api/profile-update/my-updates`, {
@@ -244,7 +244,7 @@ const Profile = () => {
   // Start editing a section
   const handleStartEdit = useCallback((section) => {
     let initialData = {};
-    
+
     switch (section) {
       case 'account':
         initialData = {
@@ -268,6 +268,7 @@ const Profile = () => {
           houseNumber: user?.address?.houseNumber || '',
           street: user?.address?.street || '',
           subdivision: user?.address?.subdivision || '',
+          compound: user?.address?.compound || '',
         };
         break;
       case 'additional':
@@ -299,10 +300,11 @@ const Profile = () => {
       case 'sectoral':
         initialData = {
           sectoralGroups: user?.sectoralGroups || [],
+          womensOrganization: user?.womensOrganization || '',
         };
         break;
     }
-    
+
     setEditFormData(initialData);
     setEditSection(section);
     setUpdateReason('');
@@ -322,7 +324,7 @@ const Profile = () => {
   // Handle input change for edit form
   const handleEditInputChange = useCallback((e) => {
     const { name, value } = e.target;
-    
+
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setEditFormData(prev => ({
@@ -342,16 +344,16 @@ const Profile = () => {
     const files = Array.from(e.target.files);
     const config = VERIFICATION_CONFIG[editSection];
     const maxFiles = config?.documents?.maxFiles || 1;
-    
+
     if (proofDocuments.length + files.length > maxFiles) {
       toast.error(`Maximum ${maxFiles} file(s) allowed for this update`);
       return;
     }
-    
+
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
     const validFiles = [];
     const newPreviews = [];
-    
+
     for (const file of files) {
       if (!allowedTypes.includes(file.type)) {
         toast.error(`${file.name}: Invalid file type. Only JPG, PNG, PDF allowed`);
@@ -362,7 +364,7 @@ const Profile = () => {
         continue;
       }
       validFiles.push(file);
-      
+
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -373,7 +375,7 @@ const Profile = () => {
         newPreviews.push({ type: 'pdf', name: file.name });
       }
     }
-    
+
     if (validFiles.length > 0) {
       setProofDocuments(prev => [...prev, ...validFiles]);
       if (newPreviews.length > 0) {
@@ -391,24 +393,24 @@ const Profile = () => {
   // Submit profile update with proof
   const handleSubmitUpdate = useCallback(async () => {
     const config = VERIFICATION_CONFIG[editSection];
-    
+
     // Validate reason if required
     if (config?.requiresReason && !updateReason) {
       toast.error('Please select a reason for this update');
       return;
     }
-    
+
     // Validate documents if required
     if (config?.documents?.required && proofDocuments.length === 0) {
       toast.error(`Please upload ${config.documents.label.toLowerCase()} to validate your update`);
       return;
     }
-    
+
     setIsSubmittingUpdate(true);
-    
+
     try {
       const formData = new FormData();
-      
+
       // Determine update type based on section
       const updateTypeMap = {
         account: 'account_info',
@@ -419,14 +421,14 @@ const Profile = () => {
         emergency: 'emergency_contact',
         sectoral: 'sectoral_groups',
       };
-      
+
       formData.append('updateType', updateTypeMap[editSection]);
-      
+
       // Append reason
       if (updateReason) {
         formData.append('updateReason', updateReason);
       }
-      
+
       // Append edited data
       if (editSection === 'address') {
         Object.keys(editFormData).forEach(key => {
@@ -460,19 +462,19 @@ const Profile = () => {
           formData.append(key, editFormData[key]);
         });
       }
-      
+
       // Append all proof documents
       proofDocuments.forEach((doc, index) => {
         formData.append('proofDocuments', doc);
       });
-      
+
       // Also append verification metadata
       formData.append('verificationConfig', JSON.stringify({
         sectionTitle: config?.title,
         documentsRequired: config?.documents?.label,
         adminNote: config?.adminNote,
       }));
-      
+
       const response = await axios.post(
         `${API_URL}/api/profile-update/submit`,
         formData,
@@ -483,9 +485,9 @@ const Profile = () => {
           },
         }
       );
-      
+
       console.log('✅ Update submitted successfully:', response.data);
-      
+
       if (response.data.success) {
         toast.success('Update request submitted for admin review!');
         handleCancelEdit();
@@ -531,10 +533,10 @@ const Profile = () => {
   const EditFormFooter = useCallback(() => {
     const config = VERIFICATION_CONFIG[editSection];
     if (!config) return null;
-    
+
     const maxFiles = config.documents?.maxFiles || 1;
     const canAddMore = proofDocuments.length < maxFiles;
-    
+
     return (
       <div className="border-t mt-6 pt-6 space-y-5">
         {/* Verification Header */}
@@ -583,11 +585,11 @@ const Profile = () => {
               {proofDocuments.length}/{maxFiles} file(s)
             </span>
           </div>
-          
+
           <p className="text-xs text-gray-500 whitespace-pre-line">
             {config.documents.description}
           </p>
-          
+
           {/* Uploaded Files Preview */}
           {proofPreviews.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -612,7 +614,7 @@ const Profile = () => {
               ))}
             </div>
           )}
-          
+
           {/* Upload Button */}
           {canAddMore && (
             <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -731,22 +733,20 @@ const Profile = () => {
               <nav className="flex -mb-px overflow-x-auto">
                 <button
                   onClick={() => setActiveTab('overview')}
-                  className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                    activeTab === 'overview'
-                      ? 'border-emerald-600 text-emerald-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'overview'
+                    ? 'border-emerald-600 text-emerald-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                 >
                   <User className="w-4 h-4 inline mr-2" />
                   Profile Overview
                 </button>
                 <button
                   onClick={() => setActiveTab('updates')}
-                  className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
-                    activeTab === 'updates'
-                      ? 'border-emerald-600 text-emerald-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${activeTab === 'updates'
+                    ? 'border-emerald-600 text-emerald-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                 >
                   <History className="w-4 h-4" />
                   Update History
@@ -764,7 +764,7 @@ const Profile = () => {
                 <History className="w-5 h-5 text-emerald-600" />
                 Profile Update History
               </h2>
-              
+
               {loadingHistory ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
@@ -779,22 +779,20 @@ const Profile = () => {
               ) : (
                 <div className="space-y-4">
                   {updateHistory.map((update) => (
-                    <div 
-                      key={update._id} 
-                      className={`border rounded-lg p-4 ${
-                        update.status === 'pending' ? 'border-amber-200 bg-amber-50' :
+                    <div
+                      key={update._id}
+                      className={`border rounded-lg p-4 ${update.status === 'pending' ? 'border-amber-200 bg-amber-50' :
                         update.status === 'approved' ? 'border-green-200 bg-green-50' :
-                        'border-red-200 bg-red-50'
-                      }`}
+                          'border-red-200 bg-red-50'
+                        }`}
                     >
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              update.status === 'pending' ? 'bg-amber-200 text-amber-800' :
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${update.status === 'pending' ? 'bg-amber-200 text-amber-800' :
                               update.status === 'approved' ? 'bg-green-200 text-green-800' :
-                              'bg-red-200 text-red-800'
-                            }`}>
+                                'bg-red-200 text-red-800'
+                              }`}>
                               {update.status.charAt(0).toUpperCase() + update.status.slice(1)}
                             </span>
                             <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full">
@@ -828,7 +826,7 @@ const Profile = () => {
                           </button>
                         )}
                       </div>
-                      
+
                       {/* Show changed fields */}
                       {update.changedFields && update.changedFields.length > 0 && (
                         <div className="mt-4 border-t pt-3">
@@ -870,7 +868,7 @@ const Profile = () => {
                                   sssGsisNumber: 'SSS/GSIS Number',
                                   precinctNumber: 'Precinct Number',
                                 };
-                                const label = fieldLabels[change.fieldPath] || 
+                                const label = fieldLabels[change.fieldPath] ||
                                   change.fieldPath.split('.').pop().replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
                                 return (
                                   <div key={idx} className="text-xs">
@@ -916,7 +914,7 @@ const Profile = () => {
               {/* Account Information */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <SectionHeader title="Account Information" icon={Shield} section="account" />
-                
+
                 {editSection === 'account' ? (
                   <div className="space-y-4">
                     <EditableInput label="Email" name="email" value={editFormData.email} type="email" onChange={handleEditInputChange} />
@@ -953,15 +951,15 @@ const Profile = () => {
               {/* Personal Information */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <SectionHeader title="Personal Information" icon={IdCard} section="personal" />
-                
+
                 {editSection === 'personal' ? (
                   <div className="space-y-4">
                     <EditableInput label="Date of Birth" name="dateOfBirth" value={editFormData.dateOfBirth} type="date" onChange={handleEditInputChange} />
                     <EditableInput label="Place of Birth" name="placeOfBirth" value={editFormData.placeOfBirth} onChange={handleEditInputChange} />
                     <div className="grid grid-cols-2 gap-4">
-                      <EditableInput 
-                        label="Gender" 
-                        name="gender" 
+                      <EditableInput
+                        label="Gender"
+                        name="gender"
                         value={editFormData.gender}
                         onChange={handleEditInputChange}
                         options={[
@@ -969,9 +967,9 @@ const Profile = () => {
                           { value: 'Female', label: 'Female' },
                         ]}
                       />
-                      <EditableInput 
-                        label="Civil Status" 
-                        name="civilStatus" 
+                      <EditableInput
+                        label="Civil Status"
+                        name="civilStatus"
                         value={editFormData.civilStatus}
                         onChange={handleEditInputChange}
                         options={[
@@ -1033,12 +1031,13 @@ const Profile = () => {
               {/* Address */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <SectionHeader title="Address" icon={MapPin} section="address" />
-                
+
                 {editSection === 'address' ? (
                   <div className="space-y-4">
                     <EditableInput label="House Number" name="houseNumber" value={editFormData.houseNumber} onChange={handleEditInputChange} />
                     <EditableInput label="Street" name="street" value={editFormData.street} onChange={handleEditInputChange} />
                     <EditableInput label="Subdivision" name="subdivision" value={editFormData.subdivision} onChange={handleEditInputChange} />
+                    <EditableInput label="Compound" name="compound" value={editFormData.compound} onChange={handleEditInputChange} />
                     <div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-600">
                       <p>Barangay Culiat, Quezon City</p>
                       <p>Metro Manila, 1128, Philippines</p>
@@ -1049,6 +1048,7 @@ const Profile = () => {
                   <div className="space-y-2">
                     <p className="font-medium text-gray-800">
                       {user.address?.houseNumber} {user.address?.street}
+                      {user.address?.compound && user.address.compound !== "No Compound" && ` (${user.address.compound})`}
                     </p>
                     {user.address?.subdivision && (
                       <p className="text-gray-700">{user.address.subdivision}</p>
@@ -1062,7 +1062,7 @@ const Profile = () => {
               {/* Sectoral Membership */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <SectionHeader title="Sectoral Membership" icon={UsersRound} iconColor="text-emerald-600" section="sectoral" />
-                
+
                 {editSection === 'sectoral' ? (
                   <div className="space-y-4">
                     <p className="text-sm text-gray-600 mb-3">Select all sectoral groups you belong to (optional):</p>
@@ -1072,8 +1072,11 @@ const Profile = () => {
                         { value: 'pwd', label: 'Person with Disability (PWD)' },
                         { value: 'solo_parent', label: 'Solo Parent' },
                         { value: 'woman', label: 'Woman' },
-                        { value: 'child-youth', label: 'Child/Youth' },
+                        { value: 'youth', label: 'Youth' },
                         { value: 'lgbtqia', label: 'LGBTQ+' },
+                        { value: 'toda', label: 'TODA' },
+                        { value: 'vendor', label: 'Vendors' },
+                        { value: '4ps', label: '4Ps' },
                       ].map((group) => (
                         <label key={group.value} className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 border border-gray-200">
                           <input
@@ -1087,9 +1090,12 @@ const Profile = () => {
                                   sectoralGroups: [...currentGroups, group.value]
                                 }));
                               } else {
+                                const updatedGroups = currentGroups.filter(g => g !== group.value);
                                 setEditFormData(prev => ({
                                   ...prev,
-                                  sectoralGroups: currentGroups.filter(g => g !== group.value)
+                                  sectoralGroups: updatedGroups,
+                                  // Clear womens org if woman is removed
+                                  ...(group.value === 'woman' ? { womensOrganization: "" } : {})
                                 }));
                               }
                             }}
@@ -1099,6 +1105,23 @@ const Profile = () => {
                         </label>
                       ))}
                     </div>
+
+                    {editFormData.sectoralGroups?.includes('woman') && (
+                      <div className="mt-4">
+                        <EditableInput
+                          label="Women's Organization"
+                          name="womensOrganization"
+                          value={editFormData.womensOrganization}
+                          onChange={handleEditInputChange}
+                          options={[
+                            { value: 'K.K.K', label: 'K.K.K' },
+                            { value: 'B.A.B.A.E', label: 'B.A.B.A.E' },
+                            { value: 'MSKC', label: 'MSKC' },
+                            { value: 'BANTAY BUNTIS', label: 'BANTAY BUNTIS' },
+                          ]}
+                        />
+                      </div>
+                    )}
                     <EditFormFooter />
                   </div>
                 ) : (
@@ -1112,11 +1135,14 @@ const Profile = () => {
                             'pwd': 'PWD',
                             'solo_parent': 'Solo Parent',
                             'woman': 'Woman',
-                            'child-youth': 'Child/Youth',
+                            'youth': 'Youth',
                             'lgbtqia': 'LGBTQ+',
+                            'toda': 'TODA',
+                            'vendor': 'Vendor',
+                            '4ps': '4Ps',
                           };
                           return (
-                            <span 
+                            <span
                               key={idx}
                               className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full font-medium"
                             >
@@ -1128,6 +1154,12 @@ const Profile = () => {
                     ) : (
                       <p className="text-gray-500 italic">No sectoral membership indicated</p>
                     )}
+                    {user.womensOrganization && (
+                      <div className="mt-3 p-3 bg-emerald-50 border border-emerald-100 rounded-lg">
+                        <p className="text-xs text-emerald-600 font-medium">Women's Organization</p>
+                        <p className="text-sm text-emerald-800 font-bold">{user.womensOrganization}</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1135,7 +1167,7 @@ const Profile = () => {
               {/* Additional Information */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <SectionHeader title="Additional Information" icon={FileText} iconColor="text-purple-600" section="additional" />
-                
+
                 {editSection === 'additional' ? (
                   <div className="space-y-4">
                     <EditableInput label="TIN Number" name="tinNumber" value={editFormData.tinNumber} onChange={handleEditInputChange} />
@@ -1164,7 +1196,7 @@ const Profile = () => {
               {/* Spouse Information */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <SectionHeader title="Spouse Information" icon={Heart} iconColor="text-pink-600" section="spouse" />
-                
+
                 {editSection === 'spouse' ? (
                   <div className="space-y-4">
                     <EditableInput label="Spouse Name" name="name" value={editFormData.name} onChange={handleEditInputChange} />
@@ -1199,7 +1231,7 @@ const Profile = () => {
               {/* Emergency Contact */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <SectionHeader title="Emergency Contact" icon={Users} iconColor="text-orange-600" section="emergency" />
-                
+
                 {editSection === 'emergency' ? (
                   <div className="space-y-4">
                     <EditableInput label="Full Name" name="fullName" value={editFormData.fullName} onChange={handleEditInputChange} />

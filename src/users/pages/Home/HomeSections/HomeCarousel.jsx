@@ -244,15 +244,30 @@ const HomeCarousel = () => {
               key={index}
               onClick={() => goToSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
-              className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
-                index === currentIndex
+              className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full transition-all duration-300 ${index === currentIndex
                   ? "bg-white scale-125"
                   : "bg-white/50 hover:bg-white/75"
-              }`}
+                }`}
             />
           ))}
         </div>
       )}
+
+      {/* Curvy wave divider at bottom */}
+      <div className="absolute bottom-0 left-0 w-full overflow-hidden z-20 pointer-events-none">
+        <svg
+          viewBox="0 0 1440 120"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-auto block"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,80 1440,70 L1440,120 L0,120 Z"
+            fill="white"
+          />
+        </svg>
+      </div>
     </section>
   );
 };

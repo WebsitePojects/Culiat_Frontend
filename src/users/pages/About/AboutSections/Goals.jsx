@@ -55,7 +55,7 @@ const goalsData = {
 
 const Goals = () => {
    return (
-      <section id="about-goals" className="py-16 px-6 bg-neutral">
+      <section id="goals" className="py-16 px-6 bg-neutral">
          <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
                <motion.div

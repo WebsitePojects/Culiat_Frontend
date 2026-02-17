@@ -394,7 +394,7 @@ const VerificationPage = () => {
                       type="text"
                       value={controlNumber}
                       onChange={(e) => setControlNumber(e.target.value)}
-                      placeholder="e.g., VRF-IND202600002-... or RES-2026-00003"
+                      placeholder="e.g., VRF-IND202612345 -... or RES-2026-12345"
                       className="w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     />
                   </div>

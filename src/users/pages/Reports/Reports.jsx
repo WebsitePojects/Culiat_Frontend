@@ -248,9 +248,9 @@ const Reports = () => {
                         onClick={() => navigate("/reports/newReport")}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className="flex items-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 bg-white text-emerald-900 rounded-lg md:rounded-xl font-semibold text-sm md:text-base shadow-xl shadow-black/10 hover:shadow-2xl transition-all group w-full md:w-auto justify-center md:justify-start"
+                        className="flex items-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4 bg-white text-primary rounded-lg md:rounded-xl font-semibold text-sm md:text-base shadow-xl shadow-black/10 hover:shadow-2xl transition-all group w-full md:w-auto justify-center md:justify-start"
                      >
-                        <div className="p-1.5 md:p-2 rounded-lg group-hover:scale-110 transition-transform" style={{ background: "linear-gradient(135deg, #002366 0%, #334b9f 100%)" }}>
+                        <div className="p-1.5 md:p-2 rounded-lg group-hover:scale-110 transition-transform bg-primary">
                            <Plus className="w-4 h-4 md:w-5 md:h-5 text-white" />
                         </div>
                         <span>New Report</span>
@@ -437,8 +437,7 @@ const Reports = () => {
                   {!isAdmin && !filter.status && !filter.category && !searchTerm && (
                      <button
                         onClick={() => navigate("/reports/newReport")}
-                        className="px-5 md:px-6 py-2.5 md:py-3 text-sm md:text-base text-white rounded-lg md:rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
-                        style={{ background: "linear-gradient(135deg, #002366 0%, #334b9f 100%)" }}
+                        className="px-5 md:px-6 py-2.5 md:py-3 text-sm md:text-base bg-primary text-white rounded-lg md:rounded-xl font-medium shadow-lg hover:shadow-xl hover:bg-primary-dark transition-all"
                      >
                         Submit Your First Report
                      </button>

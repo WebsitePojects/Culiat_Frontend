@@ -80,7 +80,7 @@ const Services = () => {
 
   if (loading) {
     return (
-      <section className="py-16 px-6 bg-neutral" id="home-services">
+      <section className="py-16 px-6 bg-neutral" id="services">
         <div className="max-w-6xl mx-auto text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
         </div>
@@ -91,7 +91,7 @@ const Services = () => {
   return (
     <section
       className="py-16 px-6 bg-neutral"
-      id="home-services"
+      id="services"
     >
       <div className="max-w-6xl mx-auto">
         {/* Header */}

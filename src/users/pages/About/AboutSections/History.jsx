@@ -29,17 +29,17 @@ const History = () => {
   const historyParagraphs = barangayInfo?.history
     ? barangayInfo.history.split(/\n\n+/).filter((p) => p.trim())
     : [
-        "Barangay Culiat, located in the heart of Quezon City, boasts a vibrant and storied past. Originally a sprawling agricultural land, it has transformed over decades into a bustling urban community while retaining its unique charm and strong community spirit.",
-        "From its early beginnings, Culiat has been a melting pot of cultures and traditions. Early settlers contributed to its development, cultivating the land and establishing the foundations of the close-knit neighborhood it is today.",
-        "The spirit of bayanihan and collective effort has always been at the core of Culiat's progress. Through various challenges and triumphs, the residents have consistently demonstrated resilience and dedication to building a better future for all. This rich heritage continues to inspire its leaders and constituents in striving for excellence and sustainable development.",
-      ];
+      "Barangay Culiat, located in the heart of Quezon City, boasts a vibrant and storied past. Originally a sprawling agricultural land, it has transformed over decades into a bustling urban community while retaining its unique charm and strong community spirit.",
+      "From its early beginnings, Culiat has been a melting pot of cultures and traditions. Early settlers contributed to its development, cultivating the land and establishing the foundations of the close-knit neighborhood it is today.",
+      "The spirit of bayanihan and collective effort has always been at the core of Culiat's progress. Through various challenges and triumphs, the residents have consistently demonstrated resilience and dedication to building a better future for all. This rich heritage continues to inspire its leaders and constituents in striving for excellence and sustainable development.",
+    ];
 
   const title = "The Rich History of Barangay Culiat";
 
   if (loading) {
     return (
       <section
-        id="about-history"
+        id="history"
         className="relative pt-12 px-6 pb-[5.5em] bg-linear-to-bl from-secondary to-secondary-glow"
       >
         <div className="max-w-6xl mx-auto text-center">
@@ -51,7 +51,7 @@ const History = () => {
 
   return (
     <section
-      id="about-history"
+      id="history"
       className="relative pt-12 px-6 pb-[5.5em] bg-linear-to-bl from-secondary to-secondary-glow"
     >
       <div className="max-w-6xl mx-auto">

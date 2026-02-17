@@ -226,7 +226,7 @@ export default function ServicesInfoPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-600 py-16 sm:py-24 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-emerald-700 via-emerald-600 to-teal-600 pt-28 sm:pt-36 pb-16 sm:pb-24 overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div

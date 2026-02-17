@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import PersonalInfoTab from "./components/PersonalInfoTab";
 import EmergencyContactTab from "./components/EmergencyContactTab";
 import DocumentRequestTab from "./components/DocumentRequestTab";
 import FileUploadTab from "./components/FileUploadTab";
 import MyRequestsTab from "./components/MyRequestsTab";
-import { CheckCircle, AlertCircle, Loader2, FileText, Clock, Bell, ArrowRight, X, Sparkles } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader2, FileText, Clock, Bell, ArrowRight, X, Sparkles, Info } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -899,6 +899,30 @@ export default function Services() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Services Info Banner */}
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 mt-6">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-emerald-900">
+                Want to learn more about our services?
+              </p>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                View detailed service information, requirements, fees, processing times, and how the document request process works.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/services-info"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors flex-shrink-0"
+          >
+            View Services Info
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </div>
 
       <div className="max-w-6xl mx-auto px-3 sm:px-6 py-6 md:py-12">
         {/* Error Toast */}

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { 
-  User, 
-  Mail, 
-  Calendar, 
-  Shield, 
-  CheckCircle, 
-  XCircle, 
+import {
+  User,
+  Mail,
+  Calendar,
+  Shield,
+  CheckCircle,
+  XCircle,
   Clock,
   Filter,
   Users,
@@ -39,7 +39,7 @@ const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
-  
+
   // Modal states
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -55,7 +55,7 @@ const AdminUsers = () => {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  
+
   // Validation states
   const [validationErrors, setValidationErrors] = useState({});
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
@@ -100,13 +100,13 @@ const AdminUsers = () => {
     filter === "all"
       ? users
       : users.filter((user) => {
-          if (filter === "admin") {
-            return user.roleName === "SuperAdmin" || user.roleName === "Admin";
-          } else if (filter === "resident") {
-            return user.roleName === "Resident";
-          }
-          return false;
-        });
+        if (filter === "admin") {
+          return user.roleName === "SuperAdmin" || user.roleName === "Admin";
+        } else if (filter === "resident") {
+          return user.roleName === "Resident";
+        }
+        return false;
+      });
 
   const getRoleColor = (roleName) => {
     if (roleName === "SuperAdmin") {
@@ -176,7 +176,11 @@ const AdminUsers = () => {
       email: user.email,
       username: user.username,
       phoneNumber: user.phoneNumber || "",
-      roleName: user.roleName
+      roleName: user.roleName,
+      residentType: user.residentType || "resident",
+      compound: user.address?.compound || "",
+      sectoralGroups: user.sectoralGroups || [],
+      womensOrganization: user.womensOrganization || ""
     });
     setShowEditModal(true);
     setError("");
@@ -239,32 +243,32 @@ const AdminUsers = () => {
   // Handle phone number input with formatting
   const handlePhoneNumberChange = (e) => {
     let value = e.target.value;
-    
+
     // Always keep +63 prefix
     if (!value.startsWith("+63")) {
       value = "+63";
     }
-    
+
     // Remove any non-digit characters after +63
     const digitsOnly = value.slice(3).replace(/\D/g, "");
-    
+
     // Enforce first digit must be 9
     if (digitsOnly.length > 0 && digitsOnly[0] !== "9") {
       return; // Don't update if first digit is not 9
     }
-    
+
     // Limit to 10 digits after +63
     const limitedDigits = digitsOnly.slice(0, 10);
-    
+
     setFormData({ ...formData, phoneNumber: "+63" + limitedDigits });
-    
+
     // Validate phone number
     if (limitedDigits.length === 10 && limitedDigits[0] === "9") {
       setValidationErrors(prev => ({ ...prev, phoneNumber: "" }));
     } else if (limitedDigits.length > 0) {
-      setValidationErrors(prev => ({ 
-        ...prev, 
-        phoneNumber: "Phone must be +639XXXXXXXXX (10 digits starting with 9)" 
+      setValidationErrors(prev => ({
+        ...prev,
+        phoneNumber: "Phone must be +639XXXXXXXXX (10 digits starting with 9)"
       }));
     }
   };
@@ -272,16 +276,16 @@ const AdminUsers = () => {
   // Validate form before submission
   const validateForm = () => {
     const errors = {};
-    
+
     if (!formData.firstName.trim()) errors.firstName = "First name is required";
     if (!formData.lastName.trim()) errors.lastName = "Last name is required";
-    
+
     if (!formData.email.trim()) {
       errors.email = "Email is required";
     } else if (!validateEmail(formData.email)) {
       errors.email = "Invalid email format";
     }
-    
+
     if (!formData.username.trim()) {
       errors.username = "Username is required";
     } else if (formData.username.length < 3) {
@@ -289,13 +293,13 @@ const AdminUsers = () => {
     } else if (usernameAvailable === false) {
       errors.username = "Username is already taken";
     }
-    
+
     if (formData.phoneNumber && formData.phoneNumber !== "+63") {
       if (!validatePhoneNumber(formData.phoneNumber)) {
         errors.phoneNumber = "Phone must be +639XXXXXXXXX format";
       }
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -321,25 +325,32 @@ const AdminUsers = () => {
     try {
       setError("");
       const token = localStorage.getItem("token");
-      
+
       // Convert roleName to role code
       const updateData = {
         ...formData,
-        role: getRoleCode(formData.roleName)
+        role: getRoleCode(formData.roleName),
+        // Include address[compound] if it's a resident
+        address: formData.roleName === "Resident" && formData.residentType === "resident"
+          ? { ...selectedUser.address, compound: formData.compound }
+          : selectedUser.address,
+        residentType: formData.residentType,
+        sectoralGroups: formData.sectoralGroups,
+        womensOrganization: formData.womensOrganization
       };
-      
+
       const promise = axios.put(
         `${API_URL}/api/auth/users/${selectedUser._id}`,
         updateData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       await showPromise(promise, {
         loading: 'Updating user...',
         success: `User ${formData.firstName} ${formData.lastName} updated successfully!`,
         error: 'Failed to update user'
       });
-      
+
       setShowEditModal(false);
       fetchUsers();
     } catch (error) {
@@ -352,17 +363,17 @@ const AdminUsers = () => {
     try {
       setError("");
       const token = localStorage.getItem("token");
-      
+
       const promise = axios.delete(`${API_URL}/api/auth/users/${selectedUser._id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       await showPromise(promise, {
         loading: 'Deleting user...',
         success: `User ${selectedUser.firstName} ${selectedUser.lastName} deleted successfully!`,
         error: 'Failed to delete user'
       });
-      
+
       setShowDeleteModal(false);
       fetchUsers();
     } catch (error) {
@@ -381,7 +392,7 @@ const AdminUsers = () => {
     try {
       setError("");
       const token = localStorage.getItem("token");
-      
+
       // Prepare data, remove +63 prefix if phone is only +63
       const createData = {
         ...formData,
@@ -389,19 +400,19 @@ const AdminUsers = () => {
         role: getRoleCode(formData.roleName),
         password: "TempPassword123!"
       };
-      
+
       const promise = axios.post(
         `${API_URL}/api/auth/users`,
         createData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       await showPromise(promise, {
         loading: 'Creating user...',
         success: `User ${formData.firstName} ${formData.lastName} created successfully!`,
         error: 'Failed to create user'
       });
-      
+
       setShowCreateModal(false);
       fetchUsers();
     } catch (error) {
@@ -482,33 +493,30 @@ const AdminUsers = () => {
       <div className="flex flex-wrap gap-1.5 sm:gap-2">
         <button
           onClick={() => setFilter("all")}
-          className={`flex items-center px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-medium transition-colors ${
-            filter === "all"
-              ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
-              : "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-          }`}
+          className={`flex items-center px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-medium transition-colors ${filter === "all"
+            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+            : "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+            }`}
         >
           <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
           All ({users.length})
         </button>
         <button
           onClick={() => setFilter("admin")}
-          className={`flex items-center px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-medium transition-colors ${
-            filter === "admin"
-              ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
-              : "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-          }`}
+          className={`flex items-center px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-medium transition-colors ${filter === "admin"
+            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+            : "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+            }`}
         >
           <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
           Admins ({adminCount})
         </button>
         <button
           onClick={() => setFilter("resident")}
-          className={`flex items-center px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-medium transition-colors ${
-            filter === "resident"
-              ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
-              : "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-          }`}
+          className={`flex items-center px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-sm font-medium transition-colors ${filter === "resident"
+            ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+            : "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+            }`}
         >
           <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
           Residents ({residentCount})
@@ -546,9 +554,8 @@ const AdminUsers = () => {
               return (
                 <div
                   key={user._id}
-                  className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden ${
-                    isCurrentUser ? 'ring-2 ring-blue-500' : ''
-                  }`}
+                  className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden ${isCurrentUser ? 'ring-2 ring-blue-500' : ''
+                    }`}
                 >
                   <div className="p-4">
                     {/* User Info Header */}
@@ -582,11 +589,10 @@ const AdminUsers = () => {
                         <button
                           onClick={() => handleDeleteClick(user)}
                           disabled={isCurrentUser}
-                          className={`p-2 rounded-lg transition-colors ${
-                            isCurrentUser
-                              ? "text-gray-400 cursor-not-allowed"
-                              : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                          }`}
+                          className={`p-2 rounded-lg transition-colors ${isCurrentUser
+                            ? "text-gray-400 cursor-not-allowed"
+                            : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                            }`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -659,11 +665,10 @@ const AdminUsers = () => {
                     const StatusIcon = getStatusIcon(user.registrationStatus);
                     const isCurrentUser = currentUser && currentUser._id === user._id;
                     return (
-                      <tr 
-                        key={user._id} 
-                        className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                          isCurrentUser ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                        }`}
+                      <tr
+                        key={user._id}
+                        className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${isCurrentUser ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                          }`}
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -738,11 +743,10 @@ const AdminUsers = () => {
                             <button
                               onClick={() => handleDeleteClick(user)}
                               disabled={isCurrentUser}
-                              className={`p-2 rounded-lg transition-colors ${
-                                isCurrentUser
-                                  ? "text-gray-400 cursor-not-allowed"
-                                  : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                              }`}
+                              className={`p-2 rounded-lg transition-colors ${isCurrentUser
+                                ? "text-gray-400 cursor-not-allowed"
+                                : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                                }`}
                               title={isCurrentUser ? "Cannot delete yourself" : "Delete user"}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -898,6 +902,86 @@ const AdminUsers = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Residency & Sectoral Groups Section */}
+              {formData.roleName === "Resident" && (
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg sm:rounded-xl p-3 sm:p-4 space-y-3">
+                  <h4 className="font-semibold text-emerald-900 dark:text-emerald-100 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                    <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Residency & Sectoral Groups
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-300 mb-1">
+                        Resident Type
+                      </label>
+                      <select
+                        value={formData.residentType}
+                        onChange={(e) => setFormData({ ...formData, residentType: e.target.value })}
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-emerald-200 dark:border-emerald-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <option value="resident">Barangay Resident</option>
+                        <option value="non_resident">Non-Resident</option>
+                      </select>
+                    </div>
+                    {formData.residentType === "resident" && (
+                      <div>
+                        <label className="block text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-300 mb-1">
+                          Compound
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.compound || ""}
+                          onChange={(e) => setFormData({ ...formData, compound: e.target.value })}
+                          className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-emerald-200 dark:border-emerald-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                          placeholder="Compound Name"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-300 mb-1">
+                      Sectoral Groups
+                    </label>
+                    <div className="flex flex-wrap gap-2 p-2 bg-white dark:bg-gray-800 border border-emerald-100 dark:border-emerald-800 rounded-lg">
+                      {['senior', 'woman', 'youth', 'solo_parent', 'pwd', 'lgbtqia', 'toda', 'vendor', '4ps'].map(group => (
+                        <label key={group} className="flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 text-[10px] sm:text-xs cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.sectoralGroups?.includes(group)}
+                            onChange={(e) => {
+                              const groups = formData.sectoralGroups || [];
+                              if (e.target.checked) {
+                                setFormData({ ...formData, sectoralGroups: [...groups, group] });
+                              } else {
+                                setFormData({ ...formData, sectoralGroups: groups.filter(g => g !== group) });
+                              }
+                            }}
+                            className="w-3 h-3 text-emerald-600 rounded"
+                          />
+                          {group.charAt(0).toUpperCase() + group.slice(1).replace('_', ' ')}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {formData.sectoralGroups?.includes('woman') && (
+                    <div>
+                      <label className="block text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-300 mb-1">
+                        Women's Organization
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.womensOrganization || ""}
+                        onChange={(e) => setFormData({ ...formData, womensOrganization: e.target.value })}
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-emerald-200 dark:border-emerald-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                        placeholder="e.g. K.K.K"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Footer Actions */}
@@ -1063,11 +1147,10 @@ const AdminUsers = () => {
                           setValidationErrors(prev => ({ ...prev, firstName: "" }));
                         }
                       }}
-                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${
-                        validationErrors.firstName 
-                          ? "border-red-500 focus:ring-red-500" 
-                          : "border-green-200 dark:border-green-700 focus:ring-green-500"
-                      }`}
+                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${validationErrors.firstName
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-green-200 dark:border-green-700 focus:ring-green-500"
+                        }`}
                     />
                     {validationErrors.firstName && (
                       <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">{validationErrors.firstName}</p>
@@ -1086,11 +1169,10 @@ const AdminUsers = () => {
                           setValidationErrors(prev => ({ ...prev, lastName: "" }));
                         }
                       }}
-                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${
-                        validationErrors.lastName 
-                          ? "border-red-500 focus:ring-red-500" 
-                          : "border-green-200 dark:border-green-700 focus:ring-green-500"
-                      }`}
+                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${validationErrors.lastName
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-green-200 dark:border-green-700 focus:ring-green-500"
+                        }`}
                     />
                     {validationErrors.lastName && (
                       <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">{validationErrors.lastName}</p>
@@ -1123,11 +1205,10 @@ const AdminUsers = () => {
                           setValidationErrors(prev => ({ ...prev, email: "Invalid email format" }));
                         }
                       }}
-                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${
-                        validationErrors.email 
-                          ? "border-red-500 focus:ring-red-500" 
-                          : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
-                      }`}
+                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${validationErrors.email
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
+                        }`}
                       placeholder="user@example.com"
                     />
                     {validationErrors.email && (
@@ -1146,15 +1227,14 @@ const AdminUsers = () => {
                           setFormData({ ...formData, username: e.target.value });
                           setValidationErrors(prev => ({ ...prev, username: "" }));
                         }}
-                        className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${
-                          validationErrors.username 
-                            ? "border-red-500 focus:ring-red-500" 
-                            : usernameAvailable === true
+                        className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${validationErrors.username
+                          ? "border-red-500 focus:ring-red-500"
+                          : usernameAvailable === true
                             ? "border-green-500 focus:ring-green-500"
                             : usernameAvailable === false
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
-                        }`}
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
+                          }`}
                         placeholder="username123"
                       />
                       {isCheckingUsername && (
@@ -1196,11 +1276,10 @@ const AdminUsers = () => {
                       type="text"
                       value={formData.phoneNumber}
                       onChange={handlePhoneNumberChange}
-                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${
-                        validationErrors.phoneNumber 
-                          ? "border-red-500 focus:ring-red-500" 
-                          : "border-purple-200 dark:border-purple-700 focus:ring-purple-500"
-                      }`}
+                      className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${validationErrors.phoneNumber
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-purple-200 dark:border-purple-700 focus:ring-purple-500"
+                        }`}
                       placeholder="+639XXXXXXXXX"
                       maxLength={13}
                     />

@@ -39,7 +39,7 @@ export default function PendingRegistrations() {
   const filteredUsers = useMemo(() => {
     if (!searchTerm.trim()) return pendingUsers;
     const search = searchTerm.toLowerCase();
-    return pendingUsers.filter(user => 
+    return pendingUsers.filter(user =>
       user.firstName?.toLowerCase().includes(search) ||
       user.lastName?.toLowerCase().includes(search) ||
       user.email?.toLowerCase().includes(search) ||
@@ -48,7 +48,7 @@ export default function PendingRegistrations() {
   }, [pendingUsers, searchTerm]);
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  
+
   const paginatedUsers = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredUsers.slice(startIndex, startIndex + itemsPerPage);
@@ -57,7 +57,7 @@ export default function PendingRegistrations() {
   // Stats
   const todayRegistrations = useMemo(() => {
     const today = new Date().toDateString();
-    return pendingUsers.filter(user => 
+    return pendingUsers.filter(user =>
       new Date(user.createdAt).toDateString() === today
     ).length;
   }, [pendingUsers]);
@@ -225,9 +225,9 @@ export default function PendingRegistrations() {
     const name = informantObj.name || '';
     const relationship = informantObj.relationship || '';
     const address = informantObj.address || '';
-    
+
     if (!name && !relationship && !address) return 'N/A';
-    
+
     let result = name;
     if (relationship) result += result ? ` (${relationship})` : relationship;
     if (address) result += result ? ` - ${address}` : address;
@@ -262,7 +262,7 @@ export default function PendingRegistrations() {
     // Check if at least one ID exists
     const hasAnyID = selectedUser?.validID?.url || selectedUser?.primaryID2?.url;
     if (!hasAnyID) return;
-    
+
     setShowVerifyModal(true);
     setOcrLoading(true);
     setOcrProgress(0);
@@ -272,55 +272,55 @@ export default function PendingRegistrations() {
     try {
       // Collect all available ID images
       const idImages = [];
-      
+
       // Primary ID 1 (validID and backOfValidID for backward compatibility)
       const id1TypeLabel = getDocumentTypeLabel(selectedUser.primaryID1Type || selectedUser.validID?.idType || "");
       const id1IsEndorsement = isEndorsementLetter(selectedUser.primaryID1Type);
-      
+
       if (selectedUser?.validID?.url) {
-        idImages.push({ 
-          url: selectedUser.validID.url, 
-          label: id1IsEndorsement ? `DOCUMENT 1 - ${id1TypeLabel}` : `DOCUMENT 1 - ${id1TypeLabel} (FRONT)`, 
-          type: id1TypeLabel 
+        idImages.push({
+          url: selectedUser.validID.url,
+          label: id1IsEndorsement ? `DOCUMENT 1 - ${id1TypeLabel}` : `DOCUMENT 1 - ${id1TypeLabel} (FRONT)`,
+          type: id1TypeLabel
         });
       }
       if (selectedUser?.backOfValidID?.url && !id1IsEndorsement) {
-        idImages.push({ 
-          url: selectedUser.backOfValidID.url, 
-          label: `DOCUMENT 1 - ${id1TypeLabel} (BACK)`, 
-          type: id1TypeLabel 
+        idImages.push({
+          url: selectedUser.backOfValidID.url,
+          label: `DOCUMENT 1 - ${id1TypeLabel} (BACK)`,
+          type: id1TypeLabel
         });
       }
-      
+
       // Primary ID 2
       const id2TypeLabel = getDocumentTypeLabel(selectedUser.primaryID2Type || selectedUser.primaryID2?.idType || "");
       const id2IsEndorsement = isEndorsementLetter(selectedUser.primaryID2Type);
-      
+
       if (selectedUser?.primaryID2?.url) {
-        idImages.push({ 
-          url: selectedUser.primaryID2.url, 
-          label: id2IsEndorsement ? `DOCUMENT 2 - ${id2TypeLabel}` : `DOCUMENT 2 - ${id2TypeLabel} (FRONT)`, 
-          type: id2TypeLabel 
+        idImages.push({
+          url: selectedUser.primaryID2.url,
+          label: id2IsEndorsement ? `DOCUMENT 2 - ${id2TypeLabel}` : `DOCUMENT 2 - ${id2TypeLabel} (FRONT)`,
+          type: id2TypeLabel
         });
       }
       if (selectedUser?.primaryID2Back?.url && !id2IsEndorsement) {
-        idImages.push({ 
-          url: selectedUser.primaryID2Back.url, 
-          label: `DOCUMENT 2 - ${id2TypeLabel} (BACK)`, 
-          type: id2TypeLabel 
+        idImages.push({
+          url: selectedUser.primaryID2Back.url,
+          label: `DOCUMENT 2 - ${id2TypeLabel} (BACK)`,
+          type: id2TypeLabel
         });
       }
 
       const totalImages = idImages.length;
       let combinedText = "";
       const perImageResults = [];
-      
+
       // Process each image with advanced OCR settings
       for (let i = 0; i < idImages.length; i++) {
         const img = idImages[i];
         const progressStart = (i / totalImages) * 100;
         const progressEnd = ((i + 1) / totalImages) * 100;
-        
+
         try {
           // Use advanced Tesseract settings for better recognition
           const result = await Tesseract.recognize(
@@ -338,16 +338,16 @@ export default function PendingRegistrations() {
               preserve_interword_spaces: 1,
             }
           );
-          
+
           const extractedFromImage = result.data.text.trim();
           const confidence = result.data.confidence;
-          
+
           combinedText += `\n═══════════════════════════════════════\n`;
           combinedText += `📄 ${img.label} (${img.type})\n`;
           combinedText += `📊 OCR Confidence: ${confidence.toFixed(1)}%\n`;
           combinedText += `═══════════════════════════════════════\n`;
           combinedText += extractedFromImage + "\n";
-          
+
           // Store per-image results
           perImageResults.push({
             label: img.label,
@@ -356,13 +356,13 @@ export default function PendingRegistrations() {
             confidence: confidence,
             wordCount: extractedFromImage.split(/\s+/).filter(Boolean).length
           });
-          
+
         } catch (imgError) {
           combinedText += `\n═══════════════════════════════════════\n`;
           combinedText += `📄 ${img.label} (${img.type})\n`;
           combinedText += `⚠️ Failed to process this image\n`;
           combinedText += `═══════════════════════════════════════\n`;
-          
+
           perImageResults.push({
             label: img.label,
             type: img.type,
@@ -374,7 +374,7 @@ export default function PendingRegistrations() {
       }
 
       setExtractedText(combinedText);
-      
+
       // Perform advanced verification matching
       const results = performAdvancedVerification(combinedText, selectedUser, perImageResults);
       setVerificationResults(results);
@@ -402,32 +402,32 @@ export default function PendingRegistrations() {
   // Check if extracted text contains the field value
   const checkMatch = (extractedText, fieldValue) => {
     if (!fieldValue || !extractedText) return { matched: false, confidence: 0 };
-    
+
     const normalizedExtracted = normalizeText(extractedText);
     const normalizedField = normalizeText(fieldValue);
-    
+
     if (!normalizedField) return { matched: false, confidence: 0 };
-    
+
     // Check for exact match
     if (normalizedExtracted.includes(normalizedField)) {
       return { matched: true, confidence: 100 };
     }
-    
+
     // Check for partial match (each word)
     const words = normalizedField.split(' ').filter(w => w.length > 2);
     let matchedWords = 0;
-    
+
     for (const word of words) {
       if (normalizedExtracted.includes(word)) {
         matchedWords++;
       }
     }
-    
+
     if (words.length > 0 && matchedWords > 0) {
       const confidence = Math.round((matchedWords / words.length) * 100);
       return { matched: confidence >= 50, confidence };
     }
-    
+
     return { matched: false, confidence: 0 };
   };
 
@@ -436,10 +436,10 @@ export default function PendingRegistrations() {
     const m = str1.length;
     const n = str2.length;
     const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
-    
+
     for (let i = 0; i <= m; i++) dp[i][0] = i;
     for (let j = 0; j <= n; j++) dp[0][j] = j;
-    
+
     for (let i = 1; i <= m; i++) {
       for (let j = 1; j <= n; j++) {
         if (str1[i - 1] === str2[j - 1]) {
@@ -464,41 +464,41 @@ export default function PendingRegistrations() {
   // Advanced check with fuzzy matching
   const advancedCheckMatch = (extractedText, fieldValue, fieldKey) => {
     if (!fieldValue || !extractedText) return { matched: false, confidence: 0, foundIn: [] };
-    
+
     const normalizedExtracted = normalizeText(extractedText);
     const normalizedField = normalizeText(fieldValue);
-    
+
     if (!normalizedField) return { matched: false, confidence: 0, foundIn: [] };
-    
+
     // Check for exact match first
     if (normalizedExtracted.includes(normalizedField)) {
       return { matched: true, confidence: 100, foundIn: ['exact match'] };
     }
-    
+
     // For address, check each component separately
     if (fieldKey === 'address') {
       const addressParts = normalizedField.split(' ').filter(w => w.length > 1);
       let matchedParts = 0;
       const foundParts = [];
-      
+
       for (const part of addressParts) {
         if (normalizedExtracted.includes(part)) {
           matchedParts++;
           foundParts.push(part);
         }
       }
-      
+
       if (addressParts.length > 0 && matchedParts > 0) {
         const confidence = Math.round((matchedParts / addressParts.length) * 100);
         return { matched: confidence >= 40, confidence, foundIn: foundParts };
       }
     }
-    
+
     // Check word by word with fuzzy matching
     const words = normalizedField.split(' ').filter(w => w.length > 2);
     let totalScore = 0;
     const foundWords = [];
-    
+
     for (const word of words) {
       // Direct match
       if (normalizedExtracted.includes(word)) {
@@ -506,33 +506,33 @@ export default function PendingRegistrations() {
         foundWords.push({ word, score: 100, type: 'exact' });
         continue;
       }
-      
+
       // Fuzzy match - find best matching word in extracted text
       const extractedWords = normalizedExtracted.split(' ').filter(w => w.length > 2);
       let bestMatch = { word: '', score: 0 };
-      
+
       for (const extWord of extractedWords) {
         const similarity = calculateSimilarity(word, extWord);
         if (similarity > bestMatch.score && similarity >= 70) {
           bestMatch = { word: extWord, score: similarity };
         }
       }
-      
+
       if (bestMatch.score >= 70) {
         totalScore += bestMatch.score;
         foundWords.push({ word, score: bestMatch.score, type: 'fuzzy', matched: bestMatch.word });
       }
     }
-    
+
     if (words.length > 0) {
       const avgConfidence = Math.round(totalScore / words.length);
-      return { 
-        matched: avgConfidence >= 50 || foundWords.length >= Math.ceil(words.length / 2), 
+      return {
+        matched: avgConfidence >= 50 || foundWords.length >= Math.ceil(words.length / 2),
         confidence: Math.min(100, avgConfidence),
-        foundIn: foundWords 
+        foundIn: foundWords
       };
     }
-    
+
     return { matched: false, confidence: 0, foundIn: [] };
   };
 
@@ -567,11 +567,11 @@ export default function PendingRegistrations() {
     // Calculate scores by category
     const identityFields = results.filter(r => r.category === 'identity' && r.value);
     const addressFields = results.filter(r => r.category === 'address' && r.value);
-    
+
     const identityScore = identityFields.length > 0
       ? Math.round(identityFields.reduce((sum, f) => sum + f.confidence, 0) / identityFields.length)
       : 0;
-    
+
     const addressScore = addressFields.length > 0
       ? Math.round(addressFields.reduce((sum, f) => sum + f.confidence, 0) / addressFields.length)
       : 0;
@@ -636,7 +636,7 @@ export default function PendingRegistrations() {
 
     verificationResults.fields.forEach(field => {
       if (!field.value) return;
-      
+
       const words = field.value.split(' ').filter(w => w.length > 2);
       words.forEach(word => {
         if (field.matched) {
@@ -737,7 +737,7 @@ export default function PendingRegistrations() {
             className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
           />
         </div>
-        
+
         <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-[10px] sm:text-sm text-gray-600 dark:text-gray-400">Show:</span>
           <select
@@ -780,7 +780,7 @@ export default function PendingRegistrations() {
             {searchTerm ? "No Results Found" : "No Pending Registrations"}
           </h3>
           <p className="text-gray-600 dark:text-gray-400">
-            {searchTerm 
+            {searchTerm
               ? `No registrations match "${searchTerm}"`
               : "There are currently no pending resident registration requests."
             }
@@ -789,7 +789,7 @@ export default function PendingRegistrations() {
       ) : (
         <>
           {/* Cards Grid with Animation */}
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="show"
@@ -805,7 +805,7 @@ export default function PendingRegistrations() {
                 >
                   {/* Status Indicator */}
                   <div className="h-1.5 bg-gradient-to-r from-yellow-500 to-orange-500"></div>
-                  
+
                   <div className="p-5">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
@@ -870,7 +870,7 @@ export default function PendingRegistrations() {
                 </span>{" "}
                 of <span className="font-semibold text-gray-900 dark:text-gray-100">{filteredUsers.length}</span> results
               </p>
-              
+
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -879,7 +879,7 @@ export default function PendingRegistrations() {
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                
+
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
                   .filter(page => {
                     if (totalPages <= 5) return true;
@@ -894,18 +894,17 @@ export default function PendingRegistrations() {
                       )}
                       <button
                         onClick={() => setCurrentPage(page)}
-                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
-                          currentPage === page
-                            ? "bg-blue-600 text-white"
-                            : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                        }`}
+                        className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${currentPage === page
+                          ? "bg-blue-600 text-white"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                          }`}
                       >
                         {page}
                       </button>
                     </div>
                   ))
                 }
-                
+
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
@@ -990,11 +989,10 @@ export default function PendingRegistrations() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
-                        activeTab === tab.id
-                          ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-t-lg border-t border-l border-r border-gray-200 dark:border-gray-700"
-                          : "text-blue-200 hover:bg-white/10 rounded-t-lg"
-                      }`}
+                      className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
+                        ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-t-lg border-t border-l border-r border-gray-200 dark:border-gray-700"
+                        : "text-blue-200 hover:bg-white/10 rounded-t-lg"
+                        }`}
                     >
                       <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       <span className="sm:hidden">{tab.label}</span>
@@ -1076,14 +1074,12 @@ export default function PendingRegistrations() {
                     </div>
 
                     {/* Resident Type */}
-                    <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 ${
-                      selectedUser.residentType === 'non_resident' 
-                        ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800' 
-                        : 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800'
-                    }`}>
-                      <h4 className={`font-semibold mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 ${
-                        selectedUser.residentType === 'non_resident' ? 'text-amber-900 dark:text-amber-100' : 'text-emerald-900 dark:text-emerald-100'
+                    <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 ${selectedUser.residentType === 'non_resident'
+                      ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800'
+                      : 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800'
                       }`}>
+                      <h4 className={`font-semibold mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 ${selectedUser.residentType === 'non_resident' ? 'text-amber-900 dark:text-amber-100' : 'text-emerald-900 dark:text-emerald-100'
+                        }`}>
                         <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Residency Status
                       </h4>
                       <div className="flex items-center gap-2">
@@ -1108,10 +1104,35 @@ export default function PendingRegistrations() {
                       </div>
                     </div>
 
+                    {/* Sectoral Groups */}
+                    {selectedUser.sectoralGroups && selectedUser.sectoralGroups.length > 0 && (
+                      <div className="bg-purple-50 dark:bg-purple-100/50 border border-purple-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                        <h4 className="font-semibold text-purple-900 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+                          <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Sectoral Groups
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedUser.sectoralGroups.map((group) => (
+                            <span
+                              key={group}
+                              className="px-2 py-1 bg-white text-purple-700 text-[10px] sm:text-xs font-semibold rounded-lg border border-purple-200 shadow-sm"
+                            >
+                              {group.charAt(0).toUpperCase() + group.slice(1).replace('_', ' ')}
+                            </span>
+                          ))}
+                        </div>
+                        {selectedUser.womensOrganization && (
+                          <div className="mt-3 pt-3 border-t border-purple-100">
+                            <label className="text-purple-600 font-medium text-[10px] sm:text-xs">Women's Organization</label>
+                            <p className="text-purple-900 font-bold text-xs sm:text-sm">{selectedUser.womensOrganization}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Address */}
                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
                       <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> 
+                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         {selectedUser.residentType === 'non_resident' ? 'Current Address (Outside Barangay)' : 'Address in Barangay Culiat'}
                       </h4>
                       {selectedUser.residentType === 'non_resident' && selectedUser.nonResidentAddress ? (
@@ -1131,7 +1152,10 @@ export default function PendingRegistrations() {
                         </div>
                       ) : (
                         <p className="text-gray-900 dark:text-gray-100 text-xs sm:text-sm">
-                          {selectedUser.address?.houseNumber} {selectedUser.address?.street} {selectedUser.address?.subdivision}, Barangay Culiat, Quezon City
+                          {selectedUser.address?.houseNumber} {selectedUser.address?.street}
+                          {selectedUser.address?.subdivision && `, ${selectedUser.address.subdivision}`}
+                          {selectedUser.address?.compound && selectedUser.address.compound !== "No Compound" && ` (${selectedUser.address.compound})`}
+                          , Barangay Culiat, Quezon City
                         </p>
                       )}
                     </div>
@@ -1196,9 +1220,9 @@ export default function PendingRegistrations() {
                       const hasTin = tin && tin !== 'N/A' && tin.trim() !== '';
                       const hasSss = sss && sss !== 'N/A' && sss.trim() !== '';
                       const hasPrecinct = precinct && precinct.trim() !== '';
-                      
+
                       if (!hasTin && !hasSss && !hasPrecinct) return null;
-                      
+
                       return (
                         <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
                           <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
@@ -1258,7 +1282,7 @@ export default function PendingRegistrations() {
                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
                       <div className="flex items-center justify-between mb-2 sm:mb-3">
                         <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                          <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" /> 
+                          <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
                           <span className="hidden sm:inline">Document #1</span>
                           <span className="sm:hidden">Doc 1</span>
                           {(selectedUser.primaryID1Type || selectedUser.validID?.idType) && (
@@ -1320,7 +1344,7 @@ export default function PendingRegistrations() {
                     <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 border ${isEndorsementLetter(selectedUser.primaryID2Type) ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-800/30' : 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-800/30'}`}>
                       <div className="flex items-center justify-between mb-2 sm:mb-3">
                         <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                          <Shield className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isEndorsementLetter(selectedUser.primaryID2Type) ? 'text-amber-500' : 'text-indigo-500'}`} /> 
+                          <Shield className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isEndorsementLetter(selectedUser.primaryID2Type) ? 'text-amber-500' : 'text-indigo-500'}`} />
                           <span className="hidden sm:inline">Document #2</span>
                           <span className="sm:hidden">Doc 2</span>
                           {(selectedUser.primaryID2Type || selectedUser.primaryID2?.idType) && (
@@ -1626,16 +1650,16 @@ export default function PendingRegistrations() {
                       Advanced OCR Processing...
                     </p>
                     <div className="w-48 sm:w-80 h-2 sm:h-3 bg-gray-200 dark:bg-gray-700 rounded-full mt-3 sm:mt-4 overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-300"
                         style={{ width: `${ocrProgress}%` }}
                       />
                     </div>
                     <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-500 text-center">
-                      {ocrProgress < 25 ? 'Scanning ID 1 front...' : 
-                       ocrProgress < 50 ? 'Scanning ID 1 back...' :
-                       ocrProgress < 75 ? 'Scanning ID 2...' : 
-                       'Analyzing and matching data...'}
+                      {ocrProgress < 25 ? 'Scanning ID 1 front...' :
+                        ocrProgress < 50 ? 'Scanning ID 1 back...' :
+                          ocrProgress < 75 ? 'Scanning ID 2...' :
+                            'Analyzing and matching data...'}
                     </p>
                     <p className="mt-1 text-[10px] sm:text-xs text-gray-400 text-center">
                       Using Tesseract OCR with English + Filipino language support
@@ -1644,19 +1668,18 @@ export default function PendingRegistrations() {
                 ) : verificationResults ? (
                   <div className="space-y-3 sm:space-y-5">
                     {/* Verification Status Banner */}
-                    <div className={`p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 ${
-                      verificationResults.verificationStatus === 'verified' 
-                        ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 dark:from-green-900/20 dark:to-emerald-900/20 dark:border-green-700' 
-                        : verificationResults.verificationStatus === 'partial'
+                    <div className={`p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 ${verificationResults.verificationStatus === 'verified'
+                      ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 dark:from-green-900/20 dark:to-emerald-900/20 dark:border-green-700'
+                      : verificationResults.verificationStatus === 'partial'
                         ? 'bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-300 dark:from-yellow-900/20 dark:to-amber-900/20 dark:border-yellow-700'
                         : 'bg-gradient-to-r from-red-50 to-rose-50 border-red-300 dark:from-red-900/20 dark:to-rose-900/20 dark:border-red-700'
-                    }`}>
+                      }`}>
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="flex items-center gap-1.5 sm:gap-2">
                             <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-gray-100">
-                              {verificationResults.verificationStatus === 'verified' ? '✓ VERIFIED' : 
-                               verificationResults.verificationStatus === 'partial' ? '⚠ PARTIAL MATCH' : '✗ NOT VERIFIED'}
+                              {verificationResults.verificationStatus === 'verified' ? '✓ VERIFIED' :
+                                verificationResults.verificationStatus === 'partial' ? '⚠ PARTIAL MATCH' : '✗ NOT VERIFIED'}
                             </h3>
                             {verificationResults.avgOcrConfidence > 0 && (
                               <span className="text-[10px] sm:text-xs bg-gray-200 dark:bg-gray-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
@@ -1668,14 +1691,13 @@ export default function PendingRegistrations() {
                             {verificationResults.processedImages} of {verificationResults.totalImages} images processed
                           </p>
                         </div>
-                        <div className={`text-3xl sm:text-5xl font-bold ${
-                          verificationResults.overallScore >= 70 ? 'text-green-600' : 
+                        <div className={`text-3xl sm:text-5xl font-bold ${verificationResults.overallScore >= 70 ? 'text-green-600' :
                           verificationResults.overallScore >= 50 ? 'text-yellow-600' : 'text-red-600'
-                        }`}>
+                          }`}>
                           {verificationResults.overallScore}%
                         </div>
                       </div>
-                      
+
                       {/* Score Breakdown */}
                       <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-3 sm:mt-4">
                         <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${verificationResults.nameVerified ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
@@ -1714,9 +1736,8 @@ export default function PendingRegistrations() {
                         </h4>
                         <div className="space-y-1.5 sm:space-y-2">
                           {verificationResults.fields.filter(f => f.category === 'identity').map((field, idx) => (
-                            <div key={idx} className={`p-1.5 sm:p-2 rounded-lg text-xs sm:text-sm ${
-                              field.matched ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'
-                            }`}>
+                            <div key={idx} className={`p-1.5 sm:p-2 rounded-lg text-xs sm:text-sm ${field.matched ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'
+                              }`}>
                               <div className="flex items-center justify-between">
                                 <span className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-xs">{field.label}</span>
                                 <span className={`font-bold text-xs sm:text-sm ${field.matched ? 'text-green-600' : 'text-red-600'}`}>
@@ -1740,9 +1761,8 @@ export default function PendingRegistrations() {
                         </h4>
                         <div className="space-y-1.5 sm:space-y-2">
                           {verificationResults.fields.filter(f => f.category === 'address').map((field, idx) => (
-                            <div key={idx} className={`p-1.5 sm:p-2 rounded-lg text-xs sm:text-sm ${
-                              field.matched ? 'bg-green-50 dark:bg-green-900/20' : 'bg-yellow-50 dark:bg-yellow-900/20'
-                            }`}>
+                            <div key={idx} className={`p-1.5 sm:p-2 rounded-lg text-xs sm:text-sm ${field.matched ? 'bg-green-50 dark:bg-green-900/20' : 'bg-yellow-50 dark:bg-yellow-900/20'
+                              }`}>
                               <div className="flex items-center justify-between">
                                 <span className="text-gray-600 dark:text-gray-400 text-[10px] sm:text-xs">{field.label}</span>
                                 <span className={`font-bold text-xs sm:text-sm ${field.matched ? 'text-green-600' : 'text-yellow-600'}`}>
@@ -1766,11 +1786,10 @@ export default function PendingRegistrations() {
                       </h4>
                       <div className="flex flex-wrap gap-1.5 sm:gap-2">
                         {verificationResults.fields.filter(f => f.category === 'personal' && f.value).map((field, idx) => (
-                          <span key={idx} className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${
-                            field.matched 
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' 
-                              : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
-                          }`}>
+                          <span key={idx} className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${field.matched
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                            : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                            }`}>
                             {field.label}: {field.matched ? `✓ ${field.confidence}%` : '—'}
                           </span>
                         ))}
@@ -1790,25 +1809,23 @@ export default function PendingRegistrations() {
                     </details>
 
                     {/* Action Recommendation */}
-                    <div className={`p-3 sm:p-4 rounded-lg sm:rounded-xl ${
-                      verificationResults.verificationStatus === 'verified' 
-                        ? 'bg-green-100 border border-green-300 dark:bg-green-900/30 dark:border-green-700' 
-                        : verificationResults.verificationStatus === 'partial'
+                    <div className={`p-3 sm:p-4 rounded-lg sm:rounded-xl ${verificationResults.verificationStatus === 'verified'
+                      ? 'bg-green-100 border border-green-300 dark:bg-green-900/30 dark:border-green-700'
+                      : verificationResults.verificationStatus === 'partial'
                         ? 'bg-yellow-100 border border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700'
                         : 'bg-red-100 border border-red-300 dark:bg-red-900/30 dark:border-red-700'
-                    }`}>
-                      <p className={`text-xs sm:text-sm font-medium ${
-                        verificationResults.verificationStatus === 'verified' 
-                          ? 'text-green-800 dark:text-green-200' 
-                          : verificationResults.verificationStatus === 'partial'
+                      }`}>
+                      <p className={`text-xs sm:text-sm font-medium ${verificationResults.verificationStatus === 'verified'
+                        ? 'text-green-800 dark:text-green-200'
+                        : verificationResults.verificationStatus === 'partial'
                           ? 'text-yellow-800 dark:text-yellow-200'
                           : 'text-red-800 dark:text-red-200'
-                      }`}>
-                        {verificationResults.verificationStatus === 'verified' 
+                        }`}>
+                        {verificationResults.verificationStatus === 'verified'
                           ? '✓ Verification Successful! Full name and address match the submitted ID documents. Safe to approve.'
                           : verificationResults.verificationStatus === 'partial'
-                          ? '⚠ Partial Match. Some information was found but not all required fields matched. Please review manually.'
-                          : '✗ Verification Failed. Name or address could not be confirmed from the ID documents. Manual review required.'}
+                            ? '⚠ Partial Match. Some information was found but not all required fields matched. Please review manually.'
+                            : '✗ Verification Failed. Name or address could not be confirmed from the ID documents. Manual review required.'}
                       </p>
                     </div>
                   </div>
@@ -1848,16 +1865,15 @@ export default function PendingRegistrations() {
                         setActionType("approve");
                       }
                     }}
-                    className={`px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-lg transition-colors order-1 sm:order-2 ${
-                      verificationResults.verificationStatus === 'verified'
-                        ? 'bg-green-600 hover:bg-green-700 text-white'
-                        : verificationResults.verificationStatus === 'partial'
+                    className={`px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium rounded-lg transition-colors order-1 sm:order-2 ${verificationResults.verificationStatus === 'verified'
+                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                      : verificationResults.verificationStatus === 'partial'
                         ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                         : 'bg-gray-600 hover:bg-gray-700 text-white'
-                    }`}
+                      }`}
                   >
-                    {verificationResults.verificationStatus === 'verified' ? 'Proceed to Approve' : 
-                     verificationResults.verificationStatus === 'partial' ? 'Review & Decide' : 'Close & Review'}
+                    {verificationResults.verificationStatus === 'verified' ? 'Proceed to Approve' :
+                      verificationResults.verificationStatus === 'partial' ? 'Review & Decide' : 'Close & Review'}
                   </button>
                 )}
               </div>

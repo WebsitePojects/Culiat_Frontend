@@ -38,7 +38,7 @@ const Stat = () => {
   return (
     <section
       className="py-12 md:py-16 w-full px-4 bg-gradient-to-b from-gray-50 to-white"
-      id="home-stat"
+      id="statistics"
     >
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
@@ -58,7 +58,7 @@ const Stat = () => {
         </motion.div>
         {/* Mobile: Auto-scrolling animation */}
         <div className="lg:hidden overflow-hidden w-full">
-          <motion.div 
+          <motion.div
             className="flex gap-3 sm:gap-4"
             animate={{
               x: ["0%", "-50%"]
@@ -120,51 +120,51 @@ const Stat = () => {
 
         {/* Desktop: Static Grid */}
         <div className="hidden lg:grid lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <motion.div
+                key={index}
+                whileHover={{
+                  y: -6,
+                  scale: 1.02,
+                  transition: { duration: 0.25, ease: "easeOut" },
+                }}
+                className="bg-light rounded-lg shadow-md p-6 text-center border border-gray-100 hover:shadow-xl transition-all flex flex-col"
+              >
+                {/* Icon */}
                 <motion.div
-                  key={index}
                   whileHover={{
-                    y: -6,
-                    scale: 1.02,
-                    transition: { duration: 0.25, ease: "easeOut" },
+                    rotate: [0, -5, 5, 0],
+                    scale: 1.1,
+                    transition: { duration: 0.4, ease: "easeInOut" },
                   }}
-                  className="bg-light rounded-lg shadow-md p-6 text-center border border-gray-100 hover:shadow-xl transition-all flex flex-col"
+                  className="w-16 h-16 bg-primary rounded-full mx-auto mb-4 flex items-center justify-center"
                 >
-                  {/* Icon */}
-                  <motion.div
-                    whileHover={{
-                      rotate: [0, -5, 5, 0],
-                      scale: 1.1,
-                      transition: { duration: 0.4, ease: "easeInOut" },
-                    }}
-                    className="w-16 h-16 bg-primary rounded-full mx-auto mb-4 flex items-center justify-center"
-                  >
-                    <Icon
-                      className="w-6 h-6 text-text-color-light"
-                      strokeWidth={3}
-                    />
-                  </motion.div>
-
-                  {/* Number */}
-                  <div className="text-2xl font-bold text-text-color mb-1">
-                    <CountingNumber
-                      number={stat.number}
-                      inView={true}
-                      decimalPlaces={stat.number % 1 !== 0 && 1}
-                      decimalSeparator="."
-                      transition={{ stiffness: 100, damping: 30 }}
-                      useThousandsSeparator
-                    />
-                    <span className="ms-1">{stat?.suffix}</span>
-                  </div>
-
-                  {/* Label */}
-                  <p className="text-sm text-text-secondary">{stat.label}</p>
+                  <Icon
+                    className="w-6 h-6 text-text-color-light"
+                    strokeWidth={3}
+                  />
                 </motion.div>
-              );
-            })}
+
+                {/* Number */}
+                <div className="text-2xl font-bold text-text-color mb-1">
+                  <CountingNumber
+                    number={stat.number}
+                    inView={true}
+                    decimalPlaces={stat.number % 1 !== 0 && 1}
+                    decimalSeparator="."
+                    transition={{ stiffness: 100, damping: 30 }}
+                    useThousandsSeparator
+                  />
+                  <span className="ms-1">{stat?.suffix}</span>
+                </div>
+
+                {/* Label */}
+                <p className="text-sm text-text-secondary">{stat.label}</p>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -151,7 +151,7 @@ const OrganizationMembers = () => {
 
    if (loading) {
       return (
-         <section className="py-12 sm:py-16 lg:py-20 bg-neutral">
+         <section className="py-12 sm:py-16 lg:py-20 bg-neutral" id="organization">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                <div className="text-center mb-12">
                   <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4 animate-pulse"></div>
@@ -169,7 +169,7 @@ const OrganizationMembers = () => {
 
    if (error) {
       return (
-         <section className="py-12 sm:py-16 lg:py-20 bg-neutral">
+         <section className="py-12 sm:py-16 lg:py-20 bg-neutral" id="organization">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                <p className="text-red-600">{error}</p>
             </div>
@@ -182,7 +182,7 @@ const OrganizationMembers = () => {
    }
 
    return (
-      <section className="py-12 sm:py-16 lg:py-20 bg-neutral">
+      <section className="py-12 sm:py-16 lg:py-20 bg-neutral" id="organization">
          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
                initial={{ opacity: 0, y: 40 }}
@@ -232,9 +232,8 @@ const OrganizationMembers = () => {
                         <motion.div
                            key={member._id}
                            variants={item}
-                           className={`w-full max-w-sm mx-auto sm:max-w-none ${
-                              isLastItemInPartialRow ? "lg:col-start-2" : ""
-                           }`}
+                           className={`w-full max-w-sm mx-auto sm:max-w-none ${isLastItemInPartialRow ? "lg:col-start-2" : ""
+                              }`}
                         >
                            <MemberCard member={member} />
                         </motion.div>

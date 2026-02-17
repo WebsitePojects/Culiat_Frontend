@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import axios from "axios";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
@@ -13,6 +14,11 @@ const Navbar = () => {
    const location = useLocation();
    const navigate = useNavigate();
    const { user, logout } = useAuth();
+
+   // Dropdown states for navbar
+   const [openDropdown, setOpenDropdown] = useState(null);
+   const [mobileDropdown, setMobileDropdown] = useState(null);
+   const [committees, setCommittees] = useState([]);
 
    const isHome = location.pathname === "/";
 
@@ -29,6 +35,20 @@ const Navbar = () => {
 
       return () => window.removeEventListener("scroll", handleScroll);
    }, [isHome]);
+
+   useEffect(() => {
+      const fetchCommittees = async () => {
+         try {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/committees`);
+            if (response.data.success) {
+               setCommittees(response.data.data);
+            }
+         } catch (error) {
+            console.error("Error fetching committees for navbar:", error);
+         }
+      };
+      fetchCommittees();
+   }, []);
 
    useEffect(() => {
       // Close dropdown when clicking outside
@@ -59,35 +79,100 @@ const Navbar = () => {
       navigate("/login");
    };
 
+   // Smooth scroll to section helper
+   const scrollToSection = (path, sectionId) => {
+      if (location.pathname === path) {
+         // Same page — just scroll
+         const el = document.getElementById(sectionId);
+         if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+         // Navigate to page then scroll
+         navigate(path);
+         setTimeout(() => {
+            const el = document.getElementById(sectionId);
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+         }, 500);
+      }
+      setOpenDropdown(null);
+      setIsOpen(false);
+   };
+
+   // Dropdown configurations
+   const navDropdowns = {
+      home: {
+         label: "Home",
+         path: "/",
+         items: [
+            { label: "Carousel", sectionId: "carousel-section", path: "/" },
+            { label: "Statistics", sectionId: "statistics", path: "/" },
+            { label: "Services", sectionId: "services", path: "/" },
+            { label: "Barangay Council", sectionId: "council", path: "/" },
+            { label: "Contact Us", sectionId: "contact", path: "/" },
+         ],
+      },
+      services: {
+         label: "Services",
+         path: user && user.roleCode === 74934 ? "/services" : "/services-info",
+         items: user && user.roleCode === 74934
+            ? [
+               { label: "Request Document", path: "/services" },
+               { label: "Services Info", path: "/services-info" },
+            ]
+            : [
+               { label: "All Services", path: "/services-info" },
+               { label: "Request Document", path: "/services-info" },
+            ],
+      },
+      about: {
+         label: "About",
+         path: "/about",
+         items: [
+            { label: "About Barangay", sectionId: "about-hero", path: "/about" },
+            { label: "Goals", sectionId: "goals", path: "/about" },
+            { label: "Mission & Vision", sectionId: "mission", path: "/about" },
+            { label: "History", sectionId: "history", path: "/about" },
+            { label: "Organization", sectionId: "organization", path: "/about" },
+         ],
+      },
+      committee: {
+         label: "Committee",
+         path: "/committee",
+         items: committees.length > 0
+            ? [
+               { label: "All Committees", path: "/committee" },
+               ...committees.map(c => ({ label: c.name, path: `/committee/${c.slug}` }))
+            ]
+            : [{ label: "All Committees", path: "/committee" }]
+      },
+   };
+
    return (
       <nav className={`fixed top-0 left-0 w-full z-100 h-auto`}>
          <div
-            className={`relative w-full py-2 transition-all duration-300 ${
-               !isInHeroCarousel || isOpen
-                  ? "bg-white shadow-md backdrop-blur-sm"
-                  : "bg-transparent backdrop-blur-sm"
-            }`}
+            className={`relative w-full py-1 transition-all duration-300 ${isInHeroCarousel && !isOpen
+               ? "bg-transparent backdrop-blur-sm"
+               : "bg-white shadow-md backdrop-blur-sm"
+               }`}
          >
             <div
-               className={`flex justify-between max-w-6xl mx-auto items-center h-16 px-4 transition-colors duration-300 ${
-                  !isInHeroCarousel || isOpen ? "text-text-color" : "text-text-color-light"
-               }`}
+               className={`flex justify-between max-w-7xl mx-auto items-center h-14 px-4 transition-colors duration-300 ${isInHeroCarousel && !isOpen ? "text-text-color-light" : "text-text-color"
+                  }`}
             >
                {/* Logo */}
-               <Link to="/signin" className="flex items-center gap-2 sm:gap-3">
+               <Link to="/signin" className="flex items-center gap-2">
                   <div className="rounded-full bg-light">
                      <img
                         src="/images/logo/brgy-culiat-logo.png"
                         alt="Barangay Culiat Logo"
-                        className="sm:h-12 sm:w-12 h-10 w-10 rounded-full object-cover"
+                        className="sm:h-10 sm:w-10 h-9 w-9 rounded-full object-cover"
                      />
                   </div>
-                  <p className="flex flex-col text-lg sm:text-xl font-bold ">
-                     <span className="sm:block hidden leading-5">
-                        Barangay Culiat
+                  <p className="flex flex-col" style={{ fontFamily: "'Cinzel', serif" }}>
+                     <span className="sm:block hidden leading-4 text-sm font-bold tracking-wide">
+                        BARANGAY CULIAT
                      </span>
-                     <span className="sm:hidden block">Brgy. Culiat</span>
-                     <span className="font-semibold text-xs sm:text-sm text-secondary-text">
+                     <span className="sm:hidden block text-sm font-bold tracking-wide">BRGY. CULIAT</span>
+                     <span className="font-semibold text-[10px] text-primary uppercase">
                         E-Services
                      </span>
                   </p>
@@ -95,103 +180,199 @@ const Navbar = () => {
 
                {/* Desktop Nav Links */}
                <div
-                  className={`hidden md:flex space-x-6 items-center font-semibold relative `}
+                  className={`hidden lg:flex items-center gap-1 font-semibold relative`}
+                  style={{ fontFamily: "'Cinzel', serif" }}
                >
-                  <NavLink
-                     to="/"
-                     className={({ isActive }) =>
-                        `navlink text-md  transition ${isActive && "active"}`
-                     }
+                  {/* Home Dropdown */}
+                  <div
+                     className="relative pb-2"
+                     onMouseEnter={() => setOpenDropdown("home")}
+                     onMouseLeave={() => setOpenDropdown(null)}
                   >
-                     Home
-                  </NavLink>
+                     <NavLink
+                        to="/"
+                        className={({ isActive }) =>
+                           `navlink text-sm transition flex items-center gap-1 px-2 py-1 ${isActive && "active"}`
+                        }
+                     >
+                        Home
+                        <ChevronDown className="w-3 h-3" />
+                     </NavLink>
+                     {openDropdown === "home" && (
+                        <div className="absolute top-full left-0 mt-1 w-44 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50">
+                           {navDropdowns.home.items.map((item) => (
+                              <button
+                                 key={item.sectionId}
+                                 onClick={() => scrollToSection(item.path, item.sectionId)}
+                                 className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
+                              >
+                                 {item.label}
+                              </button>
+                           ))}
+                        </div>
+                     )}
+                  </div>
 
-                  <NavLink
-                     to={user && user.roleCode === 74934 ? "/services" : "/services-info"}
-                     className={({ isActive }) =>
-                        `navlink text-md  transition ${isActive && "active"}`
-                     }
+                  {/* Services Dropdown */}
+                  <div
+                     className="relative pb-2"
+                     onMouseEnter={() => setOpenDropdown("services")}
+                     onMouseLeave={() => setOpenDropdown(null)}
                   >
-                     Services
-                  </NavLink>
+                     <NavLink
+                        to={user && user.roleCode === 74934 ? "/services" : "/services-info"}
+                        className={({ isActive }) =>
+                           `navlink text-sm transition flex items-center gap-1 px-2 py-1 ${isActive && "active"}`
+                        }
+                     >
+                        Services
+                        <ChevronDown className="w-3 h-3" />
+                     </NavLink>
+                     {openDropdown === "services" && (
+                        <div className="absolute top-full left-0 mt-1 w-44 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50">
+                           {navDropdowns.services.items.map((item) => (
+                              <NavLink
+                                 key={item.label}
+                                 to={item.path}
+                                 className="block px-3 py-1.5 text-xs text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
+                              >
+                                 {item.label}
+                              </NavLink>
+                           ))}
+                        </div>
+                     )}
+                  </div>
 
-                  <NavLink to="/announcements" className="navlink  text-md ">
-                     Announcements
-                  </NavLink>
+                  {/* Committee Dropdown */}
+                  <div
+                     className="relative pb-2"
+                     onMouseEnter={() => setOpenDropdown("committee")}
+                     onMouseLeave={() => setOpenDropdown(null)}
+                  >
+                     <NavLink
+                        to="/committee"
+                        className={({ isActive }) =>
+                           `navlink text-sm transition flex items-center gap-1 px-2 py-1 ${isActive && "active"}`
+                        }
+                     >
+                        Committee
+                        <ChevronDown className="w-3 h-3" />
+                     </NavLink>
+                     {openDropdown === "committee" && (
+                        <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50 overflow-hidden">
+                           {navDropdowns.committee.items.map((item, idx) => (
+                              <NavLink
+                                 key={idx}
+                                 to={item.path}
+                                 className="block px-3 py-1.5 text-xs text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors truncate"
+                              >
+                                 {item.label}
+                              </NavLink>
+                           ))}
+                        </div>
+                     )}
+                  </div>
 
-                  <NavLink to="/achievements" className="navlink  text-md ">
-                     Achievements
-                  </NavLink>
+                  {/* People — flat link */}
+               <div className="pb-2">
+                  <NavLink to="/personnel" className="navlink text-sm px-2 py-1">People</NavLink>
+               </div>
 
-                  <NavLink to="/reports" className="navlink  text-md ">
-                     Report
-                  </NavLink>
-
-                  <NavLink to="/about" className="navlink  text-md ">
-                     About
-                  </NavLink>
+               {/* Report — flat link (no dropdown) */}
+               <div className="pb-2">
+                  <NavLink to="/reports" className="navlink text-sm px-2 py-1">Report</NavLink>
+               </div>
+                  {/* About Dropdown */}
+                  <div
+                     className="relative pb-2"
+                     onMouseEnter={() => setOpenDropdown("about")}
+                     onMouseLeave={() => setOpenDropdown(null)}
+                  >
+                     <NavLink
+                        to="/about"
+                        className={({ isActive }) =>
+                           `navlink text-sm transition flex items-center gap-1 px-2 py-1 ${isActive && "active"}`
+                        }
+                     >
+                        About
+                        <ChevronDown className="w-3 h-3" />
+                     </NavLink>
+                     {openDropdown === "about" && (
+                        <div className="absolute top-full left-0 mt-1 w-44 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50">
+                           {navDropdowns.about.items.map((item) => (
+                              <button
+                                 key={item.sectionId}
+                                 onClick={() => scrollToSection(item.path, item.sectionId)}
+                                 className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
+                              >
+                                 {item.label}
+                              </button>
+                           ))}
+                        </div>
+                     )}
+                  </div>
 
                   {/* User Menu / Login & Register */}
                   {user && user.roleCode === 74934 ? (
                      <div className="relative user-menu-container">
                         <button
                            onClick={() => setShowUserMenu(!showUserMenu)}
-                           className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary/10 transition-colors"
+                           className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-primary/10 transition-colors"
                         >
-                           <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">
+                           <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
                               {user.firstName?.[0]}
                               {user.lastName?.[0]}
                            </div>
-                           <span className="text-sm">{user.firstName}</span>
+                           <span className="text-xs">{user.firstName}</span>
                            <ChevronDown
-                              className={`w-4 h-4 transition-transform ${showUserMenu ? "rotate-180" : ""
+                              className={`w-3 h-3 transition-transform ${showUserMenu ? "rotate-180" : ""
                                  }`}
                            />
                         </button>
 
                         {showUserMenu && (
-                           <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                              <div className="px-4 py-3 border-b border-gray-200">
-                                 <p className="text-sm font-semibold text-gray-900 truncate">
+                           <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                              <div className="px-3 py-2 border-b border-gray-200">
+                                 <p className="text-xs font-semibold text-gray-900 truncate">
                                     {user.firstName} {user.lastName}
                                  </p>
-                                 <p className="text-xs text-gray-500 truncate" title={user.email}>
+                                 <p className="text-[10px] text-gray-500 truncate" title={user.email}>
                                     {user.email}
                                  </p>
-                                 <p className="text-xs text-primary mt-1">
+                                 <p className="text-[10px] text-primary mt-0.5">
                                     Resident
                                  </p>
                               </div>
                               <Link
                                  to="/profile"
                                  onClick={() => setShowUserMenu(false)}
-                                 className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                                 className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 transition-colors"
                               >
-                                 <User className="w-4 h-4" />
+                                 <User className="w-3.5 h-3.5" />
                                  My Profile
                               </Link>
                               <button
                                  onClick={handleLogout}
-                                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                 className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors"
                               >
-                                 <LogOut className="w-4 h-4" />
+                                 <LogOut className="w-3.5 h-3.5" />
                                  Logout
                               </button>
                            </div>
                         )}
                      </div>
                   ) : (
-                     <div className="flex items-center gap-3">
+                     <div className="flex items-center gap-2">
                         <button
                            onClick={handleLogin}
-                           className="flex items-center gap-2 px-4 py-2 text-primary hover:bg-primary/10 rounded-lg transition-colors text-sm font-semibold"
+                           className="flex items-center gap-1.5 px-3 py-1.5 text-primary hover:bg-primary/10 rounded-lg transition-colors text-xs font-semibold"
                         >
-                           <LogIn className="w-4 h-4" />
+                           <LogIn className="w-3.5 h-3.5" />
                            Login
                         </button>
                         <Link
                            to="/register"
-                           className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-sm font-semibold"
+                           className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors text-xs font-semibold"
                         >
                            Register
                         </Link>
@@ -202,7 +383,7 @@ const Navbar = () => {
                {/* Mobile menu toggle */}
                <button
                   onClick={() => setIsOpen(!isOpen)}
-                  className="hamburger-button md:hidden focus:outline-none text-text-color-light mix-blend-difference cursor-pointer"
+                  className="hamburger-button lg:hidden focus:outline-none text-text-color-light mix-blend-difference cursor-pointer"
                >
                   <AnimatePresence mode="wait" initial={false}>
                      {isOpen ? (
@@ -255,9 +436,9 @@ const Navbar = () => {
          {/* Mobile dropdown */}
 
          <div
-            className={`mobile-menu-container absolute top-full w-full md:hidden bg-light shadow-md px-4 space-y-4 font-medium overflow-hidden transition-all duration-600 ${isOpen
-                  ? "max-h-[500px] py-4 border-t border-text-color/30"
-                  : "max-h-0"
+            className={`mobile-menu-container absolute top-full w-full lg:hidden bg-light shadow-md px-4 space-y-4 font-medium transition-all duration-600 ${isOpen
+               ? "max-h-[85vh] py-4 border-t border-text-color/30 overflow-y-auto"
+               : "max-h-0 overflow-hidden"
                }
         `}
          >
@@ -278,56 +459,126 @@ const Navbar = () => {
                </div>
             )}
 
-            <NavLink
-               to="/"
-               onClick={() => setIsOpen(false)}
-               className={`mobile-navlink block text-text-color hover:text-secondary active:text-secondary `}
-            >
-               Home
-            </NavLink>
-            <NavLink
-               to={user && user.roleCode === 74934 ? "/services" : "/services-info"}
-               onClick={() => setIsOpen(false)}
-               className="block mobile-navlink text-text-color hover:text-secondary active:text-secondary"
-            >
-               Services
-            </NavLink>
+            {/* Home Mobile Accordion */}
+            <div>
+               <button
+                  onClick={() => setMobileDropdown(mobileDropdown === "home" ? null : "home")}
+                  className="flex items-center justify-between w-full text-text-color hover:text-primary"
+               >
+                  <span>Home</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileDropdown === "home" ? "rotate-180" : ""}`} />
+               </button>
+               {mobileDropdown === "home" && (
+                  <div className="pl-4 mt-2 space-y-2 border-l-2 border-primary/20">
+                     {navDropdowns.home.items.map((item) => (
+                        <button
+                           key={item.sectionId}
+                           onClick={() => { scrollToSection(item.path, item.sectionId); setIsOpen(false); }}
+                           className="block text-sm text-gray-600 hover:text-primary"
+                        >
+                           {item.label}
+                        </button>
+                     ))}
+                  </div>
+               )}
+            </div>
 
-            <NavLink
-               to="/announcements"
-               onClick={() => setIsOpen(false)}
-               className="block mobile-navlink text-text-color hover:text-secondary"
-            >
-               Announcements
-            </NavLink>
-            <NavLink
-               to="/achievements"
-               onClick={() => setIsOpen(false)}
-               className="block mobile-navlink text-text-color hover:text-secondary"
-            >
-               Achievements
-            </NavLink>
+            {/* Services Mobile Accordion */}
+            <div>
+               <button
+                  onClick={() => setMobileDropdown(mobileDropdown === "services" ? null : "services")}
+                  className="flex items-center justify-between w-full text-text-color hover:text-primary"
+               >
+                  <span>Services</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileDropdown === "services" ? "rotate-180" : ""}`} />
+               </button>
+               {mobileDropdown === "services" && (
+                  <div className="pl-4 mt-2 space-y-2 border-l-2 border-primary/20">
+                     {navDropdowns.services.items.map((item) => (
+                        <NavLink
+                           key={item.label}
+                           to={item.path}
+                           onClick={() => setIsOpen(false)}
+                           className="block text-sm text-gray-600 hover:text-primary"
+                        >
+                           {item.label}
+                        </NavLink>
+                     ))}
+                  </div>
+               )}
+            </div>
+
             <NavLink
                to="/reports"
                onClick={() => setIsOpen(false)}
-               className="block mobile-navlink text-text-color hover:text-secondary"
+               className="block mobile-navlink text-text-color hover:text-primary"
             >
                Reports
             </NavLink>
+
+            {/* Committee Mobile Accordion */}
+            <div>
+               <button
+                  onClick={() => setMobileDropdown(mobileDropdown === "committee" ? null : "committee")}
+                  className="flex items-center justify-between w-full text-text-color hover:text-primary"
+               >
+                  <span>Committee</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileDropdown === "committee" ? "rotate-180" : ""}`} />
+               </button>
+               {mobileDropdown === "committee" && (
+                  <div className="pl-4 mt-2 space-y-2 border-l-2 border-primary/20">
+                     {navDropdowns.committee.items.map((item, idx) => (
+                        <NavLink
+                           key={idx}
+                           to={item.path}
+                           onClick={() => setIsOpen(false)}
+                           className="block text-sm text-gray-600 hover:text-primary"
+                        >
+                           {item.label}
+                        </NavLink>
+                     ))}
+                  </div>
+               )}
+            </div>
+
             <NavLink
-               to="/about"
+               to="/personnel"
                onClick={() => setIsOpen(false)}
-               className="block mobile-navlink text-text-color hover:text-secondary"
+               className="block mobile-navlink text-text-color hover:text-primary"
             >
-               About
+               People
             </NavLink>
+
+            {/* About Mobile Accordion */}
+            <div>
+               <button
+                  onClick={() => setMobileDropdown(mobileDropdown === "about" ? null : "about")}
+                  className="flex items-center justify-between w-full text-text-color hover:text-primary"
+               >
+                  <span>About</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileDropdown === "about" ? "rotate-180" : ""}`} />
+               </button>
+               {mobileDropdown === "about" && (
+                  <div className="pl-4 mt-2 space-y-2 border-l-2 border-primary/20">
+                     {navDropdowns.about.items.map((item) => (
+                        <button
+                           key={item.sectionId}
+                           onClick={() => { scrollToSection(item.path, item.sectionId); setIsOpen(false); }}
+                           className="block text-sm text-gray-600 hover:text-primary"
+                        >
+                           {item.label}
+                        </button>
+                     ))}
+                  </div>
+               )}
+            </div>
 
             {user && user.roleCode === 74934 ? (
                <>
                   <NavLink
                      to="/profile"
                      onClick={() => setIsOpen(false)}
-                     className="flex items-center gap-2 mobile-navlink text-text-color hover:text-secondary pt-3 border-t border-gray-300"
+                     className="flex items-center gap-2 mobile-navlink text-text-color hover:text-primary pt-3 border-t border-gray-300"
                   >
                      <User className="w-4 h-4" />
                      My Profile

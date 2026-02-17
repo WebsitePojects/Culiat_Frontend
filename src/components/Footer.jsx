@@ -56,6 +56,8 @@ const Footer = () => {
     { title: "Report Incident", url: "/reports", isRoute: true },
     { title: "Announcements", url: "/announcements", isRoute: true },
     { title: "Achievements", url: "/achievements", isRoute: true },
+    { title: "Committees", url: "/committee", isRoute: true },
+    { title: "Personnel", url: "/personnel", isRoute: true },
     { title: "About Us", url: "/about", isRoute: true },
     { title: "Facebook Page", url: "https://www.facebook.com/profile.php?id=100091344363854", isRoute: false, isExternal: true },
     { title: "Terms & Conditions", url: "/legal#terms", isRoute: true },

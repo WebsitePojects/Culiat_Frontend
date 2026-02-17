@@ -105,7 +105,7 @@ const MissionAndVision = () => {
 
   if (loading) {
     return (
-      <section id="about-goals" className="py-16 px-4 bg-neutral">
+      <section id="mission" className="py-16 px-4 bg-neutral">
         <div className="max-w-5xl mx-auto text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
         </div>
@@ -114,7 +114,7 @@ const MissionAndVision = () => {
   }
 
   return (
-    <section id="about-goals" className="py-16 px-4 bg-neutral">
+    <section id="mission" className="py-16 px-4 bg-neutral">
       <div className="relative max-w-5xl mx-auto">
         {/* Section Header */}
         <motion.div
