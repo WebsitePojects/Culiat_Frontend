@@ -171,7 +171,7 @@ const Navbar = () => {
                      <span className="sm:block hidden leading-4 text-sm font-bold tracking-wide">
                         BARANGAY CULIAT
                      </span>
-                     <span className="sm:hidden block text-sm font-bold tracking-wide">BRGY. CULIAT</span>
+                     <span className="sm:hidden block text-sm font-bold tracking-wide">BARANGAY CULIAT</span>
                      <span className="font-semibold text-[10px] text-primary uppercase">
                         E-Services
                      </span>
