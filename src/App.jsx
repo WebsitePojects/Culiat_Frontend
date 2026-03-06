@@ -3,6 +3,7 @@ import { Toaster, toast } from "react-hot-toast";
 import { useEffect, useMemo } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
+import ServicesMaintenanceGuard from "./components/ServicesMaintenanceGuard";
 import MaintenancePage from "./components/MaintenancePage";
 import MaintenanceGuard from "./components/MaintenanceGuard";
 import BypassForm from "./components/BypassForm";
@@ -46,6 +47,7 @@ import AdminTermsAcceptances from "./admin/pages/TermsAcceptances/AdminTermsAcce
 import AdminAchievements from "./admin/pages/Achievements/AdminAchievements";
 import AdminOfficials from "./admin/pages/Officials/AdminOfficials";
 import AdminCommittees from "./admin/pages/Committees/AdminCommittees";
+import AdminPeople from "./admin/pages/People/AdminPeople";
 import CMSServices from "./admin/pages/CMS/CMSServices";
 import CMSAboutUs from "./admin/pages/CMS/CMSAboutUs";
 import CMSBanners from "./admin/pages/CMS/CMSBanners";
@@ -240,7 +242,9 @@ function App() {
                 path="/services-info"
                 element={
                   <MainLayout>
-                    <ServicesInfoPage />
+                    <ServicesMaintenanceGuard>
+                      <ServicesInfoPage />
+                    </ServicesMaintenanceGuard>
                   </MainLayout>
                 }
               />
@@ -332,6 +336,7 @@ function App() {
                 />
                 <Route path="officials" element={<AdminOfficials />} />
                 <Route path="committees" element={<AdminCommittees />} />
+                <Route path="people" element={<AdminPeople />} />
                 <Route path="cms/services" element={<CMSServices />} />
                 <Route path="cms/about-us" element={<CMSAboutUs />} />
                 <Route path="cms/banners" element={<CMSBanners />} />
@@ -418,11 +423,11 @@ function App() {
               <Route
                 path="/services/"
                 element={
-                  <PrivateRoute>
-                    <MainLayout>
+                  <MainLayout>
+                    <ServicesMaintenanceGuard>
                       <Services />
-                    </MainLayout>
-                  </PrivateRoute>
+                    </ServicesMaintenanceGuard>
+                  </MainLayout>
                 }
               />
 

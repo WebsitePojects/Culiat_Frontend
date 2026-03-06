@@ -548,6 +548,7 @@ const AdminOfficials = () => {
                       <option value="Administrative">Administrative</option>
                       <option value="Lupong Tagapamayapa">Lupong Tagapamayapa</option>
                       <option value="SK Council">SK Council</option>
+                      <option value="Barangay Public Safety Officers (BPSO)">Barangay Public Safety Officers (BPSO)</option>
                       <option value="Other">Other</option>
                     </select>
                   </div>

@@ -110,19 +110,6 @@ const Navbar = () => {
             { label: "Contact Us", sectionId: "contact", path: "/" },
          ],
       },
-      services: {
-         label: "Services",
-         path: user && user.roleCode === 74934 ? "/services" : "/services-info",
-         items: user && user.roleCode === 74934
-            ? [
-               { label: "Request Document", path: "/services" },
-               { label: "Services Info", path: "/services-info" },
-            ]
-            : [
-               { label: "All Services", path: "/services-info" },
-               { label: "Request Document", path: "/services-info" },
-            ],
-      },
       about: {
          label: "About",
          path: "/about",
@@ -153,6 +140,7 @@ const Navbar = () => {
             { label: "Barangay Council", path: "/personnel?branch=Legislative" },
             { label: "Sangguniang Kabataan (SK)", path: "/personnel?branch=SK Council" },
             { label: "Administrative Staff", path: "/personnel?branch=Administrative" },
+            { label: "BPSO", path: "/personnel?branch=Barangay Public Safety Officers (BPSO)" },
          ],
       },
    };
@@ -196,7 +184,7 @@ const Navbar = () => {
                >
                   {/* Home Dropdown */}
                   <div
-                     className="relative pb-2"
+                     className="relative pb-3"
                      onMouseEnter={() => setOpenDropdown("home")}
                      onMouseLeave={() => setOpenDropdown(null)}
                   >
@@ -210,12 +198,12 @@ const Navbar = () => {
                         <ChevronDown className="w-3 h-3" />
                      </NavLink>
                      {openDropdown === "home" && (
-                        <div className="absolute top-full left-0 mt-1 w-44 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50">
+                        <div className="absolute top-full left-0 -mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 overflow-hidden">
                            {navDropdowns.home.items.map((item) => (
                               <button
                                  key={item.sectionId}
                                  onClick={() => scrollToSection(item.path, item.sectionId)}
-                                 className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
+                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors whitespace-normal break-words leading-snug"
                               >
                                  {item.label}
                               </button>
@@ -224,39 +212,19 @@ const Navbar = () => {
                      )}
                   </div>
 
-                  {/* Services Dropdown */}
-                  <div
-                     className="relative pb-2"
-                     onMouseEnter={() => setOpenDropdown("services")}
-                     onMouseLeave={() => setOpenDropdown(null)}
-                  >
+                  {/* Services — flat link (no dropdown) */}
+                  <div className="pb-2">
                      <NavLink
-                        to={user && user.roleCode === 74934 ? "/services" : "/services-info"}
-                        className={({ isActive }) =>
-                           `navlink text-sm transition flex items-center gap-1 px-2 py-1 ${isActive && "active"}`
-                        }
+                        to={user && (user.roleCode === 74933 || user.roleCode === 74932) ? "/services" : "/services-info"}
+                        className="navlink text-sm px-2 py-1"
                      >
                         Services
-                        <ChevronDown className="w-3 h-3" />
                      </NavLink>
-                     {openDropdown === "services" && (
-                        <div className="absolute top-full left-0 mt-1 w-44 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50">
-                           {navDropdowns.services.items.map((item) => (
-                              <NavLink
-                                 key={item.label}
-                                 to={item.path}
-                                 className="block px-3 py-1.5 text-xs text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
-                              >
-                                 {item.label}
-                              </NavLink>
-                           ))}
-                        </div>
-                     )}
                   </div>
 
                   {/* Committee Dropdown */}
                   <div
-                     className="relative pb-2"
+                     className="relative pb-3"
                      onMouseEnter={() => setOpenDropdown("committee")}
                      onMouseLeave={() => setOpenDropdown(null)}
                   >
@@ -270,12 +238,12 @@ const Navbar = () => {
                         <ChevronDown className="w-3 h-3" />
                      </NavLink>
                      {openDropdown === "committee" && (
-                        <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50 overflow-hidden">
+                        <div className="absolute top-full left-0 -mt-1 w-72 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 overflow-hidden">
                            {navDropdowns.committee.items.map((item, idx) => (
                               <NavLink
                                  key={idx}
                                  to={item.path}
-                                 className="block px-3 py-1.5 text-xs text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors truncate"
+                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors whitespace-normal break-words leading-snug"
                               >
                                  {item.label}
                               </NavLink>
@@ -286,7 +254,7 @@ const Navbar = () => {
 
                   {/* People Dropdown */}
                   <div
-                     className="relative pb-2"
+                     className="relative pb-3"
                      onMouseEnter={() => setOpenDropdown("people")}
                      onMouseLeave={() => setOpenDropdown(null)}
                   >
@@ -300,13 +268,13 @@ const Navbar = () => {
                         <ChevronDown className="w-3 h-3" />
                      </NavLink>
                      {openDropdown === "people" && (
-                        <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50 overflow-hidden">
+                        <div className="absolute top-full left-0 -mt-1 w-72 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 overflow-hidden">
                            {navDropdowns.people.items.map((item, idx) => (
                               <NavLink
                                  key={idx}
                                  to={item.path}
                                  onClick={() => setOpenDropdown(null)}
-                                 className="block px-3 py-1.5 text-xs text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
+                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors whitespace-normal break-words leading-snug"
                               >
                                  {item.label}
                               </NavLink>
@@ -315,13 +283,24 @@ const Navbar = () => {
                      )}
                   </div>
 
-               {/* Report — flat link (no dropdown) */}
-               <div className="pb-2">
-                  <NavLink to="/reports" className="navlink text-sm px-2 py-1">Report</NavLink>
-               </div>
+                  {/* Announcements — hide first on narrow desktop */}
+                  <div className="pb-2 hidden xl:block">
+                     <NavLink to="/announcements" className="navlink text-sm px-2 py-1">Announcements</NavLink>
+                  </div>
+
+                  {/* Achievements — hide first on narrow desktop */}
+                  <div className="pb-2 hidden xl:block">
+                     <NavLink to="/achievements" className="navlink text-sm px-2 py-1">Achievements</NavLink>
+                  </div>
+
+                  {/* Report — flat link (no dropdown) */}
+                  <div className="pb-2">
+                     <NavLink to="/reports" className="navlink text-sm px-2 py-1">Report</NavLink>
+                  </div>
+
                   {/* About Dropdown */}
                   <div
-                     className="relative pb-2"
+                     className="relative pb-3"
                      onMouseEnter={() => setOpenDropdown("about")}
                      onMouseLeave={() => setOpenDropdown(null)}
                   >
@@ -335,12 +314,12 @@ const Navbar = () => {
                         <ChevronDown className="w-3 h-3" />
                      </NavLink>
                      {openDropdown === "about" && (
-                        <div className="absolute top-full left-0 mt-1 w-44 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50">
+                        <div className="absolute top-full left-0 -mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 overflow-hidden">
                            {navDropdowns.about.items.map((item) => (
                               <button
                                  key={item.sectionId}
                                  onClick={() => scrollToSection(item.path, item.sectionId)}
-                                 className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
+                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors whitespace-normal break-words leading-snug"
                               >
                                  {item.label}
                               </button>
@@ -520,30 +499,29 @@ const Navbar = () => {
                )}
             </div>
 
-            {/* Services Mobile Accordion */}
-            <div>
-               <button
-                  onClick={() => setMobileDropdown(mobileDropdown === "services" ? null : "services")}
-                  className="flex items-center justify-between w-full text-text-color hover:text-primary"
-               >
-                  <span>Services</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileDropdown === "services" ? "rotate-180" : ""}`} />
-               </button>
-               {mobileDropdown === "services" && (
-                  <div className="pl-4 mt-2 space-y-2 border-l-2 border-primary/20">
-                     {navDropdowns.services.items.map((item) => (
-                        <NavLink
-                           key={item.label}
-                           to={item.path}
-                           onClick={() => setIsOpen(false)}
-                           className="block text-sm text-gray-600 hover:text-primary"
-                        >
-                           {item.label}
-                        </NavLink>
-                     ))}
-                  </div>
-               )}
-            </div>
+            <NavLink
+               to={user && (user.roleCode === 74933 || user.roleCode === 74932) ? "/services" : "/services-info"}
+               onClick={() => setIsOpen(false)}
+               className="block mobile-navlink text-text-color hover:text-primary"
+            >
+               Services
+            </NavLink>
+
+            <NavLink
+               to="/announcements"
+               onClick={() => setIsOpen(false)}
+               className="block mobile-navlink text-text-color hover:text-primary"
+            >
+               Announcements
+            </NavLink>
+
+            <NavLink
+               to="/achievements"
+               onClick={() => setIsOpen(false)}
+               className="block mobile-navlink text-text-color hover:text-primary"
+            >
+               Achievements
+            </NavLink>
 
             <NavLink
                to="/reports"

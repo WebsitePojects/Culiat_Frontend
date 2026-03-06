@@ -30,6 +30,27 @@ const positionLabels = {
     other: 'Staff',
 };
 
+const normalizeBranch = (branch) => {
+    if (!branch) return "";
+    if (branch === "Sangguniang Kabataan") return "SK Council";
+    if (branch === "Judiciary" || branch === "Lupong Tagapamayapa" || branch === "The Judiciary") return "The Judiciary";
+    if (branch === "BPSO") return "Barangay Public Safety Officers (BPSO)";
+    return branch;
+};
+
+const getBranchLabel = (branch) => {
+    const normalized = normalizeBranch(branch);
+    if (normalized === "The Judiciary") return "The Judiciary";
+    return normalized;
+};
+
+const getPersonBranches = (person) => {
+    const raw = Array.isArray(person.branches) && person.branches.length > 0
+        ? person.branches
+        : [person.branch].filter(Boolean);
+    return [...new Set(raw.map(normalizeBranch).filter(Boolean))];
+};
+
 const PersonnelPage = () => {
     const [searchParams] = useSearchParams();
     const [personnel, setPersonnel] = useState([]);
@@ -44,7 +65,15 @@ const PersonnelPage = () => {
         setActiveBranch(b);
     }, [searchParams]);
 
-    const branches = ["All", "Executive", "Legislative", "Administrative", "Lupong Tagapamayapa", "SK Council"];
+    const branches = [
+        "All",
+        "Executive",
+        "Legislative",
+        "Administrative",
+        "The Judiciary",
+        "SK Council",
+        "Barangay Public Safety Officers (BPSO)",
+    ];
 
     useEffect(() => {
         const fetchPersonnel = async () => {
@@ -64,7 +93,8 @@ const PersonnelPage = () => {
 
     const filteredPersonnel = personnel.filter(p => {
         const nameMatch = `${p.firstName} ${p.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
-        const branchMatch = activeBranch === "All" || p.branch === activeBranch;
+        const personBranches = getPersonBranches(p);
+        const branchMatch = activeBranch === "All" || personBranches.includes(normalizeBranch(activeBranch));
         return nameMatch && branchMatch;
     });
 
@@ -155,7 +185,9 @@ const PersonnelPage = () => {
                                     )}
                                     <div className="absolute top-4 right-4 translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
                                         <span className="bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-[10px] font-bold text-gray-700 shadow-sm border border-white">
-                                            {person.branch}
+                                            {(Array.isArray(person.branches) && person.branches.length > 0)
+                                                ? getBranchLabel(getPersonBranches(person)[0])
+                                                : getBranchLabel(person.branch)}
                                         </span>
                                     </div>
                                 </div>
@@ -174,7 +206,32 @@ const PersonnelPage = () => {
                                     </div>
 
                                     <div className="space-y-3 mb-6 flex-grow">
-                                        {person.committeeRef ? (
+                                        {Array.isArray(person.committeeAssignments) && person.committeeAssignments.length > 0 ? (
+                                            <div className="space-y-1.5">
+                                                {person.committeeAssignments.slice(0, 3).map((assignment, index) => {
+                                                    const committee = assignment?.committeeRef;
+                                                    const role = assignment?.committeeRole;
+                                                    const roleLabel = role
+                                                        ? role.replace("_", " ").replace(/\b\w/g, (char) => char.toUpperCase())
+                                                        : "Member";
+
+                                                    if (committee?.slug) {
+                                                        return (
+                                                            <Link
+                                                                key={`${committee._id || committee.slug}-${index}`}
+                                                                to={`/committee/${committee.slug}`}
+                                                                className="flex items-center text-xs text-primary font-semibold hover:underline"
+                                                            >
+                                                                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
+                                                                {committee.name} {role ? `(${roleLabel})` : ""}
+                                                            </Link>
+                                                        );
+                                                    }
+
+                                                    return null;
+                                                })}
+                                            </div>
+                                        ) : person.committeeRef ? (
                                             <Link
                                                 to={`/committee/${person.committeeRef.slug}`}
                                                 className="flex items-center text-xs text-primary font-semibold hover:underline"

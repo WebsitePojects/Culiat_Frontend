@@ -223,17 +223,34 @@ const OrgChart = () => {
   const secretary = personnel.find((p) => p.position === "barangay_secretary");
   const treasurer = personnel.find((p) => p.position === "barangay_treasurer");
 
+  const normalizeBranch = (branch) => {
+    if (!branch) return "";
+    if (branch === "Sangguniang Kabataan") return "SK Council";
+    if (branch === "Judiciary" || branch === "Lupong Tagapamayapa" || branch === "The Judiciary") return "The Judiciary";
+    if (branch === "BPSO") return "Barangay Public Safety Officers (BPSO)";
+    return branch;
+  };
+
+  const hasBranch = (person, branchName) => {
+    const branches = Array.isArray(person.branches) && person.branches.length > 0
+      ? person.branches
+      : [person.branch].filter(Boolean);
+    const normalized = branches.map(normalizeBranch);
+    return normalized.includes(normalizeBranch(branchName));
+  };
+
   const legislative = personnel.filter(
-    (p) => p.branch === "Legislative" && p.position === "barangay_kagawad"
+    (p) => hasBranch(p, "Legislative") && p.position === "barangay_kagawad"
   );
   const executive = personnel.filter(
     (p) =>
-      p.branch === "Executive" &&
+      hasBranch(p, "Executive") &&
       !["barangay_captain", "barangay_secretary", "barangay_treasurer"].includes(p.position)
   );
-  const administrative = personnel.filter((p) => p.branch === "Administrative");
-  const judiciary = personnel.filter((p) => p.branch === "Lupong Tagapamayapa");
-  const skCouncil = personnel.filter((p) => p.branch === "SK Council");
+  const administrative = personnel.filter((p) => hasBranch(p, "Administrative"));
+  const judiciary = personnel.filter((p) => hasBranch(p, "The Judiciary"));
+  const skCouncil = personnel.filter((p) => hasBranch(p, "SK Council"));
+  const bpso = personnel.filter((p) => hasBranch(p, "Barangay Public Safety Officers (BPSO)"));
 
   /* ── SK chair from SK branch ── */
   const skChair = skCouncil.find((p) => p.position === "sk_chairman");
@@ -332,10 +349,10 @@ const OrgChart = () => {
               )}
             </BranchSection>
 
-            {/* ── Judiciary / Lupong Tagapamayapa ── */}
+            {/* ── Judiciary ── */}
             <BranchSection title="Judiciary Branch" icon={Scale} color="rose">
               <p className="text-xs text-gray-500 mb-4">
-                The Lupong Tagapamayapa — the barangay justice system that mediates and settles
+                The Judiciary — the barangay justice system that mediates and settles
                 disputes at the community level.
               </p>
               <div className="grid grid-cols-2 gap-4 sm:gap-6">
@@ -351,8 +368,8 @@ const OrgChart = () => {
             </BranchSection>
           </div>
 
-          {/* ═══════ SK COUNCIL & ADMIN STAFF ═══════ */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* ═══════ SK COUNCIL, ADMIN & BPSO ═══════ */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
             {/* ── SK Council ── */}
             <BranchSection title="Sangguniang Kabataan" icon={Users} color="blue">
               <p className="text-xs text-gray-500 mb-4">
@@ -395,6 +412,24 @@ const OrgChart = () => {
               {administrative.length === 0 && (
                 <p className="text-sm text-gray-400 text-center py-4">
                   No administrative staff found
+                </p>
+              )}
+            </BranchSection>
+
+            {/* ── BPSO ── */}
+            <BranchSection title="Barangay Public Safety Officers (BPSO)" icon={Shield} color="secondary">
+              <p className="text-xs text-gray-500 mb-4">
+                Barangay Public Safety Officers (BPSO) help maintain peace, order, and safety in the
+                community through active field presence and support operations.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {bpso.map((person) => (
+                  <PersonCard key={person._id} person={person} size="sm" accent="secondary" />
+                ))}
+              </div>
+              {bpso.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-4">
+                  No BPSO members found
                 </p>
               )}
             </BranchSection>
