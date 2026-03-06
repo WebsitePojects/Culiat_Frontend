@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import {
@@ -31,10 +31,18 @@ const positionLabels = {
 };
 
 const PersonnelPage = () => {
+    const [searchParams] = useSearchParams();
     const [personnel, setPersonnel] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
-    const [activeBranch, setActiveBranch] = useState("All");
+    const branchFromUrl = searchParams.get("branch") || "All";
+    const [activeBranch, setActiveBranch] = useState(branchFromUrl);
+
+    // Sync activeBranch when URL changes
+    useEffect(() => {
+        const b = searchParams.get("branch") || "All";
+        setActiveBranch(b);
+    }, [searchParams]);
 
     const branches = ["All", "Executive", "Legislative", "Administrative", "Lupong Tagapamayapa", "SK Council"];
 

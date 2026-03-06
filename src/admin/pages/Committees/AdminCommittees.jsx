@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { sanitizeHTML } from "../../../utils/sanitize";
 import {
   Plus,
   Edit,
@@ -16,17 +17,49 @@ import {
   ChevronUp,
   Calendar,
   Image,
+  ExternalLink,
 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const RichTextEditor = ({ label, value, onChange, placeholder }) => {
   const editorRef = useRef(null);
+  const isInternalChange = useRef(false);
+  const lastValueRef = useRef(value);
+
+  // Only set innerHTML from props on mount or when value changes externally
+  // (not from the user's own typing which would reset the cursor)
+  useEffect(() => {
+    if (editorRef.current && !isInternalChange.current) {
+      if (value !== lastValueRef.current) {
+        editorRef.current.innerHTML = value || "";
+        lastValueRef.current = value;
+      }
+    }
+    isInternalChange.current = false;
+  }, [value]);
+
+  // Set initial content on mount
+  useEffect(() => {
+    if (editorRef.current && value) {
+      editorRef.current.innerHTML = value;
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleInput = (e) => {
+    isInternalChange.current = true;
+    const html = e.currentTarget.innerHTML;
+    lastValueRef.current = html;
+    onChange(html);
+  };
 
   const applyCommand = (command, commandValue = null) => {
     editorRef.current?.focus();
     document.execCommand(command, false, commandValue);
-    onChange(editorRef.current?.innerHTML || "");
+    isInternalChange.current = true;
+    const html = editorRef.current?.innerHTML || "";
+    lastValueRef.current = html;
+    onChange(html);
   };
 
   return (
@@ -122,8 +155,7 @@ const RichTextEditor = ({ label, value, onChange, placeholder }) => {
           contentEditable
           suppressContentEditableWarning
           className="min-h-[120px] p-3 text-sm text-gray-900 dark:text-white focus:outline-none"
-          onInput={(e) => onChange(e.currentTarget.innerHTML)}
-          dangerouslySetInnerHTML={{ __html: value || "" }}
+          onInput={handleInput}
           data-placeholder={placeholder}
           style={{
             whiteSpace: "pre-wrap",
@@ -152,7 +184,6 @@ const AdminCommittees = () => {
 
   const [formData, setFormData] = useState({
     name: "",
-    nameEnglish: "",
     description: "",
     description2: "",
     responsibilities: [""],
@@ -199,7 +230,6 @@ const AdminCommittees = () => {
   const resetForm = () => {
     setFormData({
       name: "",
-      nameEnglish: "",
       description: "",
       description2: "",
       responsibilities: [""],
@@ -217,7 +247,6 @@ const AdminCommittees = () => {
       setEditingCommittee(committee);
       setFormData({
         name: committee.name || "",
-        nameEnglish: committee.nameEnglish || "",
         description: committee.description || "",
         description2: committee.description2 || "",
         responsibilities:
@@ -512,11 +541,7 @@ const AdminCommittees = () => {
                         {committee.isActive ? "Active" : "Inactive"}
                       </span>
                     </div>
-                    {committee.nameEnglish && (
-                      <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">
-                        {committee.nameEnglish}
-                      </p>
-                    )}
+
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
                       <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                         <ListOrdered className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -539,6 +564,15 @@ const AdminCommittees = () => {
 
                   {/* Actions */}
                   <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                    <a
+                      href={`/committee/${committee.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1.5 sm:p-2 rounded-lg border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-green-600 dark:text-green-400"
+                      title="View public page"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    </a>
                     <button
                       onClick={() => handleToggleExpandedCard(committee._id)}
                       className="p-1.5 sm:p-2 rounded-lg border dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
@@ -592,7 +626,7 @@ const AdminCommittees = () => {
                       </h4>
                       <div
                         className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 prose prose-sm max-w-none dark:prose-invert"
-                        dangerouslySetInnerHTML={{ __html: committee.description }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(committee.description) }}
                       />
                     </div>
                   )}
@@ -604,7 +638,7 @@ const AdminCommittees = () => {
                       </h4>
                       <div
                         className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 prose prose-sm max-w-none dark:prose-invert"
-                        dangerouslySetInnerHTML={{ __html: committee.description2 }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(committee.description2) }}
                       />
                     </div>
                   )}
@@ -768,40 +802,21 @@ const AdminCommittees = () => {
                 onSubmit={handleSubmit}
                 className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto max-h-[calc(90vh-8rem)]"
               >
-                {/* Committee Names */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Committee Name (Filipino) *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="e.g. Komite sa Kapayapaan"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Committee Name (English)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.nameEnglish}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          nameEnglish: e.target.value,
-                        })
-                      }
-                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="e.g. Committee on Peace and Order"
-                    />
-                  </div>
+                {/* Committee Name */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Committee Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="e.g. Committee on Peace and Order"
+                    required
+                  />
                 </div>
 
                 {/* Description 1 */}

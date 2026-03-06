@@ -915,45 +915,69 @@ const Register = () => {
     await performRegistration();
   };
 
-  const stepLabels = ['Account', 'Personal', 'Address', 'ID Upload', 'Terms'];
+  const stepLabels = ['Account', 'Personal', 'Address', 'Documents', 'Terms'];
+  const stepIcons = [User, Users, MapPin, IdCard, FileText];
+
+  // Step info for page headers
+  const stepInfo = {
+    0: { title: 'Create Your Account', desc: 'Select your residency status to get started' },
+    1: { title: 'Account Setup', desc: 'Create your login credentials' },
+    2: { title: 'Personal Information', desc: 'Tell us about yourself' },
+    3: { title: 'Address Details', desc: 'Where do you currently reside?' },
+    4: { title: 'Document Verification', desc: 'Upload your identification documents' },
+    5: { title: 'Terms & Conditions', desc: 'Review and accept to complete registration' },
+  };
 
   const renderStepIndicator = () => (
-    <div className="mb-6">
+    <div>
       {/* Progress Bar */}
-      <div className="relative h-1 bg-slate-100 rounded-full mb-3 overflow-hidden">
+      <div className="relative h-1.5 bg-slate-100 rounded-full mb-4 overflow-hidden">
         <motion.div
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full"
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 via-emerald-500 to-teal-500 rounded-full"
           initial={{ width: '0%' }}
           animate={{ width: `${((currentStep - 1) / 4) * 100}%` }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
         />
       </div>
 
       {/* Step Indicators */}
       <div className="flex items-center justify-between">
-        {[1, 2, 3, 4, 5].map((step) => (
-          <div key={step} className="flex flex-col items-center">
-            <motion.div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${currentStep > step
-                ? "bg-emerald-600 text-white"
-                : currentStep === step
-                  ? "bg-emerald-600 text-white ring-4 ring-emerald-100"
-                  : "bg-slate-100 text-slate-400 border border-slate-200"
+        {[1, 2, 3, 4, 5].map((step) => {
+          const StepIcon = stepIcons[step - 1];
+          return (
+            <div key={step} className="flex flex-col items-center gap-1.5">
+              <motion.div
+                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                  currentStep > step
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200'
+                    : currentStep === step
+                      ? 'bg-emerald-600 text-white ring-4 ring-emerald-100 shadow-lg shadow-emerald-200'
+                      : 'bg-slate-100 text-slate-400 border border-slate-200'
                 }`}
-              initial={false}
-              animate={{
-                scale: currentStep === step ? 1.1 : 1,
-              }}
-              transition={{ duration: 0.2 }}
-            >
-              {currentStep > step ? <CheckCircle className="w-3.5 h-3.5" /> : step}
-            </motion.div>
-            <span className={`text-[9px] mt-1 font-medium transition-colors ${currentStep >= step ? 'text-slate-700' : 'text-slate-400'
+                initial={false}
+                animate={{ scale: currentStep === step ? 1.1 : 1 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              >
+                {currentStep > step ? (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                  >
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </motion.div>
+                ) : (
+                  <StepIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                )}
+              </motion.div>
+              <span className={`text-[10px] sm:text-xs font-medium transition-colors duration-300 ${
+                currentStep >= step ? 'text-slate-700' : 'text-slate-400'
               }`}>
-              {stepLabels[step - 1]}
-            </span>
-          </div>
-        ))}
+                {stepLabels[step - 1]}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -1088,7 +1112,7 @@ const Register = () => {
 
   const renderStep1 = () => (
     <motion.div
-      className="space-y-3"
+      className="space-y-4 sm:space-y-5"
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
@@ -1214,13 +1238,13 @@ const Register = () => {
 
   const renderStep2 = () => (
     <motion.div
-      className="space-y-4"
+      className="space-y-4 sm:space-y-5"
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">
             First Name *
@@ -1257,7 +1281,7 @@ const Register = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">
             Middle Name
@@ -1291,7 +1315,7 @@ const Register = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">
             Date of Birth *
@@ -1348,7 +1372,7 @@ const Register = () => {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">
             Phone Number *
@@ -1373,7 +1397,7 @@ const Register = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="relative">
           <label className="block text-xs font-semibold text-slate-600 mb-1">
             Occupation
@@ -1469,7 +1493,7 @@ const Register = () => {
         <p className="text-xs text-slate-500 mb-3">
           Select all that apply (optional)
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
           {[
             { value: 'senior', label: 'Senior Citizen', icon: '👴' },
             { value: 'woman', label: 'Woman', icon: '👩' },
@@ -1533,7 +1557,7 @@ const Register = () => {
 
   const renderStep3 = () => (
     <motion.div
-      className="space-y-4"
+      className="space-y-4 sm:space-y-5"
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
@@ -1565,7 +1589,7 @@ const Register = () => {
       {/* RESIDENT ADDRESS FORM */}
       {formData.residentType === 'resident' && (
         <>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 House No. *
@@ -1602,7 +1626,7 @@ const Register = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 Subdivision
@@ -1667,7 +1691,7 @@ const Register = () => {
       {/* NON-RESIDENT ADDRESS FORM */}
       {formData.residentType === 'non_resident' && (
         <>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 House No. *
@@ -1704,7 +1728,7 @@ const Register = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 Subdivision / Village
@@ -1737,7 +1761,7 @@ const Register = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 City / Municipality *
@@ -1774,7 +1798,7 @@ const Register = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">
                 Region
@@ -2741,182 +2765,122 @@ const Register = () => {
   );
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-50 overflow-auto">
-      {/* Premium Left Panel - Hidden on mobile */}
-      <div className="hidden lg:flex lg:w-[300px] xl:w-[340px] 2xl:w-[380px] relative overflow-hidden flex-col flex-shrink-0">
-        {/* Nature Background Image */}
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=1200')] bg-cover bg-center"></div>
-        {/* Subtle dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/30 to-black/50"></div>
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.1),transparent_50%)]"></div>
-          <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,rgba(0,0,0,0.2),transparent_50%)]"></div>
-        </div>
-
-        <div className="relative z-10 flex flex-col h-full p-8 xl:p-10">
-          {/* Header with Logo */}
-          <Link to="/" className="group inline-flex items-center gap-3 mb-10">
-            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-xl shadow-black/40 group-hover:shadow-black/60 transition-all duration-300 group-hover:scale-105">
-              <img
-                src="/images/logo/brgy-culiat-logo.svg"
-                alt="Logo"
-                className="w-9 h-9 object-contain"
-              />
-            </div>
-            <div className="drop-shadow-lg">
-              <span className="block text-white font-semibold text-sm tracking-wide drop-shadow-md">Barangay</span>
-              <span className="block text-white font-bold text-lg -mt-0.5 drop-shadow-md">Culiat</span>
-            </div>
-          </Link>
-
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col justify-center -mt-10">
-            <div className="space-y-6">
-              <div>
-                <span className="inline-block px-3 py-1 bg-white/25 text-white text-xs font-medium rounded-full mb-4 border border-white/40 backdrop-blur-md shadow-lg">
-                  Resident Portal
-                </span>
-                <h1 className="text-3xl xl:text-4xl font-bold text-white leading-tight drop-shadow-xl">
-                  Join Your
-                  <span className="block text-white drop-shadow-xl">
-                    Community Today
-                  </span>
-                </h1>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
+      {/* ═══════════ Top Navigation Bar ═══════════ */}
+      <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/60 shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="h-14 sm:h-16 flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-xl flex items-center justify-center shadow-md ring-1 ring-slate-200/50 group-hover:shadow-lg transition-all duration-300">
+                <img
+                  src="/images/logo/brgy-culiat-logo.svg"
+                  alt="Barangay Culiat"
+                  className="w-7 h-7 sm:w-8 sm:h-8 object-contain"
+                />
               </div>
-              <p className="text-white text-sm leading-relaxed max-w-xs drop-shadow-lg">
-                Register to access barangay services, request documents, and stay connected with your community.
-              </p>
-            </div>
-
-            {/* Feature Cards */}
-            <div className="mt-10 space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/20 backdrop-blur-md hover:bg-white/15 transition-colors shadow-lg">
-                <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-xl">
-                  <FileText className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <span className="block text-white text-xs font-semibold drop-shadow-md">Document Requests</span>
-                  <span className="text-white/80 text-[10px] drop-shadow">Barangay clearance, certificates & more</span>
-                </div>
+              <div className="hidden sm:block">
+                <span className="block text-sm font-bold text-slate-800 leading-tight">Barangay Culiat</span>
+                <span className="block text-[10px] text-slate-500 font-medium">Quezon City</span>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/20 backdrop-blur-md hover:bg-white/15 transition-colors shadow-lg">
-                <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-xl">
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <span className="block text-white text-xs font-semibold drop-shadow-md">Quick Verification</span>
-                  <span className="text-white/80 text-[10px] drop-shadow">Fast approval with valid ID</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/20 backdrop-blur-md hover:bg-white/15 transition-colors shadow-lg">
-                <div className="w-9 h-9 bg-gradient-to-br from-teal-600 to-teal-700 rounded-lg flex items-center justify-center shadow-xl">
-                  <Mail className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <span className="block text-white text-xs font-semibold drop-shadow-md">Stay Informed</span>
-                  <span className="text-white/80 text-[10px] drop-shadow">Announcements & emergency alerts</span>
-                </div>
-              </div>
+            </Link>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="text-xs sm:text-sm text-slate-500 hidden sm:inline">Already registered?</span>
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors px-3 py-1.5 rounded-lg hover:bg-emerald-50"
+              >
+                Sign In
+                <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+              </Link>
             </div>
           </div>
-
-          {/* Footer */}
-          <div className="pt-6 border-t border-white/20">
-            <p className="text-white/90 text-[10px] drop-shadow-md">
-              © 2025 Barangay Culiat, Quezon City
-            </p>
-            <p className="text-white/80 text-[10px] mt-1 drop-shadow">
-              Secure • Trusted • Community-Driven
-            </p>
-            <p className="text-white/70 text-[9px] mt-3 leading-relaxed drop-shadow">
-              Your personal data is protected under the Data Privacy Act of 2012 (R.A. 10173).
-              By registering, you consent to the collection and processing of your information
-              for barangay services and official purposes.
-            </p>
-          </div>
         </div>
-      </div>
+      </nav>
 
-      {/* Right Panel - Form Area */}
-      <div className="flex-1 flex items-stretch justify-center p-0 lg:p-4 xl:p-6 relative overflow-hidden">
-        <Link
-          to="/"
-          className="lg:hidden absolute top-4 left-4 inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 transition-colors text-xs font-medium group z-20"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
-          Back
-        </Link>
-
-        {/* Subtle Background for Mobile */}
-        <div className="lg:hidden absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-20 -right-20 w-60 h-60 bg-emerald-100 rounded-full opacity-30 blur-3xl"></div>
-          <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-indigo-50 rounded-full opacity-30 blur-3xl"></div>
-        </div>
-
-        <div className="w-full max-w-2xl xl:max-w-3xl 2xl:max-w-4xl relative flex flex-col h-full">
-          {/* Mobile Header */}
-          <div className="lg:hidden text-center mb-4 mt-6 px-4">
-            <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center mx-auto mb-2.5 shadow-lg ring-1 ring-slate-200">
-              <img
-                src="/images/logo/brgy-culiat-logo.svg"
-                alt="Barangay Culiat Logo"
-                className="w-10 h-10 object-contain"
-              />
-            </div>
-            <h1 className="text-base font-bold text-slate-800">
-              Barangay Culiat
-            </h1>
-            <p className="text-slate-500 text-xs">Resident Registration</p>
-          </div>
-
-          {/* Main Form Card */}
-          <div className="bg-slate-100 lg:rounded-2xl shadow-xl shadow-slate-300/50 border-0 lg:border border-slate-300/80 overflow-hidden flex-1 lg:my-0 flex flex-col max-h-full">
-            <div className="p-4 md:p-5 lg:p-6 overflow-y-auto flex-1">
-              {/* Form Header */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-1">
-                  <h2 className="text-lg font-bold text-slate-800">
-                    Create Account
-                  </h2>
-                  <span className="text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                    Step {currentStep}/5
-                  </span>
-                </div>
-                <p className="text-slate-500 text-xs">
-                  {currentStep === 0
-                    ? "Select your residency status"
-                    : currentStep === 1
-                      ? "Set up your login credentials"
-                      : currentStep === 2
-                        ? "Tell us about yourself"
-                        : currentStep === 3
-                          ? "Your address information"
-                          : currentStep === 4
-                            ? "Upload verification documents"
-                            : "Review and accept terms"}
-                </p>
-              </div>
-
+      {/* ═══════════ Step Indicator Bar ═══════════ */}
+      <AnimatePresence>
+        {currentStep > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="sticky top-14 sm:top-16 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100"
+          >
+            <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
               {renderStepIndicator()}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-              <AnimatePresence mode="wait">
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg flex items-start gap-2"
-                  >
-                    <div className="flex-shrink-0 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      !
-                    </div>
-                    <p className="text-xs font-medium text-red-800">{error}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+      {/* ═══════════ Main Content Area ═══════════ */}
+      <main className="relative">
+        {/* Decorative background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-50 rounded-full opacity-40 blur-3xl -translate-y-1/2" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-50 rounded-full opacity-30 blur-3xl translate-y-1/2" />
+        </div>
 
-              <form onSubmit={handleSubmit}>
+        <div className="relative max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12">
+          {/* Page Header */}
+          <motion.div
+            key={`header-${currentStep}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="text-center mb-6 sm:mb-8"
+          >
+            {/* Mobile Logo - shown only on small screens */}
+            {currentStep === 0 && (
+              <div className="sm:hidden mb-4">
+                <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center mx-auto shadow-lg ring-1 ring-slate-200">
+                  <img
+                    src="/images/logo/brgy-culiat-logo.svg"
+                    alt="Barangay Culiat"
+                    className="w-10 h-10 object-contain"
+                  />
+                </div>
+              </div>
+            )}
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
+              {stepInfo[currentStep]?.title}
+            </h1>
+            <p className="text-sm sm:text-base text-slate-500 mt-1.5">
+              {stepInfo[currentStep]?.desc}
+            </p>
+            {currentStep > 0 && (
+              <div className="mt-2.5">
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                  Step {currentStep} of 5
+                </span>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Error Message */}
+          <AnimatePresence mode="wait">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 shadow-sm"
+              >
+                <div className="flex-shrink-0 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold mt-0.5">
+                  !
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-red-800">Something needs attention</p>
+                  <p className="text-sm text-red-700 mt-0.5">{error}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Form Card */}
+          <form onSubmit={handleSubmit}>
+            <div className="bg-white rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-200/60 overflow-hidden">
+              <div className="p-5 sm:p-7 md:p-8 lg:p-10">
                 <AnimatePresence mode="wait">
                   {currentStep === 0 && renderStep0()}
                   {currentStep === 1 && renderStep1()}
@@ -2925,90 +2889,93 @@ const Register = () => {
                   {currentStep === 4 && renderStep4()}
                   {currentStep === 5 && renderStep5()}
                 </AnimatePresence>
+              </div>
 
-                <div className="mt-6">
-                  {/* Navigation Buttons for Steps 0-4 */}
-                  {currentStep < 5 ? (
-                    <div className="grid grid-cols-[auto_1fr] gap-3">
-                      {currentStep > 0 && (
-                        <motion.button
-                          type="button"
-                          onClick={prevStep}
-                          className="px-5 py-2.5 border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 text-sm shadow-sm hover:shadow"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          Previous
-                        </motion.button>
-                      )}
+              {/* Navigation Footer */}
+              <div className="border-t border-slate-100 bg-slate-50/50 px-5 sm:px-7 md:px-8 lg:px-10 py-4 sm:py-5">
+                {currentStep < 5 ? (
+                  <div className={`flex ${currentStep === 0 ? 'justify-center' : 'justify-between'} items-center gap-3`}>
+                    {currentStep > 0 && (
                       <motion.button
                         type="button"
-                        onClick={nextStep}
-                        className={`bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg text-sm ${currentStep === 0 ? 'col-span-2' : ''}`}
+                        onClick={prevStep}
+                        className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 border-2 border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-white hover:border-slate-400 transition-all duration-200 text-sm shadow-sm hover:shadow"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        Continue
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="hidden sm:inline">Previous</span>
+                        <span className="sm:hidden">Back</span>
                       </motion.button>
-                    </div>
-                  ) : (
-                    /* Step 5: Final Submission Layout */
-                    <div className="space-y-4">
-                      {/* Action Buttons Row */}
-                      <div className="grid grid-cols-[auto_1fr] gap-3">
-                        <motion.button
-                          type="button"
-                          onClick={prevStep}
-                          className="px-5 py-3 border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 text-sm shadow-sm hover:shadow"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          Previous
-                        </motion.button>
-
-                        <motion.button
-                          type="submit"
-                          disabled={loading || !formData.termsAccepted}
-                          className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
-                          whileHover={{
-                            scale: loading || !formData.termsAccepted ? 1 : 1.02,
-                          }}
-                          whileTap={{
-                            scale: loading || !formData.termsAccepted ? 1 : 0.98,
-                          }}
-                        >
-                          <CheckCircle className="w-5 h-5" />
-                          {loading ? "Processing..." : "Complete Registration"}
-                        </motion.button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </form>
-
-              <div className="mt-5 pt-4 border-t border-slate-100 text-center">
-                <p className="text-[11px] text-slate-500">
-                  Already have an account?{" "}
-                  <Link
-                    to="/login"
-                    className="text-emerald-600 hover:text-emerald-700 font-semibold hover:underline"
-                  >
-                    Sign in
-                  </Link>
-                </p>
+                    )}
+                    <motion.button
+                      type="button"
+                      onClick={nextStep}
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl transition-all duration-300 shadow-lg shadow-emerald-200 hover:shadow-xl hover:shadow-emerald-300 text-sm"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Continue
+                      <ArrowLeft className="w-4 h-4 rotate-180" />
+                    </motion.button>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center gap-3">
+                    <motion.button
+                      type="button"
+                      onClick={prevStep}
+                      className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 border-2 border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-white hover:border-slate-400 transition-all duration-200 text-sm shadow-sm hover:shadow"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span className="hidden sm:inline">Previous</span>
+                      <span className="sm:hidden">Back</span>
+                    </motion.button>
+                    <motion.button
+                      type="submit"
+                      disabled={loading || !formData.termsAccepted}
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold py-2.5 sm:py-3 px-6 sm:px-8 rounded-xl transition-all duration-300 shadow-lg shadow-emerald-200 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none text-sm"
+                      whileHover={{ scale: loading || !formData.termsAccepted ? 1 : 1.02 }}
+                      whileTap={{ scale: loading || !formData.termsAccepted ? 1 : 0.98 }}
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      {loading ? 'Processing...' : 'Complete Registration'}
+                    </motion.button>
+                  </div>
+                )}
               </div>
             </div>
+          </form>
 
-            <div className="bg-gradient-to-r from-slate-50 to-slate-100/80 px-5 md:px-6 py-2.5 text-center border-t border-slate-100">
-              <p className="text-[10px] text-slate-400">
-                2025 Barangay Culiat, Quezon City All rights reserved
-              </p>
-            </div>
+          {/* Sign In Link */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-slate-500">
+              Already have an account?{' '}
+              <Link
+                to="/login"
+                className="text-emerald-600 hover:text-emerald-700 font-semibold hover:underline transition-colors"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div className="mt-10 sm:mt-12 text-center space-y-2 pb-6">
+            <p className="text-xs text-slate-400">
+              &copy; 2025 Barangay Culiat, Quezon City. All rights reserved.
+            </p>
+            <p className="text-[10px] text-slate-400 max-w-md mx-auto leading-relaxed">
+              Your personal data is protected under the Data Privacy Act of 2012 (R.A. 10173).
+              By registering, you consent to the collection and processing of your information
+              for barangay services and official purposes.
+            </p>
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* Modals */}
+      {/* Terms Modal */}
       {renderTermsModal()}
     </div>
   );

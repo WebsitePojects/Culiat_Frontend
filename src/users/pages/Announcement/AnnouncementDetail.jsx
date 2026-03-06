@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, CalendarDays, MapPin, Tag, Loader2, Eye, Share2, Megaphone, ChevronLeft, ChevronRight, X, ZoomIn, Image, Download, Facebook, Twitter, Link2, User, Youtube } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Tag, Loader2, Eye, Share2, Megaphone, ChevronLeft, ChevronRight, X, ZoomIn, Image, Download, User, Youtube, Facebook, Twitter, Link2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { Helmet } from "react-helmet-async";
@@ -22,7 +22,8 @@ const AnnouncementDetail = () => {
   const [announcement, setAnnouncement] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const [allAnnouncements, setAllAnnouncements] = useState([]);
+
   // Image gallery states
   const [imageGalleryOpen, setImageGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -31,6 +32,7 @@ const AnnouncementDetail = () => {
 
   useEffect(() => {
     fetchAnnouncement();
+    fetchAllAnnouncements();
   }, [slug]);
 
   const fetchAnnouncement = async () => {
@@ -38,13 +40,9 @@ const AnnouncementDetail = () => {
       setLoading(true);
       setError(null);
       const visitorId = getVisitorId();
-      console.log('Fetching announcement with slug/id:', slug);
       const response = await axios.get(`${API_URL}/api/announcements/${slug}`, {
-        headers: {
-          'X-Visitor-Id': visitorId
-        }
+        headers: { 'X-Visitor-Id': visitorId }
       });
-      console.log('Announcement response:', response.data);
       if (response.data.success) {
         setAnnouncement(response.data.data);
       } else {
@@ -52,22 +50,39 @@ const AnnouncementDetail = () => {
       }
     } catch (err) {
       console.error("Error fetching announcement:", err);
-      console.error("Error response:", err.response?.data);
       setError(err.response?.data?.message || "Announcement not found");
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchAllAnnouncements = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/announcements`);
+      if (response.data.success) {
+        setAllAnnouncements(response.data.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching all announcements:", err);
+    }
+  };
+
+  // Get neighboring announcements for previous/next navigation
+  const { prevAnnouncement, nextAnnouncement } = (() => {
+    if (!announcement || allAnnouncements.length === 0) return { prevAnnouncement: null, nextAnnouncement: null };
+    const currentIndex = allAnnouncements.findIndex(a => a._id === announcement._id || a.slug === slug);
+    if (currentIndex === -1) return { prevAnnouncement: null, nextAnnouncement: null };
+    return {
+      nextAnnouncement: currentIndex > 0 ? allAnnouncements[currentIndex - 1] : null,
+      prevAnnouncement: currentIndex < allAnnouncements.length - 1 ? allAnnouncements[currentIndex + 1] : null,
+    };
+  })();
+
   // Get all images (support both images array and legacy image field)
   const getAnnouncementImages = useCallback(() => {
     if (!announcement) return [];
-    if (announcement.images?.length > 0) {
-      return announcement.images;
-    }
-    if (announcement.image) {
-      return [announcement.image];
-    }
+    if (announcement.images?.length > 0) return announcement.images;
+    if (announcement.image) return [announcement.image];
     return [];
   }, [announcement]);
 
@@ -84,18 +99,14 @@ const AnnouncementDetail = () => {
   const nextImage = useCallback(() => {
     const images = getAnnouncementImages();
     if (images.length > 0) {
-      setCurrentImageIndex((prev) =>
-        prev === images.length - 1 ? 0 : prev + 1
-      );
+      setCurrentImageIndex((prev) => prev === images.length - 1 ? 0 : prev + 1);
     }
   }, [getAnnouncementImages]);
 
   const prevImage = useCallback(() => {
     const images = getAnnouncementImages();
     if (images.length > 0) {
-      setCurrentImageIndex((prev) =>
-        prev === 0 ? images.length - 1 : prev - 1
-      );
+      setCurrentImageIndex((prev) => prev === 0 ? images.length - 1 : prev - 1);
     }
   }, [getAnnouncementImages]);
 
@@ -170,7 +181,6 @@ const AnnouncementDetail = () => {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Error downloading image:', err);
-      // Fallback: open in new tab
       window.open(imageUrl, '_blank');
     } finally {
       setDownloadingImage(false);
@@ -183,11 +193,116 @@ const AnnouncementDetail = () => {
     return `${announcement.publishedBy.firstName || ''} ${announcement.publishedBy.lastName || ''}`.trim() || 'Barangay Culiat';
   };
 
+  // Build image grid layout based on number of images (skip hero image at index 0)
+  const renderImageGrid = () => {
+    const allImages = getAnnouncementImages();
+    if (allImages.length <= 1) return null;
+
+    // Skip the first image since it's already the hero
+    const gridImages = allImages.slice(1);
+
+    const renderGridItem = (img, gridIdx) => {
+      const realIndex = gridIdx + 1; // offset by 1 because we skipped hero
+      return (
+        <div key={gridIdx} className="relative group cursor-pointer rounded-xl overflow-hidden" onClick={() => openImageGallery(realIndex)}>
+          <img src={img} alt={`Photo ${realIndex + 1}`} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+            <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        </div>
+      );
+    };
+
+    if (gridImages.length === 1) {
+      return (
+        <div className="mb-8">
+          <div className="relative group cursor-pointer rounded-xl overflow-hidden" onClick={() => openImageGallery(1)}>
+            <img src={gridImages[0]} alt={announcement.title} className="w-full max-h-[500px] object-cover" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+              <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (gridImages.length === 2) {
+      return (
+        <div className="grid grid-cols-2 gap-3 mb-8">
+          {gridImages.map((img, idx) => (
+            <div key={idx} className="relative group cursor-pointer rounded-xl overflow-hidden aspect-[4/3]" onClick={() => openImageGallery(idx + 1)}>
+              <img src={img} alt={`Photo ${idx + 2}`} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (gridImages.length === 3) {
+      return (
+        <div className="grid grid-cols-3 gap-3 mb-8">
+          {gridImages.map((img, idx) => (
+            <div key={idx} className="relative group cursor-pointer rounded-xl overflow-hidden aspect-square" onClick={() => openImageGallery(idx + 1)}>
+              <img src={img} alt={`Photo ${idx + 2}`} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (gridImages.length <= 4) {
+      return (
+        <div className="grid grid-cols-2 gap-3 mb-8">
+          {gridImages.map((img, idx) => (
+            <div key={idx} className="relative group cursor-pointer rounded-xl overflow-hidden aspect-[4/3]" onClick={() => openImageGallery(idx + 1)}>
+              <img src={img} alt={`Photo ${idx + 2}`} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // 5+ images: first row 3, second row 2, etc.
+    const rows = [];
+    let i = 0;
+    let rowIndex = 0;
+    while (i < gridImages.length) {
+      const cols = rowIndex % 2 === 0 ? 3 : 2;
+      const rowImages = gridImages.slice(i, i + cols);
+      const startIdx = i; // capture current value for closure
+      rows.push(
+        <div key={rowIndex} className={`grid gap-3 ${cols === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          {rowImages.map((img, idx) => (
+            <div key={startIdx + idx} className="relative group cursor-pointer rounded-xl overflow-hidden aspect-[4/3]" onClick={() => openImageGallery(startIdx + idx + 1)}>
+              <img src={img} alt={`Photo ${startIdx + idx + 2}`} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+      i += cols;
+      rowIndex++;
+    }
+
+    return <div className="space-y-3 mb-8">{rows}</div>;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 text-emerald-600 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
           <p className="text-gray-500">Loading announcement...</p>
         </div>
       </div>
@@ -203,7 +318,7 @@ const AnnouncementDetail = () => {
           <p className="text-gray-500 mb-6">The announcement you're looking for doesn't exist or has been removed.</p>
           <Link
             to="/announcements"
-            className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Announcements
@@ -213,9 +328,13 @@ const AnnouncementDetail = () => {
     );
   }
 
+  const images = getAnnouncementImages();
+  const heroImage = images[0];
+  const eventDate = new Date(announcement.eventDate || announcement.createdAt);
+
   return (
     <section className="min-h-screen bg-gray-50">
-      {/* SEO Meta Tags with Structured Data */}
+      {/* SEO Meta Tags */}
       {announcement && (
         <Helmet>
           <title>{announcement.title} | Barangay Culiat Announcements</title>
@@ -225,273 +344,322 @@ const AnnouncementDetail = () => {
           <meta property="og:description" content={announcement.content?.substring(0, 160)} />
           <meta property="og:type" content="article" />
           <meta property="og:url" content={window.location.href} />
-          {getAnnouncementImages()[0] && <meta property="og:image" content={getAnnouncementImages()[0]} />}
+          {heroImage && <meta property="og:image" content={heroImage} />}
           <meta property="article:published_time" content={announcement.createdAt} />
           <meta property="article:author" content={getAuthorName()} />
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:title" content={announcement.title} />
           <meta name="twitter:description" content={announcement.content?.substring(0, 160)} />
-          {getAnnouncementImages()[0] && <meta name="twitter:image" content={getAnnouncementImages()[0]} />}
-          {/* Structured Data for Search Engines */}
+          {heroImage && <meta name="twitter:image" content={heroImage} />}
           <script type="application/ld+json">
             {JSON.stringify({
               "@context": "https://schema.org",
               "@type": "NewsArticle",
               "headline": announcement.title,
               "description": announcement.content?.substring(0, 160),
-              "image": getAnnouncementImages(),
+              "image": images,
               "datePublished": announcement.publishDate || announcement.createdAt,
               "dateModified": announcement.updatedAt || announcement.createdAt,
-              "author": {
-                "@type": "Person",
-                "name": getAuthorName()
-              },
+              "author": { "@type": "Person", "name": getAuthorName() },
               "publisher": {
                 "@type": "Organization",
                 "name": "Barangay Culiat",
-                "logo": {
-                  "@type": "ImageObject",
-                  "url": `${window.location.origin}/logo.png`
-                }
+                "logo": { "@type": "ImageObject", "url": `${window.location.origin}/logo.png` }
               },
-              "mainEntityOfPage": {
-                "@type": "WebPage",
-                "@id": window.location.href
-              }
+              "mainEntityOfPage": { "@type": "WebPage", "@id": window.location.href }
             })}
           </script>
         </Helmet>
       )}
 
-      {/* Hero Image */}
-      <div className="relative w-full h-[40vh] md:h-[50vh] bg-gradient-to-br from-emerald-900 via-emerald-700 to-emerald-500 overflow-hidden">
-        {getAnnouncementImages().length > 0 ? (
-          <>
-            <img
-              src={getAnnouncementImages()[0]}
-              alt={announcement.title}
-              className="w-full h-full object-cover cursor-pointer"
-              onClick={() => openImageGallery(0)}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-            
-            {/* View Gallery Button - Show if multiple images */}
-            {getAnnouncementImages().length > 1 && (
-              <button
-                onClick={() => openImageGallery(0)}
-                className="absolute bottom-6 right-6 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-xl text-sm font-medium text-gray-900 hover:bg-white transition-colors shadow-lg"
-              >
-                <Image className="w-4 h-4" />
-                {getAnnouncementImages().length} Photos
-              </button>
-            )}
-          </>
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Megaphone className="w-32 h-32 text-white/20" />
-          </div>
-        )}
-        
-        {/* Back Button */}
-        <div className="absolute top-6 left-6 z-10">
-          <Link
-            to="/announcements"
-            className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full hover:bg-white/30 transition-all"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Announcements
-          </Link>
-        </div>
-
-        {/* Category Badge */}
-        <div className="absolute top-6 right-6 z-10">
-          <span className="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-full shadow-lg uppercase tracking-wide">
-            {announcement.category}
-          </span>
+      {/* Hero Banner */}
+      <div className="bg-secondary pt-32 pb-16 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="max-w-4xl mx-auto relative z-10 text-center">
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 italic font-serif leading-tight">
+            {announcement.title}
+          </h1>
+          {/* Published by */}
+          {announcement.publishedBy && (
+            <div className="flex items-center justify-center gap-2 text-white/70 text-sm">
+              <span>Posted by</span>
+              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                <User className="w-3 h-3 text-white" />
+              </div>
+              <span className="font-medium text-white/90">
+                {announcement.publishedBy.firstName} {announcement.publishedBy.lastName}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 -mt-20 relative z-10 pb-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-white rounded-2xl shadow-xl overflow-hidden"
-        >
-          {/* Header */}
-          <div className="p-6 md:p-10">
-            {/* Title */}
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
-              {announcement.title}
-            </h1>
+      {/* Main Content */}
+      <div className="max-w-5xl mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-            {/* Meta Info */}
-            <div className="flex flex-wrap items-center gap-4 mb-8 pb-8 border-b border-gray-100">
-              <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-4 py-2 rounded-full">
-                <CalendarDays className="w-4 h-4 text-emerald-600" />
-                <span className="text-sm">{formatDate(announcement.eventDate || announcement.createdAt)}</span>
-              </div>
-              
-              {announcement.location && (
-                <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-4 py-2 rounded-full">
-                  <MapPin className="w-4 h-4 text-emerald-600" />
-                  <span className="text-sm">{announcement.location}</span>
-                </div>
-              )}
-
-              {announcement.views > 0 && (
-                <div className="flex items-center gap-2 text-gray-600 bg-gray-100 px-4 py-2 rounded-full">
-                  <Eye className="w-4 h-4 text-emerald-600" />
-                  <span className="text-sm">{announcement.views} views</span>
-                </div>
-              )}
-
-              <button
-                onClick={handleShare}
-                className="relative flex items-center gap-2 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-full hover:bg-emerald-100 transition-colors ml-auto"
-              >
-                <Share2 className="w-4 h-4" />
-                <span className="text-sm font-medium">Share</span>
-              </button>
-              
-              {/* Share Menu Dropdown */}
-              <AnimatePresence>
-                {showShareMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 min-w-[160px]"
-                  >
-                    <button
-                      onClick={copyToClipboard}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
-                    >
-                      <Link2 className="w-4 h-4" />
-                      Copy Link
-                    </button>
-                    <button
-                      onClick={shareToFacebook}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
-                    >
-                      <Facebook className="w-4 h-4 text-emerald-600" />
-                      Facebook
-                    </button>
-                    <button
-                      onClick={shareToTwitter}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3"
-                    >
-                      <Twitter className="w-4 h-4 text-sky-500" />
-                      Twitter
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Content */}
-            <div className="prose prose-lg max-w-none">
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {announcement.content}
-              </p>
-            </div>
-
-            {/* YouTube Video Section */}
-            {announcement.youtubeVideoUrl && announcement.youtubeVideoId && (
-              <div className="mt-8 pt-8 border-t border-gray-100">
-                <div className="flex items-center gap-2 mb-4">
-                  <Youtube className="w-5 h-5 text-red-600" />
-                  <h4 className="text-sm font-semibold text-gray-900">Featured Video</h4>
-                </div>
-                <div className="aspect-video rounded-xl overflow-hidden shadow-lg bg-black">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src={`https://www.youtube.com/embed/${announcement.youtubeVideoId}`}
-                    title={announcement.title}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full"
+          {/* Article Content */}
+          <div className="lg:col-span-2">
+            <motion.article
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {/* Featured Image with date badge */}
+              {heroImage && (
+                <div className="relative mb-8 rounded-xl overflow-hidden group cursor-pointer" onClick={() => openImageGallery(0)}>
+                  <img
+                    src={heroImage}
+                    alt={announcement.title}
+                    className="w-full max-h-[480px] object-cover group-hover:scale-[1.02] transition-transform duration-500"
                   />
+                  {/* Date Badge */}
+                  <div className="absolute top-4 left-4 bg-white rounded-lg shadow-md px-3 py-2 text-center leading-tight">
+                    <span className="block text-xl font-bold text-secondary">
+                      {eventDate.getDate().toString().padStart(2, '0')}
+                    </span>
+                    <span className="block text-[10px] font-semibold text-gray-500 uppercase">
+                      {eventDate.toLocaleString('en-US', { month: 'short' }).toUpperCase()}
+                    </span>
+                  </div>
+                  {/* Photo count badge */}
+                  {images.length > 1 && (
+                    <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs font-medium text-gray-900 shadow-md">
+                      <Image className="w-3.5 h-3.5" />
+                      {images.length} Photos
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Meta info bar */}
+              <div className="flex flex-wrap items-center gap-3 mb-8 pb-6 border-b border-gray-200">
+                <div className="flex items-center gap-1.5 text-gray-500 text-sm">
+                  <CalendarDays className="w-4 h-4 text-primary" />
+                  <span>{formatDate(announcement.eventDate || announcement.createdAt)}</span>
+                </div>
+                {announcement.location && (
+                  <div className="flex items-center gap-1.5 text-gray-500 text-sm">
+                    <MapPin className="w-4 h-4 text-primary" />
+                    <span>{announcement.location}</span>
+                  </div>
+                )}
+                {announcement.views > 0 && (
+                  <div className="flex items-center gap-1.5 text-gray-500 text-sm">
+                    <Eye className="w-4 h-4 text-primary" />
+                    <span>{announcement.views} views</span>
+                  </div>
+                )}
+                <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-full">
+                  {announcement.category}
+                </span>
+              </div>
+
+              {/* Article Text Content */}
+              <div className="prose prose-lg max-w-none mb-8">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-[15px]">
+                  {announcement.content}
+                </p>
+              </div>
+
+              {/* YouTube Video Section */}
+              {announcement.youtubeVideoUrl && announcement.youtubeVideoId && (
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Youtube className="w-5 h-5 text-red-600" />
+                    <h4 className="text-sm font-semibold text-gray-900">Featured Video</h4>
+                  </div>
+                  <div className="aspect-video rounded-xl overflow-hidden shadow-lg bg-black">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${announcement.youtubeVideoId}`}
+                      title={announcement.title}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Blog-style image gallery grid */}
+              {images.length > 1 && renderImageGrid()}
+
+              {/* Hashtags */}
+              {announcement.hashtags?.length > 0 && (
+                <div className="mb-8 pt-6 border-t border-gray-200">
+                  <div className="flex flex-wrap gap-2">
+                    {announcement.hashtags.map((tag, idx) => (
+                      <span key={idx} className="text-primary hover:text-primary-dark cursor-pointer text-sm font-medium">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Share Section */}
+              <div className="py-6 border-t border-b border-gray-200 mb-8">
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={shareToFacebook}
+                    className="w-10 h-10 rounded-full bg-[#3b5998] text-white flex items-center justify-center hover:opacity-80 transition-opacity"
+                    title="Share on Facebook"
+                  >
+                    <Facebook className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={shareToTwitter}
+                    className="w-10 h-10 rounded-full bg-[#1da1f2] text-white flex items-center justify-center hover:opacity-80 transition-opacity"
+                    title="Share on Twitter"
+                  >
+                    <Twitter className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={copyToClipboard}
+                    className="w-10 h-10 rounded-full bg-gray-600 text-white flex items-center justify-center hover:opacity-80 transition-opacity"
+                    title="Copy Link"
+                  >
+                    <Link2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:opacity-80 transition-opacity"
+                    title="Share"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Previous / Next Navigation */}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                {prevAnnouncement ? (
+                  <Link
+                    to={`/announcements/${prevAnnouncement.slug || prevAnnouncement._id}`}
+                    className="group flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 transition-all"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-gray-400 group-hover:text-primary shrink-0" />
+                    <div className="min-w-0">
+                      <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Older</span>
+                      <p className="text-sm font-semibold text-gray-800 group-hover:text-primary truncate">{prevAnnouncement.title}</p>
+                    </div>
+                  </Link>
+                ) : <div />}
+                {nextAnnouncement ? (
+                  <Link
+                    to={`/announcements/${nextAnnouncement.slug || nextAnnouncement._id}`}
+                    className="group flex items-center justify-end gap-3 p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 transition-all text-right"
+                  >
+                    <div className="min-w-0">
+                      <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Newer</span>
+                      <p className="text-sm font-semibold text-gray-800 group-hover:text-primary truncate">{nextAnnouncement.title}</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary shrink-0" />
+                  </Link>
+                ) : <div />}
+              </div>
+            </motion.article>
+          </div>
+
+          {/* Sidebar */}
+          <aside className="space-y-6">
+            {/* Back to Announcements */}
+            <Link
+              to="/announcements"
+              className="inline-flex items-center text-primary hover:text-primary-dark font-medium text-sm"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1.5" />
+              All Announcements
+            </Link>
+
+            {/* Category sidebar */}
+            {announcement.committeeRef && (
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                <h4 className="text-sm font-bold text-gray-900 mb-3">Committee</h4>
+                <Link
+                  to={`/committee/${announcement.committeeRef.slug || ''}`}
+                  className="text-primary hover:underline text-sm"
+                >
+                  View Committee Page
+                </Link>
+              </div>
+            )}
+
+            {/* Info Card */}
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+              <h4 className="text-sm font-bold text-gray-900 mb-3">Details</h4>
+              <div className="space-y-3 text-sm text-gray-600">
+                <div className="flex items-start gap-2">
+                  <CalendarDays className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <span>{formatDate(announcement.eventDate || announcement.createdAt)}</span>
+                </div>
+                {announcement.location && (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span>{announcement.location}</span>
+                  </div>
+                )}
+                <div className="flex items-start gap-2">
+                  <Tag className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <span>{announcement.category}</span>
+                </div>
+                {announcement.views > 0 && (
+                  <div className="flex items-start gap-2">
+                    <Eye className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                    <span>{announcement.views} views</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Published By */}
+            {announcement.publishedBy && (
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                <h4 className="text-sm font-bold text-gray-900 mb-3">Published by</h4>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <User className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {announcement.publishedBy.firstName} {announcement.publishedBy.lastName}
+                    </p>
+                    <p className="text-xs text-gray-500">Barangay Culiat</p>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Image Gallery Thumbnails */}
-            {getAnnouncementImages().length > 0 && (
-              <div className="mt-8 pt-8 border-t border-gray-100">
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                  Photos ({getAnnouncementImages().length})
-                </h4>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                  {getAnnouncementImages().map((img, idx) => (
+            {/* Images download section */}
+            {images.length > 0 && (
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                <h4 className="text-sm font-bold text-gray-900 mb-3">Photos ({images.length})</h4>
+                <div className="grid grid-cols-3 gap-2">
+                  {images.slice(0, 6).map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => openImageGallery(idx)}
-                      className="relative group aspect-square rounded-xl overflow-hidden"
+                      className="relative group aspect-square rounded-lg overflow-hidden"
                     >
                       <img src={img} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                        <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                        <ZoomIn className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </button>
                   ))}
                 </div>
               </div>
             )}
-
-            {/* Hashtags */}
-            {announcement.hashtags && announcement.hashtags.length > 0 && (
-              <div className="mt-8 pt-8 border-t border-gray-100">
-                <div className="flex flex-wrap gap-2">
-                  {announcement.hashtags.map((tag, idx) => (
-                    <span 
-                      key={idx}
-                      className="text-emerald-600 hover:text-emerald-700 cursor-pointer text-sm font-medium"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Published By - SEO Optimized */}
-            {announcement.publishedBy && (
-              <div className="mt-8 pt-8 border-t border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Published by</p>
-                    <p className="text-sm font-semibold text-gray-900" itemProp="author" itemScope itemType="https://schema.org/Person">
-                      <span itemProp="name">{announcement.publishedBy.firstName} {announcement.publishedBy.lastName}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Back Link Bottom */}
-        <div className="text-center mt-8">
-          <Link
-            to="/announcements"
-            className="inline-flex items-center text-emerald-600 hover:text-emerald-700 font-medium"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            View All Announcements
-          </Link>
+          </aside>
         </div>
       </div>
 
       {/* Full Screen Image Gallery */}
       <AnimatePresence>
-        {imageGalleryOpen && getAnnouncementImages().length > 0 && (
+        {imageGalleryOpen && images.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -501,28 +669,18 @@ const AnnouncementDetail = () => {
           >
             {/* Top Bar */}
             <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/60 to-transparent z-10 flex items-center justify-between px-4">
-              {/* Image Counter */}
               <div className="px-4 py-2 bg-white/10 backdrop-blur-sm text-white text-sm rounded-full">
-                {currentImageIndex + 1} / {getAnnouncementImages().length}
+                {currentImageIndex + 1} / {images.length}
               </div>
-              
-              {/* Action Buttons */}
               <div className="flex items-center gap-2">
-                {/* Download Button */}
                 <button
-                  onClick={(e) => { e.stopPropagation(); downloadImage(getAnnouncementImages()[currentImageIndex], currentImageIndex); }}
+                  onClick={(e) => { e.stopPropagation(); downloadImage(images[currentImageIndex], currentImageIndex); }}
                   disabled={downloadingImage}
                   className="p-3 bg-white/10 backdrop-blur-sm text-white rounded-full hover:bg-white/20 transition-colors disabled:opacity-50"
                   title="Download Image"
                 >
-                  {downloadingImage ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Download className="w-5 h-5" />
-                  )}
+                  {downloadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
                 </button>
-                
-                {/* Share Button */}
                 <button
                   onClick={(e) => { e.stopPropagation(); handleShare(); }}
                   className="p-3 bg-white/10 backdrop-blur-sm text-white rounded-full hover:bg-white/20 transition-colors"
@@ -530,13 +688,7 @@ const AnnouncementDetail = () => {
                 >
                   <Share2 className="w-5 h-5" />
                 </button>
-                
-                {/* Close Button */}
-                <button
-                  onClick={closeImageGallery}
-                  className="p-3 bg-white/10 backdrop-blur-sm text-white rounded-full hover:bg-white/20 transition-colors"
-                  title="Close"
-                >
+                <button onClick={closeImageGallery} className="p-3 bg-white/10 backdrop-blur-sm text-white rounded-full hover:bg-white/20 transition-colors" title="Close">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -552,15 +704,11 @@ const AnnouncementDetail = () => {
               className="relative w-full h-full flex items-center justify-center p-4 pt-20 pb-24"
               onClick={(e) => e.stopPropagation()}
             >
-              <img
-                src={getAnnouncementImages()[currentImageIndex]}
-                alt=""
-                className="max-w-full max-h-full object-contain rounded-lg"
-              />
+              <img src={images[currentImageIndex]} alt="" className="max-w-full max-h-full object-contain rounded-lg" />
             </motion.div>
 
             {/* Navigation Buttons */}
-            {getAnnouncementImages().length > 1 && (
+            {images.length > 1 && (
               <>
                 <button
                   onClick={(e) => { e.stopPropagation(); prevImage(); }}
@@ -579,19 +727,14 @@ const AnnouncementDetail = () => {
 
             {/* Bottom Bar with Thumbnails */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent">
-              {getAnnouncementImages().length > 1 && (
-                <div
-                  className="flex items-center justify-center gap-2 p-4"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {getAnnouncementImages().map((img, idx) => (
+              {images.length > 1 && (
+                <div className="flex items-center justify-center gap-2 p-4" onClick={(e) => e.stopPropagation()}>
+                  {images.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentImageIndex(idx)}
                       className={`w-16 h-16 rounded-lg overflow-hidden transition-all ${
-                        idx === currentImageIndex
-                          ? "ring-2 ring-white scale-110"
-                          : "opacity-60 hover:opacity-100"
+                        idx === currentImageIndex ? "ring-2 ring-white scale-110" : "opacity-60 hover:opacity-100"
                       }`}
                     >
                       <img src={img} alt="" className="w-full h-full object-cover" />
@@ -599,27 +742,20 @@ const AnnouncementDetail = () => {
                   ))}
                 </div>
               )}
-              
-              {/* Download Current Image Button */}
               <div className="flex justify-center pb-4">
                 <button
-                  onClick={(e) => { e.stopPropagation(); downloadImage(getAnnouncementImages()[currentImageIndex], currentImageIndex); }}
+                  onClick={(e) => { e.stopPropagation(); downloadImage(images[currentImageIndex], currentImageIndex); }}
                   disabled={downloadingImage}
                   className="flex items-center gap-2 px-4 py-2 bg-white text-gray-900 rounded-full text-sm font-medium hover:bg-gray-100 transition-colors disabled:opacity-50"
                 >
-                  {downloadingImage ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4" />
-                  )}
+                  {downloadingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                   Download Image
                 </button>
               </div>
             </div>
 
-            {/* Keyboard Hint */}
             <div className="absolute bottom-4 right-4 text-white/50 text-xs hidden md:block">
-              ← → Navigate • ESC Close
+              ← → Navigate &bull; ESC Close
             </div>
           </motion.div>
         )}

@@ -144,6 +144,17 @@ const Navbar = () => {
             ]
             : [{ label: "All Committees", path: "/committee" }]
       },
+      people: {
+         label: "People",
+         path: "/personnel",
+         items: [
+            { label: "All Personnel", path: "/personnel" },
+            { label: "Organizational Chart", path: "/org-chart" },
+            { label: "Barangay Council", path: "/personnel?branch=Legislative" },
+            { label: "Sangguniang Kabataan (SK)", path: "/personnel?branch=SK Council" },
+            { label: "Administrative Staff", path: "/personnel?branch=Administrative" },
+         ],
+      },
    };
 
    return (
@@ -273,10 +284,36 @@ const Navbar = () => {
                      )}
                   </div>
 
-                  {/* People — flat link */}
-               <div className="pb-2">
-                  <NavLink to="/personnel" className="navlink text-sm px-2 py-1">People</NavLink>
-               </div>
+                  {/* People Dropdown */}
+                  <div
+                     className="relative pb-2"
+                     onMouseEnter={() => setOpenDropdown("people")}
+                     onMouseLeave={() => setOpenDropdown(null)}
+                  >
+                     <NavLink
+                        to="/personnel"
+                        className={({ isActive }) =>
+                           `navlink text-sm transition flex items-center gap-1 px-2 py-1 ${isActive && "active"}`
+                        }
+                     >
+                        People
+                        <ChevronDown className="w-3 h-3" />
+                     </NavLink>
+                     {openDropdown === "people" && (
+                        <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-lg shadow-xl border border-gray-200 py-1.5 z-50 overflow-hidden">
+                           {navDropdowns.people.items.map((item, idx) => (
+                              <NavLink
+                                 key={idx}
+                                 to={item.path}
+                                 onClick={() => setOpenDropdown(null)}
+                                 className="block px-3 py-1.5 text-xs text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors"
+                              >
+                                 {item.label}
+                              </NavLink>
+                           ))}
+                        </div>
+                     )}
+                  </div>
 
                {/* Report — flat link (no dropdown) */}
                <div className="pb-2">
@@ -541,13 +578,30 @@ const Navbar = () => {
                )}
             </div>
 
-            <NavLink
-               to="/personnel"
-               onClick={() => setIsOpen(false)}
-               className="block mobile-navlink text-text-color hover:text-primary"
-            >
-               People
-            </NavLink>
+            {/* People Mobile Accordion */}
+            <div>
+               <button
+                  onClick={() => setMobileDropdown(mobileDropdown === "people" ? null : "people")}
+                  className="flex items-center justify-between w-full text-text-color hover:text-primary"
+               >
+                  <span>People</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileDropdown === "people" ? "rotate-180" : ""}`} />
+               </button>
+               {mobileDropdown === "people" && (
+                  <div className="pl-4 mt-2 space-y-2 border-l-2 border-primary/20">
+                     {navDropdowns.people.items.map((item, idx) => (
+                        <NavLink
+                           key={idx}
+                           to={item.path}
+                           onClick={() => setIsOpen(false)}
+                           className="block text-sm text-gray-600 hover:text-primary"
+                        >
+                           {item.label}
+                        </NavLink>
+                     ))}
+                  </div>
+               )}
+            </div>
 
             {/* About Mobile Accordion */}
             <div>

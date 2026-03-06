@@ -27,6 +27,7 @@ import NotFound from "./tailadminsrc/pages/OtherPage/NotFound";
 import Committees from "./users/pages/Committee/Committees";
 import CommitteeDetail from "./users/pages/Committee/CommitteeDetail";
 import PersonnelPage from "./users/pages/Personnel/PersonnelPage";
+import OrgChart from "./users/pages/OrgChart/OrgChart";
 
 // Admin imports
 import AdminLayout from "./admin/layouts/AdminLayout";
@@ -467,6 +468,14 @@ function App() {
                 element={
                   <MainLayout>
                     <PersonnelPage />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/org-chart"
+                element={
+                  <MainLayout>
+                    <OrgChart />
                   </MainLayout>
                 }
               />

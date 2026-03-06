@@ -587,10 +587,10 @@ const AdminAnnouncements = () => {
   const getCommitteeName = (committeeRef) => {
     if (!committeeRef) return "";
     if (typeof committeeRef === "object") {
-      return committeeRef.name || committeeRef.nameEnglish || "";
+      return committeeRef.name || "";
     }
     const committee = committees.find((c) => c._id === committeeRef);
-    return committee?.name || committee?.nameEnglish || "";
+    return committee?.name || "";
   };
 
   // Image gallery handlers

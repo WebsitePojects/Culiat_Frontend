@@ -82,9 +82,6 @@ const Committees = () => {
                                         )}
                                     </div>
                                     <h3 className="text-xl font-bold text-text-color mb-2">{committee.name}</h3>
-                                    {committee.nameEnglish && (
-                                        <p className="text-sm text-gray-400 italic mb-3">{committee.nameEnglish}</p>
-                                    )}
                                     <p className="text-gray-600 text-sm line-clamp-3 mb-6">
                                         {stripHtml(committee.description) || "Dedicated to serving the community through specialized programs and initiatives."}
                                     </p>
