@@ -20,6 +20,7 @@ import Announcements from "./users/pages/Announcement/Announcements";
 import AnnouncementDetail from "./users/pages/Announcement/AnnouncementDetail";
 import Services from "./users/pages/Services/Services";
 import ServicesInfoPage from "./users/pages/ServicesInfo/ServicesInfoPage";
+import ServiceDetailPage from "./users/pages/ServicesInfo/ServiceDetailPage";
 import MainLayout from "./MainLayout/MainLayout";
 import Home from "./users/pages/Home/Home";
 import About from "./users/pages/About/About";
@@ -245,6 +246,16 @@ function App() {
                     <ServicesMaintenanceGuard>
                       <ServicesInfoPage />
                     </ServicesMaintenanceGuard>
+                  </MainLayout>
+                }
+              />
+
+              {/* PUBLIC: Individual Service Detail Pages */}
+              <Route
+                path="/services/:slug"
+                element={
+                  <MainLayout>
+                    <ServiceDetailPage />
                   </MainLayout>
                 }
               />

@@ -212,14 +212,45 @@ const Navbar = () => {
                      )}
                   </div>
 
-                  {/* Services — flat link (no dropdown) */}
-                  <div className="pb-2">
+                  {/* Services Dropdown */}
+                  <div
+                     className="relative pb-3"
+                     onMouseEnter={() => setOpenDropdown("services")}
+                     onMouseLeave={() => setOpenDropdown(null)}
+                  >
                      <NavLink
                         to={user && (user.roleCode === 74933 || user.roleCode === 74932) ? "/services" : "/services-info"}
-                        className="navlink text-sm px-2 py-1"
+                        className="navlink text-sm px-2 py-1 flex items-center gap-1"
                      >
                         Services
+                        <ChevronDown className="w-3 h-3" />
                      </NavLink>
+                     {openDropdown === "services" && (
+                        <div className="absolute top-full left-0 -mt-1 w-72 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 overflow-hidden max-h-96 overflow-y-auto">
+                           <Link
+                              to="/services-info"
+                              className="block px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors"
+                           >
+                              All Services
+                           </Link>
+                           <div className="border-t border-gray-100 my-1" />
+                           <Link to="/services/business-permit" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Business Permit</Link>
+                           <Link to="/services/business-closure" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Business Closure</Link>
+                           <Link to="/services/certificate-of-residency" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Certificate of Residency</Link>
+                           <Link to="/services/certificate-of-indigency" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Certificate of Indigency</Link>
+                           <Link to="/services/barangay-id" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Barangay ID</Link>
+                           <Link to="/services/building-permit" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Building Permit</Link>
+                           <Link to="/services/bail-bond" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Bail Bond Certification</Link>
+                           <Link to="/services/house-repair-renovation" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">House Repair / Renovation</Link>
+                           <Link to="/services/cutting-trees" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Tree Cutting Permit</Link>
+                           <Link to="/services/estate-tax" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Estate Tax Certification</Link>
+                           <Link to="/services/transfer-of-account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Transfer of Account</Link>
+                           <Link to="/services/burial-financial-assistance" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Burial / Financial Assistance</Link>
+                           <Link to="/services/cohabitation-jail-visitation-pao" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Cohabitation / Jail Visitation / PAO</Link>
+                           <Link to="/services/missionary" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">Missionary Certificate</Link>
+                           <Link to="/services/tru-tfb" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors">TRU / TFB Certification</Link>
+                        </div>
+                     )}
                   </div>
 
                   {/* Committee Dropdown */}
@@ -238,7 +269,7 @@ const Navbar = () => {
                         <ChevronDown className="w-3 h-3" />
                      </NavLink>
                      {openDropdown === "committee" && (
-                        <div className="absolute top-full left-0 -mt-1 w-72 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 overflow-hidden">
+                        <div className="absolute top-full left-0 -mt-1 w-72 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 max-h-80 overflow-y-auto">
                            {navDropdowns.committee.items.map((item, idx) => (
                               <NavLink
                                  key={idx}
@@ -499,13 +530,31 @@ const Navbar = () => {
                )}
             </div>
 
-            <NavLink
-               to={user && (user.roleCode === 74933 || user.roleCode === 74932) ? "/services" : "/services-info"}
-               onClick={() => setIsOpen(false)}
-               className="block mobile-navlink text-text-color hover:text-primary"
-            >
-               Services
-            </NavLink>
+            {/* Services Mobile Accordion */}
+            <div>
+               <button
+                  onClick={() => setMobileDropdown(mobileDropdown === "services" ? null : "services")}
+                  className="flex items-center justify-between w-full text-text-color hover:text-primary"
+               >
+                  <span>Barangay Services</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileDropdown === "services" ? "rotate-180" : ""}`} />
+               </button>
+               {mobileDropdown === "services" && (
+                  <div className="pl-4 mt-2 space-y-2 border-l-2 border-primary/20">
+                     <Link to="/services-info" onClick={() => setIsOpen(false)} className="block text-sm font-semibold text-emerald-700 hover:text-primary">All Services</Link>
+                     <Link to="/services/business-permit" onClick={() => setIsOpen(false)} className="block text-sm text-gray-600 hover:text-primary">Business Permit</Link>
+                     <Link to="/services/business-closure" onClick={() => setIsOpen(false)} className="block text-sm text-gray-600 hover:text-primary">Business Closure</Link>
+                     <Link to="/services/certificate-of-residency" onClick={() => setIsOpen(false)} className="block text-sm text-gray-600 hover:text-primary">Certificate of Residency</Link>
+                     <Link to="/services/certificate-of-indigency" onClick={() => setIsOpen(false)} className="block text-sm text-gray-600 hover:text-primary">Certificate of Indigency</Link>
+                     <Link to="/services/barangay-id" onClick={() => setIsOpen(false)} className="block text-sm text-gray-600 hover:text-primary">Barangay ID</Link>
+                     <Link to="/services/building-permit" onClick={() => setIsOpen(false)} className="block text-sm text-gray-600 hover:text-primary">Building Permit</Link>
+                     <Link to="/services/bail-bond" onClick={() => setIsOpen(false)} className="block text-sm text-gray-600 hover:text-primary">Bail Bond</Link>
+                     <Link to="/services/house-repair-renovation" onClick={() => setIsOpen(false)} className="block text-sm text-gray-600 hover:text-primary">House Repair / Renovation</Link>
+                     <Link to="/services/estate-tax" onClick={() => setIsOpen(false)} className="block text-sm text-gray-600 hover:text-primary">Estate Tax</Link>
+                     <Link to="/services/transfer-of-account" onClick={() => setIsOpen(false)} className="block text-sm text-gray-600 hover:text-primary">Transfer of Account</Link>
+                  </div>
+               )}
+            </div>
 
             <NavLink
                to="/announcements"

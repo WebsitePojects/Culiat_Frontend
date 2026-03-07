@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
+import { servicesList } from "./servicesData";
 import {
   FileText,
   Home,
@@ -780,6 +781,24 @@ export default function ServicesInfoPage() {
                     <ArrowRight className="w-5 h-5" />
                   </Link>
                 </div>
+
+                {/* View Full Details link – matches by title */}
+                {(() => {
+                  const match = servicesList.find(
+                    (s) => selectedService.title.toLowerCase().includes(s.title.toLowerCase()) ||
+                           s.title.toLowerCase().includes(selectedService.title.toLowerCase())
+                  );
+                  return match ? (
+                    <Link
+                      to={`/services/${match.slug}`}
+                      className="flex items-center justify-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors mt-1"
+                    >
+                      View Full Details, Requirements & Procedure
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  ) : null;
+                })()}
+
                 <p className="text-center text-xs text-gray-500">
                   You need to login or create an account to request this service
                 </p>

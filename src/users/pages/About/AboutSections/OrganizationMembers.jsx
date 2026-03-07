@@ -1,23 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-// --- Animation Variants for the Grid ---
-const container = {
-   hidden: {},
-   show: {
-      transition: {
-         staggerChildren: 0.1,
-      },
-   },
-};
-
-const item = {
-   hidden: { opacity: 0, y: 40 },
-   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-};
 
 // Position label mapping
 const getPositionLabel = (position) => {
@@ -105,16 +90,53 @@ const MemberCard = ({ member }) => {
    );
 };
 
-// --- Loading Skeleton ---
-const LoadingSkeleton = () => (
-   <div className="animate-pulse">
-      <div className="h-24 bg-gray-200 rounded-t-2xl"></div>
-      <div className="bg-white rounded-b-2xl p-6 pt-16 text-center">
-         <div className="w-32 h-32 bg-gray-200 rounded-full mx-auto -mt-20 mb-4"></div>
-         <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
-         <div className="h-3 bg-gray-200 rounded w-1/2 mx-auto"></div>
+// --- Shimmer Stripe (reusable) ---
+const Shimmer = ({ delay = 0 }) => (
+   <motion.div
+      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent pointer-events-none"
+      animate={{ x: ["-110%", "110%"] }}
+      transition={{ repeat: Infinity, duration: 1.6, ease: "linear", delay }}
+   />
+);
+
+// --- Skeleton Card matching the real MemberCard layout ---
+const SkeletonCard = ({ delay = 0, isMain = false }) => (
+   <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay }}
+      className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-visible flex flex-col"
+   >
+      {/* Banner */}
+      <div className="h-24 bg-gray-200 rounded-t-2xl relative overflow-hidden">
+         <Shimmer delay={delay} />
       </div>
-   </div>
+
+      {/* Circular avatar overlapping banner */}
+      <div className="relative mx-auto -mt-[4.5rem] w-36 h-36 p-1 bg-white rounded-full z-10">
+         <div className="w-full h-full rounded-full bg-gray-200 relative overflow-hidden">
+            <Shimmer delay={delay + 0.1} />
+         </div>
+      </div>
+
+      {/* Text placeholders */}
+      <div className="p-6 pt-3 text-center pb-8">
+         {/* Name bar */}
+         <div className="h-4 bg-gray-200 rounded-full w-3/4 mx-auto mb-3 relative overflow-hidden">
+            <Shimmer delay={delay + 0.15} />
+         </div>
+         {/* Position bar */}
+         <div className="h-3 bg-gray-200 rounded-full w-1/2 mx-auto relative overflow-hidden">
+            <Shimmer delay={delay + 0.2} />
+         </div>
+         {/* Committee bar (only for non-main) */}
+         {!isMain && (
+            <div className="h-2.5 bg-gray-200 rounded-full w-2/5 mx-auto mt-2 relative overflow-hidden">
+               <Shimmer delay={delay + 0.25} />
+            </div>
+         )}
+      </div>
+   </motion.div>
 );
 
 // --- Main Section Component ---
@@ -153,13 +175,25 @@ const OrganizationMembers = () => {
       return (
          <section className="py-12 sm:py-16 lg:py-20 bg-neutral" id="organization">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+               {/* Section heading skeleton */}
                <div className="text-center mb-12">
-                  <div className="h-8 bg-gray-200 rounded w-64 mx-auto mb-4 animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded w-96 mx-auto animate-pulse"></div>
+                  <div className="h-8 bg-gray-200 rounded-full w-56 mx-auto mb-4 relative overflow-hidden">
+                     <Shimmer />
+                  </div>
+                  <div className="h-4 bg-gray-200 rounded-full w-80 mx-auto relative overflow-hidden">
+                     <Shimmer delay={0.1} />
+                  </div>
                </div>
-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+               {/* Captain skeleton centered */}
+               <div className="mb-16 w-full max-w-sm mx-auto">
+                  <SkeletonCard delay={0} isMain />
+               </div>
+
+               {/* Rest of the grid skeletons staggered */}
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
                   {[...Array(6)].map((_, i) => (
-                     <LoadingSkeleton key={i} />
+                     <SkeletonCard key={i} delay={i * 0.08} />
                   ))}
                </div>
             </div>
@@ -215,15 +249,8 @@ const OrganizationMembers = () => {
 
             {/* Other Members Grid */}
             {otherMembers.length > 0 && (
-               <motion.div
-                  variants={container}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true, amount: 0.1 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10"
-               >
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
                   {otherMembers.map((member, index) => {
-                     // Logic to center the last item if it's a lone orphan in the grid
                      const isSingleLastItem = otherMembers.length % 3 === 1;
                      const isLastItemInPartialRow =
                         isSingleLastItem && index === otherMembers.length - 1;
@@ -231,15 +258,21 @@ const OrganizationMembers = () => {
                      return (
                         <motion.div
                            key={member._id}
-                           variants={item}
-                           className={`w-full max-w-sm mx-auto sm:max-w-none ${isLastItemInPartialRow ? "lg:col-start-2" : ""
-                              }`}
+                           initial={{ opacity: 0, y: 40 }}
+                           whileInView={{ opacity: 1, y: 0 }}
+                           viewport={{ once: true, amount: 0.15 }}
+                           transition={{
+                              duration: 0.5,
+                              ease: "easeOut",
+                              delay: (index % 3) * 0.1,
+                           }}
+                           className={`w-full max-w-sm mx-auto sm:max-w-none ${isLastItemInPartialRow ? "lg:col-start-2" : ""}`}
                         >
                            <MemberCard member={member} />
                         </motion.div>
                      );
                   })}
-               </motion.div>
+               </div>
             )}
          </div>
       </section>

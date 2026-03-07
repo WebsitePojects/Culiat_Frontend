@@ -160,131 +160,115 @@ const PersonnelPage = () => {
                         <p className="text-gray-500 font-medium">Loading personnel data...</p>
                     </div>
                 ) : filteredPersonnel.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredPersonnel.map((person) => (
-                            <motion.div
-                                layout
-                                key={person._id}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                whileHover={{ y: -8 }}
-                                className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 group flex flex-col h-full"
-                            >
-                                {/* Profile Photo Wrapper */}
-                                <div className="relative aspect-square overflow-hidden bg-gray-100 shrink-0">
-                                    {person.photo ? (
-                                        <img
-                                            src={person.photo}
-                                            alt={person.lastName}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                            <User className="w-1/2 h-1/2" />
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+                            {filteredPersonnel.map((person) => {
+                                const personBranches = getPersonBranches(person);
+                                const branchLabel = (Array.isArray(person.branches) && person.branches.length > 0)
+                                    ? getBranchLabel(personBranches[0])
+                                    : getBranchLabel(person.branch);
+
+                                return (
+                                    <motion.div
+                                        layout
+                                        key={person._id}
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        whileHover={{ y: -5 }}
+                                        className="bg-white rounded-2xl p-4 sm:p-5 flex flex-col items-center text-center shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 group h-full relative"
+                                    >
+                                        {/* Branch Badge (Absolute) */}
+                                        <div className="absolute top-2 right-2 sm:top-3 sm:right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 hidden sm:block">
+                                            <span className="bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-[10px] sm:text-xs font-bold text-gray-700 shadow-sm border border-gray-100">
+                                                {branchLabel}
+                                            </span>
                                         </div>
-                                    )}
-                                    <div className="absolute top-4 right-4 translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
-                                        <span className="bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-[10px] font-bold text-gray-700 shadow-sm border border-white">
-                                            {(Array.isArray(person.branches) && person.branches.length > 0)
-                                                ? getBranchLabel(getPersonBranches(person)[0])
-                                                : getBranchLabel(person.branch)}
-                                        </span>
-                                    </div>
-                                </div>
 
-                                {/* Content */}
-                                <div className="p-5 flex flex-col flex-grow">
-                                    <div className="mb-4">
-                                        <span className={`inline-block px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider mb-2 ${person.position === 'barangay_captain' ? 'bg-amber-100 text-amber-700' :
-                                                person.position.includes('kagawad') ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
-                                            }`}>
-                                            {positionLabels[person.position] || 'Staff'}
-                                        </span>
-                                        <h3 className="text-lg font-bold text-text-color leading-tight">
-                                            {person.firstName} {person.middleName ? `${person.middleName} ` : ""}{person.lastName}
-                                        </h3>
-                                    </div>
+                                        {/* Profile Photo - Matching OrgChart Fix Sizes */}
+                                        <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-primary/20 shadow-md mb-3 sm:mb-4 shrink-0 transition-transform duration-300 group-hover:scale-105 bg-gray-100 flex items-center justify-center relative">
+                                            {person.photo ? (
+                                                <img
+                                                    src={person.photo}
+                                                    alt={person.lastName}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <User className="w-1/2 h-1/2 text-gray-300" />
+                                            )}
+                                        </div>
 
-                                    <div className="space-y-3 mb-6 flex-grow">
-                                        {Array.isArray(person.committeeAssignments) && person.committeeAssignments.length > 0 ? (
-                                            <div className="space-y-1.5">
-                                                {person.committeeAssignments.slice(0, 3).map((assignment, index) => {
-                                                    const committee = assignment?.committeeRef;
-                                                    const role = assignment?.committeeRole;
-                                                    const roleLabel = role
-                                                        ? role.replace("_", " ").replace(/\b\w/g, (char) => char.toUpperCase())
-                                                        : "Member";
+                                        {/* Content */}
+                                        <div className="flex flex-col flex-grow items-center w-full">
+                                            <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mb-2 ${
+                                                person.position === 'barangay_captain' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                                                person.position.includes('kagawad') ? 'bg-blue-100 text-blue-700 border-blue-200' : 
+                                                'bg-primary/10 text-primary border-primary/20'
+                                            } border`}>
+                                                {positionLabels[person.position] || 'Staff'}
+                                            </span>
+                                            
+                                            <h3 className="text-sm sm:text-base font-bold text-text-color leading-tight mb-2">
+                                                {person.firstName} {person.middleName ? `${person.middleName[0]}. ` : ""}{person.lastName}
+                                            </h3>
 
-                                                    if (committee?.slug) {
-                                                        return (
-                                                            <Link
-                                                                key={`${committee._id || committee.slug}-${index}`}
-                                                                to={`/committee/${committee.slug}`}
-                                                                className="flex items-center text-xs text-primary font-semibold hover:underline"
-                                                            >
-                                                                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
-                                                                {committee.name} {role ? `(${roleLabel})` : ""}
-                                                            </Link>
-                                                        );
-                                                    }
+                                            <div className="space-y-1 sm:space-y-2 mb-3 sm:mb-4 flex-grow w-full">
+                                                {/* Committee Information - Kept as requested */}
+                                                {(Array.isArray(person.committeeAssignments) && person.committeeAssignments.length > 0) ? (
+                                                    <div className="space-y-1">
+                                                        {person.committeeAssignments.slice(0, 2).map((assignment, index) => {
+                                                            const committee = assignment?.committeeRef;
+                                                            const role = assignment?.committeeRole;
+                                                            const roleLabel = role
+                                                                ? role.replace("_", " ").replace(/\b\w/g, (char) => char.toUpperCase())
+                                                                : "Member";
 
-                                                    return null;
-                                                })}
+                                                            if (committee?.slug) {
+                                                                return (
+                                                                    <Link
+                                                                        key={`${committee._id || committee.slug}-${index}`}
+                                                                        to={`/committee/${committee.slug}`}
+                                                                        className="flex justify-center items-center text-[10px] sm:text-xs text-primary font-medium hover:underline text-center"
+                                                                    >
+                                                                        {committee.name} {role ? `(${roleLabel})` : ""}
+                                                                    </Link>
+                                                                );
+                                                            }
+                                                            return null;
+                                                        })}
+                                                    </div>
+                                                ) : person.committeeRef ? (
+                                                    <Link
+                                                        to={`/committee/${person.committeeRef.slug}`}
+                                                        className="text-[10px] sm:text-xs text-primary font-medium hover:underline"
+                                                    >
+                                                        {person.committeeRef.name}
+                                                    </Link>
+                                                ) : person.committee && (
+                                                    <div className="text-[10px] sm:text-xs text-gray-500 font-medium">
+                                                        {person.committee}
+                                                    </div>
+                                                )}
                                             </div>
-                                        ) : person.committeeRef ? (
-                                            <Link
-                                                to={`/committee/${person.committeeRef.slug}`}
-                                                className="flex items-center text-xs text-primary font-semibold hover:underline"
-                                            >
-                                                <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></span>
-                                                {person.committeeRef.name}
-                                            </Link>
-                                        ) : person.committee && (
-                                            <div className="flex items-center text-xs text-gray-500">
-                                                <span className="w-1.5 h-1.5 bg-gray-300 rounded-full mr-2"></span>
-                                                {person.committee}
-                                            </div>
-                                        )}
 
-                                        {person.bio && (
-                                            <p className="text-xs text-gray-500 line-clamp-3 italic">
-                                                "{person.bio}"
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Contact Info Footer */}
-                                    <div className="pt-4 border-t border-gray-50 space-y-2">
-                                        {person.contactNumber && (
-                                            <a
-                                                href={`tel:${person.contactNumber}`}
-                                                className="flex items-center text-xs text-gray-600 hover:text-primary transition-colors"
-                                            >
-                                                <Phone className="w-3 h-3 mr-2" />
-                                                {person.contactNumber}
-                                            </a>
-                                        )}
-                                        {person.email && (
-                                            <a
-                                                href={`mailto:${person.email}`}
-                                                className="flex items-center text-xs text-gray-600 hover:text-primary transition-colors truncate"
-                                                title={person.email}
-                                            >
-                                                <Mail className="w-3 h-3 mr-2" />
-                                                {person.email}
-                                            </a>
-                                        )}
-                                        {(person.officeHours || person.education) && (
-                                            <div className="flex items-center space-x-3 mt-2">
-                                                {person.officeHours && <Clock className="w-3 h-3 text-gray-400" title={`Hours: ${person.officeHours}`} />}
-                                                {person.education && <GraduationCap className="w-3 h-3 text-gray-400" title={`Education: ${person.education}`} />}
+                                            {/* Contact Info Footer (Condensed) */}
+                                            <div className="w-full pt-3 sm:pt-4 border-t border-gray-100 flex flex-col items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+                                                {person.contactNumber && (
+                                                    <a href={`tel:${person.contactNumber}`} className="flex items-center text-gray-500 hover:text-primary transition-colors">
+                                                        <Phone className="w-3 h-3 mr-1.5" />
+                                                        {person.contactNumber}
+                                                    </a>
+                                                )}
+                                                {person.email && (
+                                                    <a href={`mailto:${person.email}`} className="flex items-center text-gray-500 hover:text-primary transition-colors truncate max-w-full" title={person.email}>
+                                                        <Mail className="w-3 h-3 mr-1.5 shrink-0" />
+                                                        <span className="truncate">{person.email}</span>
+                                                    </a>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
                 ) : (
                     <motion.div
                         initial={{ opacity: 0 }}
