@@ -47,6 +47,10 @@ const Register = () => {
   const [showOccupationDropdown, setShowOccupationDropdown] = useState(false);
   const [occupationSearch, setOccupationSearch] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
+  const [pendingDocumentConfirmation, setPendingDocumentConfirmation] = useState({
+    fieldName: "",
+    value: "",
+  });
 
   // Terms & Conditions Modal states
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -68,9 +72,10 @@ const Register = () => {
     dateOfBirth: "",
     placeOfBirth: "",
     gender: "",
+    civilStatus: "Single",
     salutation: "",
     nationality: "Filipino",
-    phoneNumber: "",
+    phoneNumber: "+63",
     // Resident address (Barangay Culiat)
     houseNumber: "",
     street: "",
@@ -82,6 +87,7 @@ const Register = () => {
     nonResidentStreet: "",
     nonResidentSubdivision: "",
     nonResidentBarangay: "",
+    nonResidentDistrict: "",
     nonResidentCity: "",
     nonResidentProvince: "",
     nonResidentRegion: "",
@@ -312,6 +318,15 @@ const Register = () => {
 
   // Suffix options for dropdown
   const suffixOptions = ["", "Jr.", "Sr.", "II", "III", "IV", "V"];
+  const civilStatusOptions = ["Single", "Married", "Widowed", "Separated", "Divorced"];
+  const districtOptions = [
+    "District 1",
+    "District 2",
+    "District 3",
+    "District 4",
+    "District 5",
+    "District 6",
+  ];
 
   // Area/Purok options for Barangay Culiat
   const areaOptions = [
@@ -366,26 +381,43 @@ const Register = () => {
     return age;
   };
 
-  // Phone number formatting - auto prepend +63 and validate
-  const formatPhoneNumber = (value) => {
-    // Remove all non-digits
-    let cleaned = value.replace(/\D/g, "");
+  const nameRegex = /^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$/;
+  const validateNameField = (value) => !value || nameRegex.test(value.trim());
+  const isOccupationValid = (value) => !value || !/^\d+$/.test(value.trim());
 
-    // Remove leading 63 if present (we'll add it back)
+  const normalizeCivilStatus = (value) => {
+    if (!value || value.toLowerCase() === "n/a") return "Single";
+    return value;
+  };
+
+  const extractLocalPhoneDigits = (value) => {
+    let cleaned = (value || "").replace(/\D/g, "");
+
     if (cleaned.startsWith("63")) {
       cleaned = cleaned.substring(2);
     }
 
-    // Remove leading 0 if present
     if (cleaned.startsWith("0")) {
       cleaned = cleaned.substring(1);
     }
 
-    // Limit to 10 digits (9XX XXX XXXX)
-    cleaned = cleaned.substring(0, 10);
+    const firstNineIndex = cleaned.indexOf("9");
+    if (cleaned.length > 0 && firstNineIndex > 0) {
+      cleaned = cleaned.substring(firstNineIndex);
+    }
 
-    // Format as +63 9XX XXX XXXX
-    if (cleaned.length === 0) return "";
+    if (cleaned.length > 0 && !cleaned.startsWith("9")) {
+      cleaned = "";
+    }
+
+    return cleaned.substring(0, 10);
+  };
+
+  // Phone number formatting - always keeps +63 prefix
+  const formatPhoneNumber = (value) => {
+    const cleaned = extractLocalPhoneDigits(value);
+
+    if (cleaned.length === 0) return "+63";
     if (cleaned.length <= 3) return `+63 ${cleaned}`;
     if (cleaned.length <= 6) return `+63 ${cleaned.substring(0, 3)} ${cleaned.substring(3)}`;
     return `+63 ${cleaned.substring(0, 3)} ${cleaned.substring(3, 6)} ${cleaned.substring(6)}`;
@@ -393,15 +425,75 @@ const Register = () => {
 
   // Validate phone number
   const validatePhone = (value) => {
-    const cleaned = value.replace(/\D/g, "");
-    // Should be 12 digits total (63 + 10 digit number starting with 9)
-    if (cleaned.length === 12 && cleaned.startsWith("639")) {
-      return true;
+    const cleaned = extractLocalPhoneDigits(value);
+    return cleaned.length === 10 && cleaned.startsWith("9");
+  };
+
+  const handlePhoneKeyDown = (e) => {
+    const protectedPrefixLength = 3; // +63
+    const cursorStart = e.target.selectionStart ?? 0;
+    const cursorEnd = e.target.selectionEnd ?? 0;
+    const isDeletion = e.key === "Backspace" || e.key === "Delete";
+
+    if (isDeletion && cursorStart <= protectedPrefixLength) {
+      e.preventDefault();
+      return;
     }
-    if (cleaned.length === 10 && cleaned.startsWith("9")) {
-      return true;
+
+    if (e.key === "Backspace" && cursorStart === cursorEnd && cursorStart === 4) {
+      e.preventDefault();
+      return;
     }
-    return false;
+  };
+
+  const queueDocumentConfirmation = (fieldName, value) => {
+    setPendingDocumentConfirmation({ fieldName, value });
+  };
+
+  const confirmDocumentAddressMatch = (confirmed) => {
+    const { fieldName, value } = pendingDocumentConfirmation;
+    if (!fieldName || !value) return;
+
+    if (confirmed) {
+      setFormData((prev) => ({ ...prev, [fieldName]: value }));
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[fieldName];
+        return next;
+      });
+      setError("");
+    } else {
+      setFormData((prev) => ({ ...prev, [fieldName]: "" }));
+      setFieldErrors((prev) => ({
+        ...prev,
+        [fieldName]: "Please choose a document type where your registered address is clearly visible.",
+      }));
+      setError("You must choose a document that contains the same address as your registration details.");
+    }
+
+    setPendingDocumentConfirmation({ fieldName: "", value: "" });
+  };
+
+  const handleDocumentTypeChange = (e) => {
+    const { name, value } = e.target;
+
+    if (!value) {
+      setFormData((prev) => ({ ...prev, [name]: "" }));
+      setPendingDocumentConfirmation({ fieldName: "", value: "" });
+      return;
+    }
+
+    if (isGovernmentID(value)) {
+      queueDocumentConfirmation(name, value);
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
   };
 
   // Phone number formatting - auto prepend +63 and validate
@@ -413,6 +505,10 @@ const Register = () => {
     const { name, type, checked, value } = e.target;
     let newValue = type === "checkbox" ? checked : value;
     let newFieldErrors = { ...fieldErrors };
+
+    if (name === "civilStatus") {
+      newValue = normalizeCivilStatus(value);
+    }
 
     // Special handling for email validation
     if (name === "email") {
@@ -426,10 +522,31 @@ const Register = () => {
     // Special handling for phone number
     if (name === "phoneNumber") {
       newValue = formatPhoneNumber(value);
-      if (newValue && !validatePhone(newValue)) {
+      const digits = extractLocalPhoneDigits(newValue);
+      if (digits.length > 0 && !digits.startsWith("9")) {
         newFieldErrors.phoneNumber = "Phone must start with 9 after +63";
+      } else if (digits.length > 0 && digits.length < 10) {
+        newFieldErrors.phoneNumber = "Please complete your phone number";
+      } else if (digits.length === 10 && !validatePhone(newValue)) {
+        newFieldErrors.phoneNumber = "Phone number must be in +63 9XX XXX XXXX format";
       } else {
         delete newFieldErrors.phoneNumber;
+      }
+    }
+
+    if (["firstName", "middleName", "lastName"].includes(name)) {
+      if (!validateNameField(value)) {
+        newFieldErrors[name] = "Only alphabet letters are allowed";
+      } else {
+        delete newFieldErrors[name];
+      }
+    }
+
+    if (name === "occupation") {
+      if (!isOccupationValid(value)) {
+        newFieldErrors.occupation = "Please enter a valid Occupation";
+      } else {
+        delete newFieldErrors.occupation;
       }
     }
 
@@ -586,8 +703,8 @@ const Register = () => {
       // Password validation
       if (!formData.password) {
         errors.password = "Password is required";
-      } else if (formData.password.length < 6) {
-        errors.password = "Password must be at least 6 characters";
+      } else if (formData.password.length < 8) {
+        errors.password = "Password must be at least 8 characters";
       }
       
       // Confirm password validation
@@ -608,10 +725,27 @@ const Register = () => {
     if (step === 2) {
       // Personal information validation
       if (!formData.firstName) errors.firstName = "First name is required";
+      if (formData.firstName && !validateNameField(formData.firstName)) {
+        errors.firstName = "Only alphabet letters are allowed";
+      }
       if (!formData.lastName) errors.lastName = "Last name is required";
+      if (formData.lastName && !validateNameField(formData.lastName)) {
+        errors.lastName = "Only alphabet letters are allowed";
+      }
+      if (formData.middleName && !validateNameField(formData.middleName)) {
+        errors.middleName = "Only alphabet letters are allowed";
+      }
       if (!formData.dateOfBirth) errors.dateOfBirth = "Date of birth is required";
       if (!formData.gender) errors.gender = "Gender is required";
-      if (!formData.phoneNumber) errors.phoneNumber = "Phone number is required";
+      if (!formData.civilStatus || formData.civilStatus === "N/A") {
+        errors.civilStatus = "Civil status defaults to Single and cannot be N/A";
+      }
+      if (!formData.phoneNumber || !validatePhone(formData.phoneNumber)) {
+        errors.phoneNumber = "Please enter a valid phone number in +63 9XX XXX XXXX format";
+      }
+      if (!isOccupationValid(formData.occupation)) {
+        errors.occupation = "Please enter a valid Occupation";
+      }
 
       if (Object.keys(errors).length > 0) {
         setFieldErrors(errors);
@@ -807,6 +941,7 @@ const Register = () => {
       if (formData.placeOfBirth)
         formDataToSend.append("placeOfBirth", formData.placeOfBirth);
       formDataToSend.append("gender", formData.gender);
+      formDataToSend.append("civilStatus", normalizeCivilStatus(formData.civilStatus));
 
       // Auto-calculated salutation based on gender
       const autoSalutation = getSalutation(formData.gender);
@@ -825,7 +960,8 @@ const Register = () => {
           street: formData.street || "",
           subdivision: formData.subdivision || "",
           area: formData.area || "",
-          compound: formData.compound || ""
+          compound: formData.compound || "",
+          district: "District 6",
         };
         formDataToSend.append("address", JSON.stringify(residentAddr));
       } else if (formData.residentType === "non_resident") {
@@ -835,6 +971,7 @@ const Register = () => {
           street: formData.nonResidentStreet || "",
           subdivision: formData.nonResidentSubdivision || "",
           barangay: formData.nonResidentBarangay || "",
+          district: formData.nonResidentDistrict || "",
           city: formData.nonResidentCity || "",
           province: formData.nonResidentProvince || "",
           region: formData.nonResidentRegion || "",
@@ -1181,7 +1318,7 @@ const Register = () => {
             onChange={handleChange}
             required
             className={`block w-full pl-10 pr-10 py-2 bg-slate-50 border ${fieldErrors.password ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
-            placeholder="Minimum 6 characters"
+              placeholder="Minimum 8 characters"
           />
           <button
             type="button"
@@ -1375,6 +1512,29 @@ const Register = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1">
+            Civil Status *
+          </label>
+          <select
+            name="civilStatus"
+            value={formData.civilStatus}
+            onChange={handleChange}
+            className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.civilStatus ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm`}
+          >
+            {civilStatusOptions.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+          {fieldErrors.civilStatus && (
+            <p className="text-xs text-red-500 mt-1">{fieldErrors.civilStatus}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1">
             Phone Number *
           </label>
           <div className="relative group">
@@ -1386,6 +1546,12 @@ const Register = () => {
               name="phoneNumber"
               value={formData.phoneNumber}
               onChange={handleChange}
+              onKeyDown={handlePhoneKeyDown}
+              onClick={(e) => {
+                if ((e.target.selectionStart ?? 0) < 3) {
+                  e.target.setSelectionRange(e.target.value.length, e.target.value.length);
+                }
+              }}
               required
               className={`block w-full pl-10 pr-3 py-2 bg-slate-50 border ${fieldErrors.phoneNumber ? 'border-red-400' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 placeholder-slate-400 text-sm`}
               placeholder="+63 9XX XXX XXXX"
@@ -1417,11 +1583,14 @@ const Register = () => {
               }}
               onFocus={() => setShowOccupationDropdown(true)}
               onBlur={() => setTimeout(() => setShowOccupationDropdown(false), 150)}
-              className="block w-full pl-10 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+              className={`block w-full pl-10 pr-3 py-2 bg-slate-50 border ${fieldErrors.occupation ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
               placeholder="Search or select occupation"
               autoComplete="off"
             />
           </div>
+          {fieldErrors.occupation && (
+            <p className="text-xs text-red-500 mt-1">{fieldErrors.occupation}</p>
+          )}
           {showOccupationDropdown && filteredOccupations.length > 0 && (
             <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
               {occupationSearch.length === 0 ? (
@@ -1684,6 +1853,9 @@ const Register = () => {
               <strong>Barangay:</strong> Culiat | <strong>City:</strong> Quezon City
               | <strong>Region:</strong> NCR
             </p>
+            <p className="text-xs text-slate-600 mt-1">
+              <strong>District:</strong> District 6
+            </p>
           </div>
         </>
       )}
@@ -1759,6 +1931,26 @@ const Register = () => {
                 <p className="text-xs text-red-500 mt-1">{fieldErrors.nonResidentBarangay}</p>
               )}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              District (if applicable)
+            </label>
+            <input
+              type="text"
+              name="nonResidentDistrict"
+              value={formData.nonResidentDistrict}
+              onChange={handleChange}
+              list="district-options"
+              className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+              placeholder="District 1 to District 6"
+            />
+            <datalist id="district-options">
+              {districtOptions.map((district) => (
+                <option key={district} value={district} />
+              ))}
+            </datalist>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -1893,7 +2085,7 @@ const Register = () => {
           <select
             name="primaryID1Type"
             value={formData.primaryID1Type}
-            onChange={handleChange}
+            onChange={handleDocumentTypeChange}
             className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
           >
             {governmentIDOptions
@@ -1917,6 +2109,38 @@ const Register = () => {
                 </option>
               ))}
           </select>
+          {fieldErrors.primaryID1Type && (
+            <p className="text-xs text-red-500 mt-1">{fieldErrors.primaryID1Type}</p>
+          )}
+          {pendingDocumentConfirmation.fieldName === "primaryID1Type" && (
+            <div className="mt-2 p-3 rounded-lg border border-amber-300 bg-amber-50">
+              <p className="text-xs text-amber-900 font-semibold">
+                Please confirm: Does your {getDocumentTypeLabel(pendingDocumentConfirmation.value)} clearly show the same address you entered in this registration form?
+              </p>
+              <p className="text-[11px] text-amber-700 italic mt-1">
+                Pakikumpirma: Ang napili mong ID ba ay may kaparehong address na inilagay mo sa registration form na ito?
+              </p>
+              <p className="text-[11px] text-amber-700 mt-1">
+                If the address does not match, the registration will be rejected during verification.
+              </p>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => confirmDocumentAddressMatch(true)}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  Yes, it matches
+                </button>
+                <button
+                  type="button"
+                  onClick={() => confirmDocumentAddressMatch(false)}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-md bg-red-600 text-white hover:bg-red-700"
+                >
+                  No, choose another
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Show warning if endorsement letter selected as first document for non-residents */}
@@ -2031,7 +2255,7 @@ const Register = () => {
             <select
               name="primaryID2Type"
               value={formData.primaryID2Type}
-              onChange={handleChange}
+              onChange={handleDocumentTypeChange}
               className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-900 text-sm"
             >
               {governmentIDOptions
@@ -2049,6 +2273,38 @@ const Register = () => {
                   </option>
                 ))}
             </select>
+            {fieldErrors.primaryID2Type && (
+              <p className="text-xs text-red-500 mt-1">{fieldErrors.primaryID2Type}</p>
+            )}
+            {pendingDocumentConfirmation.fieldName === "primaryID2Type" && (
+              <div className="mt-2 p-3 rounded-lg border border-amber-300 bg-amber-50">
+                <p className="text-xs text-amber-900 font-semibold">
+                  Please confirm: Does your {getDocumentTypeLabel(pendingDocumentConfirmation.value)} clearly show the same address you entered in this registration form?
+                </p>
+                <p className="text-[11px] text-amber-700 italic mt-1">
+                  Pakikumpirma: Ang napili mong ID ba ay may kaparehong address na inilagay mo sa registration form na ito?
+                </p>
+                <p className="text-[11px] text-amber-700 mt-1">
+                  If the address does not match, the registration will be rejected during verification.
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => confirmDocumentAddressMatch(true)}
+                    className="px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+                  >
+                    Yes, it matches
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => confirmDocumentAddressMatch(false)}
+                    className="px-3 py-1.5 text-xs font-semibold rounded-md bg-red-600 text-white hover:bg-red-700"
+                  >
+                    No, choose another
+                  </button>
+                </div>
+              </div>
+            )}
             {formData.primaryID1Type && formData.primaryID2Type && formData.primaryID1Type === formData.primaryID2Type && (
               <p className="text-xs text-red-500 mt-1">Please select a different document type from your first one</p>
             )}
