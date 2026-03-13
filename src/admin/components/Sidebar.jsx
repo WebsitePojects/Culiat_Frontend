@@ -37,8 +37,8 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  // Check if user is superadmin
-  const isSuperAdmin = user?.role === 'SuperAdmin' || user?.roleCode === 74932;
+  const isSystemAdmin = user?.role === 'SystemAdmin' || user?.roleCode === 74931;
+  const isRestrictedAdmin = user?.role === 'Admin' || user?.roleCode === 74933;
 
   // State for collapsible sections
   const [userManagementOpen, setUserManagementOpen] = useState(false);
@@ -58,8 +58,8 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
   // Grouped menu structure - Reorganized with Documents under User Management
   // Filter items based on role
   const userManagementItems = [
-    // Only SuperAdmin can see All Users
-    ...(isSuperAdmin ? [{ name: "All Users", path: "/admin/users", icon: Users }] : []),
+    // Only SystemAdmin can see All Users
+    ...(isSystemAdmin ? [{ name: "All Users", path: "/admin/users", icon: Users }] : []),
     {
       name: "Pending Registrations",
       path: "/admin/pending-registrations",
@@ -70,11 +70,11 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
       path: "/admin/registration-history",
       icon: History,
     },
-    {
+    ...(!isRestrictedAdmin ? [{
       name: "Terms Acceptances",
       path: "/admin/terms-acceptances",
       icon: FileCheck,
-    },
+    }] : []),
     {
       name: "Profile Updates",
       path: "/admin/profile-updates",
@@ -97,7 +97,7 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
       setOpen: setUserManagementOpen,
       items: userManagementItems,
     },
-    {
+    ...(!isRestrictedAdmin ? [{
       id: "content-management",
       label: "Content Management",
       icon: Layout,
@@ -118,7 +118,7 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
         { name: "Services", path: "/admin/cms/services", icon: Briefcase },
         { name: "Homepage Carousel", path: "/admin/cms/banners", icon: Image },
       ],
-    },
+    }] : []),
     {
       id: "operations",
       items: [
@@ -127,9 +127,9 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
         { name: "Document Payments", path: "/admin/document-payments", icon: Coins },
         { name: "Feedback", path: "/admin/feedback", icon: MessageSquare },
         { name: "Notifications", path: "/admin/notifications", icon: Bell },
-        { name: "Analytics", path: "/admin/analytics", icon: BarChart3 },
-        // Only SuperAdmin can see Settings
-        ...(isSuperAdmin ? [{ name: "Settings", path: "/admin/settings", icon: Settings }] : []),
+        ...(!isRestrictedAdmin ? [{ name: "Analytics", path: "/admin/analytics", icon: BarChart3 }] : []),
+        // Only SystemAdmin can see Settings
+        ...(isSystemAdmin ? [{ name: "Settings", path: "/admin/settings", icon: Settings }] : []),
       ],
     },
   ];

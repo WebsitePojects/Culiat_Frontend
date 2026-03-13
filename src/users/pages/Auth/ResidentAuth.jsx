@@ -32,20 +32,42 @@ export default function ResidentAuth() {
       const response = await login(loginData.username, loginData.password);
 
       if (response.success && response.user) {
-        if (response.user.roleCode === 74934) {
+        const roleCodes = Array.isArray(response.user.roles)
+          ? response.user.roles
+          : [response.user.roleCode].filter(Boolean);
+
+        const roleNames = Array.isArray(response.user.roleNames)
+          ? response.user.roleNames
+          : [response.user.role].filter(Boolean);
+
+        const hasResidentRole =
+          roleCodes.includes(74934) || roleNames.includes("Resident");
+
+        const isAdminOnly =
+          (response.user.roleCode === 74933 ||
+            response.user.roleCode === 74932 ||
+            response.user.roleCode === 74931) &&
+          !hasResidentRole;
+
+        if (hasResidentRole) {
           const redirectPath = sessionStorage.getItem("redirectAfterLogin");
-          if (
+          const isSafeResidentRedirect =
             redirectPath &&
+            !redirectPath.startsWith("/admin") &&
             redirectPath !== "/login" &&
-            redirectPath !== "/register"
+            redirectPath !== "/register";
+
+          sessionStorage.removeItem("redirectAfterLogin");
+
+          if (
+            isSafeResidentRedirect
           ) {
-            sessionStorage.removeItem("redirectAfterLogin");
             navigate(redirectPath);
           } else {
             // Default redirect to home instead of dashboard
             navigate("/");
           }
-        } else if (response.user.roleCode === 74933 || response.user.roleCode === 74932) {
+        } else if (isAdminOnly) {
           // Admin trying to log in through resident portal
           setError("⚠️ Admin Access: You are logging in as an administrator. Please use the admin portal to access administrative features. Click the 'Admin Sign In' link below.");
           // Clear auth data to force redirect

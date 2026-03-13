@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Search, X, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import {
   Home,
   Users,
@@ -31,6 +32,10 @@ const TabSearch = () => {
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const isSystemAdmin = user?.role === "SystemAdmin" || user?.roleCode === 74931;
+  const isRestrictedAdmin = user?.role === "Admin" || user?.roleCode === 74933;
 
   // All searchable tabs
   const allTabs = [
@@ -55,9 +60,29 @@ const TabSearch = () => {
     { name: "Profile", path: "/admin/profile", icon: User, category: "Account" },
   ];
 
+  const visibleTabs = allTabs.filter((tab) => {
+    const restrictedForAdmin = new Set([
+      "/admin/terms-acceptances",
+      "/admin/announcements",
+      "/admin/achievements",
+      "/admin/officials",
+      "/admin/committees",
+      "/admin/people",
+      "/admin/cms/about-us",
+      "/admin/cms/services",
+      "/admin/cms/banners",
+      "/admin/analytics",
+      "/admin/settings",
+    ]);
+
+    if (tab.path === "/admin/users" && !isSystemAdmin) return false;
+    if (isRestrictedAdmin && restrictedForAdmin.has(tab.path)) return false;
+    return true;
+  });
+
   // Filter tabs based on search query
   const filteredTabs = searchQuery.trim()
-    ? allTabs.filter(
+    ? visibleTabs.filter(
         (tab) =>
           tab.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           tab.category.toLowerCase().includes(searchQuery.toLowerCase())

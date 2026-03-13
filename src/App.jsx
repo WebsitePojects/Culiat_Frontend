@@ -309,22 +309,47 @@ function App() {
               >
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route
+                  path="analytics"
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <AdminAnalytics />
+                    </PrivateRoute>
+                  }
+                />
                 <Route path="calendar" element={<AdminCalendar />} />
                 <Route path="notifications" element={<AdminNotifications />} />
                 <Route path="profile" element={<AdminProfile />} />
                 <Route
                   path="terms-acceptances"
-                  element={<AdminTermsAcceptances />}
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <AdminTermsAcceptances />
+                    </PrivateRoute>
+                  }
                 />
                 <Route path="reports" element={<AdminReports />} />
-                <Route path="announcements" element={<AdminAnnouncements />} />
-                <Route path="achievements" element={<AdminAchievements />} />
+                <Route
+                  path="announcements"
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <AdminAnnouncements />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="achievements"
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <AdminAchievements />
+                    </PrivateRoute>
+                  }
+                />
                 <Route path="documents" element={<AdminDocuments />} />
                 <Route
                   path="users"
                   element={
-                    <PrivateRoute superAdminOnly={true}>
+                    <PrivateRoute systemAdminOnly={true}>
                       <AdminUsers />
                     </PrivateRoute>
                   }
@@ -340,17 +365,59 @@ function App() {
                 <Route
                   path="settings"
                   element={
-                    <PrivateRoute superAdminOnly={true}>
+                    <PrivateRoute systemAdminOnly={true}>
                       <SettingsPage />
                     </PrivateRoute>
                   }
                 />
-                <Route path="officials" element={<AdminOfficials />} />
-                <Route path="committees" element={<AdminCommittees />} />
-                <Route path="people" element={<AdminPeople />} />
-                <Route path="cms/services" element={<CMSServices />} />
-                <Route path="cms/about-us" element={<CMSAboutUs />} />
-                <Route path="cms/banners" element={<CMSBanners />} />
+                <Route
+                  path="officials"
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <AdminOfficials />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="committees"
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <AdminCommittees />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="people"
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <AdminPeople />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="cms/services"
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <CMSServices />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="cms/about-us"
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <CMSAboutUs />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="cms/banners"
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <CMSBanners />
+                    </PrivateRoute>
+                  }
+                />
                 <Route path="document-history" element={<DocumentRequestHistory />} />
                 <Route path="document-payments" element={<DocumentPayments />} />
                 <Route path="feedback" element={<WebsiteFeedback />} />

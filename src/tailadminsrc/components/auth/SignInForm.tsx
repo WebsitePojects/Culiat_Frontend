@@ -30,11 +30,24 @@ export default function SignInForm() {
          const response = await login(username, password, true); // Pass true for admin login
 
          if (response.success && response.user) {
-            // Check if user is admin (roleCode 74933 or 74932)
-            if (
-               response.user.roleCode === 74933 ||
-               response.user.roleCode === 74932
-            ) {
+            const userRoleCodes = [
+               ...(Array.isArray(response.user.roles) ? response.user.roles : []),
+               response.user.roleCode,
+               typeof response.user.role === "number" ? response.user.role : null,
+            ].filter((roleCode) => Number.isFinite(Number(roleCode))).map(Number);
+
+            const userRoleNames = [
+               ...(Array.isArray(response.user.roleNames) ? response.user.roleNames : []),
+               typeof response.user.role === "string" ? response.user.role : null,
+               typeof response.user.roleName === "string" ? response.user.roleName : null,
+            ].filter(Boolean);
+
+            const hasAdminRole =
+               userRoleCodes.some((roleCode) => [74931, 74932, 74933].includes(roleCode)) ||
+               userRoleNames.some((roleName) => ["SystemAdmin", "SuperAdmin", "Admin"].includes(roleName));
+
+            // Check if user is admin (SystemAdmin, SuperAdmin, or Admin)
+            if (hasAdminRole) {
                navigate("/admin/dashboard");
             } else {
                // Prevent residents from accessing admin portal

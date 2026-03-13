@@ -190,6 +190,7 @@ const AnnouncementDetail = () => {
   // Get author full name for SEO
   const getAuthorName = () => {
     if (!announcement?.publishedBy) return 'Barangay Culiat';
+    if (announcement?.publishedByDisplayName) return announcement.publishedByDisplayName;
     return `${announcement.publishedBy.firstName || ''} ${announcement.publishedBy.lastName || ''}`.trim() || 'Barangay Culiat';
   };
 
@@ -387,7 +388,7 @@ const AnnouncementDetail = () => {
                 <User className="w-3 h-3 text-white" />
               </div>
               <span className="font-medium text-white/90">
-                {announcement.publishedBy.firstName} {announcement.publishedBy.lastName}
+                {getAuthorName()}
               </span>
             </div>
           )}
@@ -625,7 +626,7 @@ const AnnouncementDetail = () => {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
-                      {announcement.publishedBy.firstName} {announcement.publishedBy.lastName}
+                      {getAuthorName()}
                     </p>
                     <p className="text-xs text-gray-500">Barangay Culiat</p>
                   </div>

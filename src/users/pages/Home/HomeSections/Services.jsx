@@ -83,7 +83,7 @@ const Services = () => {
           viewport={{ once: true, amount: 0.1 }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
         >
-          {servicesList.map((s, idx) => {
+          {servicesList.slice(0, 8).map((s, idx) => {
             const SIcon = s.icon || FileText;
             const accent = ACCENTS[idx % ACCENTS.length];
             const detail = servicesData[s.slug];
@@ -97,6 +97,7 @@ const Services = () => {
                 onHoverEnd={() => setHoveredIdx(null)}
                 whileHover={{ y: -6 }}
                 transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                className={idx >= 6 ? 'hidden lg:block' : ''}
               >
                 <Link
                   to={`/services/${s.slug}`}

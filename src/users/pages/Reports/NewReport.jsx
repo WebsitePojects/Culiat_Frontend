@@ -18,6 +18,7 @@ const NewReport = () => {
   });
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [reportVideo, setReportVideo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(!user); // Default to anonymous if not logged in
@@ -67,6 +68,24 @@ const NewReport = () => {
     setImagePreviews(imagePreviews.filter((_, i) => i !== index));
   };
 
+  const handleVideoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+    if (!validTypes.includes(file.type)) {
+      setError("Only MP4, WEBM, and MOV videos are allowed");
+      return;
+    }
+
+    setError("");
+    setReportVideo(file);
+  };
+
+  const removeVideo = () => {
+    setReportVideo(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return; // Prevent duplicate submissions
@@ -86,6 +105,11 @@ const NewReport = () => {
       images.forEach(image => {
         submitData.append('reportImages', image);
       });
+
+      // Append optional video
+      if (reportVideo) {
+        submitData.append('reportVideo', reportVideo);
+      }
 
       // Use anonymous endpoint if anonymous mode or not logged in
       if (isAnonymous || !user) {
@@ -400,7 +424,7 @@ const NewReport = () => {
                 Upload Images (Optional)
               </label>
               <p className="text-xs text-[var(--color-text-secondary)] mb-3">
-                You can upload up to 5 images (JPG, JPEG, PNG). Max 5MB per image.
+                You can upload up to 5 images (JPG, JPEG, PNG) and 1 video (MP4, WEBM, MOV).
               </p>
               
               {/* Upload Area */}
@@ -449,6 +473,37 @@ const NewReport = () => {
                   ))}
                 </div>
               )}
+
+              {/* Video Upload */}
+              <div className="mt-4 border-t border-[var(--color-neutral-active)] pt-4">
+                <label className="block text-sm font-semibold text-[var(--color-text-color)] mb-2">
+                  Upload Video (Optional)
+                </label>
+                {!reportVideo ? (
+                  <label className="flex flex-col items-center justify-center px-4 py-4 bg-white border-2 border-dashed border-[var(--color-neutral-active)] rounded-lg cursor-pointer hover:border-[var(--color-primary)] transition-colors">
+                    <Upload className="w-6 h-6 text-[var(--color-text-secondary)]" />
+                    <span className="text-sm text-[var(--color-text-secondary)] mt-1">Click to upload 1 video</span>
+                    <span className="text-xs text-[var(--color-text-secondary)]">MP4, WEBM, MOV</span>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm,video/quicktime"
+                      onChange={handleVideoChange}
+                      className="hidden"
+                    />
+                  </label>
+                ) : (
+                  <div className="flex items-center justify-between bg-[var(--color-neutral)] border border-[var(--color-neutral-active)] rounded-lg px-3 py-2">
+                    <span className="text-sm text-[var(--color-text-color)] truncate pr-3">{reportVideo.name}</span>
+                    <button
+                      type="button"
+                      onClick={removeVideo}
+                      className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </motion.div>
 
             {/* Privacy Notice */}

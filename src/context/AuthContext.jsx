@@ -36,6 +36,18 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const hasRoleCode = useCallback((targetCode) => {
+    if (!user) return false;
+    const roles = Array.isArray(user.roles) ? user.roles : [];
+    return user.roleCode === targetCode || roles.includes(targetCode);
+  }, [user]);
+
+  const hasRoleName = useCallback((targetName) => {
+    if (!user) return false;
+    const roleNames = Array.isArray(user.roleNames) ? user.roleNames : [];
+    return user.role === targetName || user.roleName === targetName || roleNames.includes(targetName);
+  }, [user]);
   
   // Session timeout refs and state
   const sessionTimeoutRef = useRef(null);
@@ -191,8 +203,17 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(fullUserData));
         setUser(fullUserData);
         
-        // Check terms acceptance status for Residents
-        if (fullUserData.roleName === 'Resident') {
+        const residentRoleCodes = Array.isArray(fullUserData.roles) ? fullUserData.roles : [];
+        const residentRoleNames = Array.isArray(fullUserData.roleNames) ? fullUserData.roleNames : [];
+        const hasResidentRole =
+          fullUserData.roleCode === 74934 ||
+          fullUserData.role === 'Resident' ||
+          fullUserData.roleName === 'Resident' ||
+          residentRoleCodes.includes(74934) ||
+          residentRoleNames.includes('Resident');
+
+        // Check terms acceptance status for Residents (resident portal only)
+        if (!isAdminLogin && hasResidentRole) {
           try {
             const termsResponse = await axios.get(`${API_URL}/api/terms/status`);
             const hasAccepted = termsResponse.data.data.hasAccepted;
@@ -210,8 +231,8 @@ export const AuthProvider = ({ children }) => {
           }
         }
         
-        // For Residents: Check approved documents
-        if (fullUserData.roleName === 'Resident' || fullUserData.role === 'Resident' || fullUserData.roleCode === 74934) {
+        // For Residents: Check approved documents (resident portal only)
+        if (!isAdminLogin && hasResidentRole) {
           console.log('🔔 [Login] User is a Resident, checking for approved documents...');
           try {
             const response = await axios.get(`${API_URL}/api/document-requests/my-requests`, {
@@ -310,8 +331,7 @@ export const AuthProvider = ({ children }) => {
   // Check if user is Admin or SuperAdmin
   const isAdmin = () => {
     if (!user) return false;
-    // Check role name or role code
-    return user.role === 'Admin' || user.role === 'SuperAdmin' || user.roleCode === 74933 || user.roleCode === 74932;
+    return hasRoleName('Admin') || hasRoleName('SuperAdmin') || hasRoleName('SystemAdmin') || hasRoleCode(74933) || hasRoleCode(74932) || hasRoleCode(74931);
   };
 
   const value = {
@@ -321,9 +341,11 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    isAuthenticated: !!user,
     isAdmin: isAdmin(),
-    isSuperAdmin: user?.role === 'SuperAdmin' || user?.roleCode === 74932,
-    isResident: user?.role === 'Resident' || user?.roleCode === 74934,
+    isSystemAdmin: hasRoleName('SystemAdmin') || hasRoleCode(74931),
+    isSuperAdmin: hasRoleName('SuperAdmin') || hasRoleCode(74932),
+    isResident: hasRoleName('Resident') || hasRoleCode(74934),
     // Session management
     sessionExpired,
     clearSessionExpired,

@@ -313,12 +313,12 @@ const AdminAnnouncements = () => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
 
-    // Calculate remaining slots (max 6 total)
+    // Calculate remaining slots (max 15 total)
     const currentTotal = existingImages.length + formData.images.length;
-    const remainingSlots = 6 - currentTotal;
+    const remainingSlots = 15 - currentTotal;
 
     if (remainingSlots <= 0) {
-      showError("Maximum 6 images allowed");
+      showError("Maximum 15 images allowed");
       return;
     }
 
@@ -1100,7 +1100,7 @@ const AdminAnnouncements = () => {
                     </div>
                     <div className="min-w-0">
                       <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Published By</p>
-                      <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">{selectedAnnouncement.publishedBy.firstName} {selectedAnnouncement.publishedBy.lastName}</p>
+                      <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">{selectedAnnouncement.publishedByDisplayName || `${selectedAnnouncement.publishedBy.firstName} ${selectedAnnouncement.publishedBy.lastName}`}</p>
                     </div>
                   </div>
                 )}
@@ -1532,7 +1532,7 @@ const AdminAnnouncements = () => {
 
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Images <span className="text-gray-400">(Up to 6 images)</span>
+                  Images <span className="text-gray-400">(Up to 15 images)</span>
                 </label>
 
                 {/* Image Upload Area */}
@@ -1587,13 +1587,13 @@ const AdminAnnouncements = () => {
                     </div>
                   )}
 
-                  {/* Upload Button - Show if less than 6 total images */}
-                  {(existingImages.length + formData.images.length) < 6 && (
+                  {/* Upload Button - Show if less than 15 total images */}
+                  {(existingImages.length + formData.images.length) < 15 && (
                     <label className="flex flex-col items-center justify-center px-4 py-6 bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-lg border-2 border-gray-300 dark:border-gray-600 border-dashed cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
                       <Upload className="w-6 h-6 sm:w-8 sm:h-8 mb-2" />
                       <span className="text-xs sm:text-sm font-medium">Click to upload images</span>
                       <span className="text-xs text-gray-400 mt-1">
-                        {6 - existingImages.length - formData.images.length} slots remaining
+                        {15 - existingImages.length - formData.images.length} slots remaining
                       </span>
                       <input
                         type="file"

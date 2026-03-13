@@ -1,8 +1,8 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const PrivateRoute = ({ children, adminOnly = false, superAdminOnly = false }) => {
-  const { user, loading, isAdmin, isSuperAdmin } = useAuth();
+const PrivateRoute = ({ children, adminOnly = false, superAdminOnly = false, systemAdminOnly = false, adminRestricted = false }) => {
+  const { user, loading, isAdmin, isSuperAdmin, isSystemAdmin } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -29,6 +29,14 @@ const PrivateRoute = ({ children, adminOnly = false, superAdminOnly = false }) =
   // Redirect to 404 if user is not superadmin but trying to access superadmin-only routes
   if (superAdminOnly && !isSuperAdmin) {
     return <Navigate to="/404" replace />;
+  }
+
+  if (systemAdminOnly && !isSystemAdmin) {
+    return <Navigate to="/404" replace />;
+  }
+
+  if (adminRestricted && (user?.role === 'Admin' || user?.roleCode === 74933)) {
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return children;

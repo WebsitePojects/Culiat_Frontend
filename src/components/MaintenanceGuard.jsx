@@ -27,8 +27,8 @@ import MaintenancePage from "./MaintenancePage";
 const MaintenanceGuard = ({ isMaintenanceMode, maintenanceBypassActive, children }) => {
   const { user, isAuthenticated } = useAuth();
 
-  // Admin/SuperAdmin role codes
-  const ADMIN_ROLES = [74932, 74933]; // SuperAdmin and Admin
+  // SystemAdmin/SuperAdmin/Admin role codes
+  const ADMIN_ROLES = [74931, 74932, 74933];
 
   // Check if user is an admin (can always bypass maintenance)
   const isAdmin = isAuthenticated && user && ADMIN_ROLES.includes(user.role || user.roleCode);

@@ -57,10 +57,12 @@ const AdminAchievements = () => {
   const [availableHashtags, setAvailableHashtags] = useState([]);
   const [hashtagSearch, setHashtagSearch] = useState("");
   const [showHashtagDropdown, setShowHashtagDropdown] = useState(false);
+  const [committees, setCommittees] = useState([]);
 
   const [formData, setFormData] = useState({
     title: "",
     category: "Awards",
+    committeeRef: "",
     description: "",
     date: new Date().toISOString().split("T")[0],
     images: [],        // New: multiple images (File objects)
@@ -75,7 +77,20 @@ const AdminAchievements = () => {
   useEffect(() => {
     fetchAchievements();
     fetchHashtags();
+    fetchCommittees();
   }, []);
+
+  const fetchCommittees = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/committees`);
+      if (response.data.success) {
+        setCommittees(response.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching committees:", error);
+      setCommittees([]);
+    }
+  };
 
   const fetchHashtags = async () => {
     try {
@@ -182,6 +197,7 @@ const AdminAchievements = () => {
     setFormData({
       title: "",
       category: "Awards",
+      committeeRef: "",
       description: "",
       date: new Date().toISOString().split("T")[0],
       images: [],
@@ -215,6 +231,7 @@ const AdminAchievements = () => {
     setFormData({
       title: achievement.title,
       category: achievement.category || "Awards",
+      committeeRef: achievement.committeeRef?._id || achievement.committeeRef || "",
       description: achievement.description || "",
       date: achievement.date ? achievement.date.split("T")[0] : new Date().toISOString().split("T")[0],
       images: [],
@@ -251,7 +268,7 @@ const AdminAchievements = () => {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    const maxImages = 6;
+    const maxImages = 15;
     const currentCount = formData.images.length + formData.existingImages.length;
     
     if (currentCount + files.length > maxImages) {
@@ -297,6 +314,7 @@ const AdminAchievements = () => {
       const submitData = new FormData();
       submitData.append("title", formData.title);
       submitData.append("category", formData.category);
+      submitData.append("committeeRef", formData.committeeRef || "");
       submitData.append("description", formData.description);
       submitData.append("date", formData.date);
       
@@ -931,7 +949,7 @@ const AdminAchievements = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                     Category
@@ -959,6 +977,24 @@ const AdminAchievements = () => {
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                    Linked Committee <span className="text-gray-400">(Optional)</span>
+                  </label>
+                  <select
+                    value={formData.committeeRef}
+                    onChange={(e) => setFormData({ ...formData, committeeRef: e.target.value })}
+                    className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">No linked committee</option>
+                    {committees.map((committee) => (
+                      <option key={committee._id} value={committee._id}>
+                        {committee.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -1104,12 +1140,12 @@ const AdminAchievements = () => {
 
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-                  Images <span className="text-gray-400 font-normal">(up to 6)</span>
+                  Images <span className="text-gray-400 font-normal">(up to 15)</span>
                 </label>
                 
                 {/* Image count indicator */}
                 <div className="text-xs text-gray-500 mb-2">
-                  {formData.existingImages.length + formData.images.length} / 6 images
+                  {formData.existingImages.length + formData.images.length} / 15 images
                 </div>
                 
                 {/* Existing Images (Edit Mode) */}
@@ -1166,7 +1202,7 @@ const AdminAchievements = () => {
                 )}
                 
                 {/* Upload Button */}
-                {formData.existingImages.length + formData.images.length < 6 && (
+                {formData.existingImages.length + formData.images.length < 15 && (
                   <label className="flex flex-col items-center px-4 py-4 sm:py-6 bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 rounded-lg sm:rounded-xl border-2 border-gray-300 dark:border-gray-600 border-dashed cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600">
                     <Upload className="w-6 h-6 sm:w-8 sm:h-8 mb-1 sm:mb-2" />
                     <span className="text-xs sm:text-sm">Click to upload images</span>

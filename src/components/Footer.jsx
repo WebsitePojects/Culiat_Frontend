@@ -69,7 +69,7 @@ const Footer = () => {
     aboutText:
       "Serving our community with transparency, dedication, and excellence. Building a safer and unified Barangay Culiat for all residents.",
     copyrightText:
-      "© 2025 Barangay Culiat | Managed by Barangay Culiat Information Office",
+      "© 2026 Barangay Culiat | Managed by Barangay Culiat Information Office",
     poweredByText: "Prince IT Solutions",
     showQuickLinks: true,
     quickLinks: defaultQuickLinks,

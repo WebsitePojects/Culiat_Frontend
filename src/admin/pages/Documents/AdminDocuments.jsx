@@ -171,6 +171,7 @@ const AdminDocuments = () => {
   const fetchPreviewData = async (requestId) => {
     try {
       setPreviewLoading(true);
+      setError("");
       const token = localStorage.getItem("token");
       const response = await axios.get(`${API_URL}/api/documents/preview/${requestId}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -178,6 +179,12 @@ const AdminDocuments = () => {
       setPreviewData(response.data.data);
     } catch (error) {
       console.error("Error fetching preview:", error);
+      console.error("Preview API error response:", error?.response?.data);
+      const backendMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        "Failed to load document preview";
+      setError(backendMessage);
       setPreviewData(null);
     } finally {
       setPreviewLoading(false);

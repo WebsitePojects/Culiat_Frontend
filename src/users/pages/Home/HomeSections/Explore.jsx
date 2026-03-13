@@ -15,27 +15,27 @@ const highlights = [
   {
     icon: Landmark,
     title: "Cultural Heritage",
-    desc: "From its roots to its progress, Culiat remains proud of its traditions and history.",
+    desc: "Mula sa mga ugat nito hanggang sa pag-unlad nito, ipinagmamalaki ng Culiat ang aming mga tradisyon at kasaysayan.",
   },
   {
     icon: Leaf,
     title: "Green & Sustainable",
-    desc: "Community gardens and tree-lined streets reflect our commitment to a clean, healthy future.",
+    desc: "Ang mga hardin ng komunidad at mga puno-puno na kalsada ay sumasalamin sa aming pangako sa isang malinis at malusog na kinabukasan.",
   },
   {
     icon: Stethoscope,
     title: "Health for All",
-    desc: "Our health center ensures accessible care and wellness programs for residents.",
+    desc: "Ang aming health center ay nagsisiguro ng madaling makuhang pangangalaga at wellness programs para sa aming mga residente.",
   },
   {
     icon: GraduationCap,
     title: "Education & Youth",
-    desc: "Daycare and youth programs nurture learning and leadership from an early age.",
+    desc: "Ang pangangalaga sa bata at mga programang pang-kabataan ay nag-aalaga ng pag-aaral at liderago mula pa lamang sa maagang edad.",
   },
   {
     icon: Store,
     title: "Local Livelihood",
-    desc: "Small businesses and markets drive our thriving local economy.",
+    desc: "Ang maliliit na negosyo at merkado ay nagpapalakas sa aming umuungorgng lokal na ekonomiya.",
   },
 ];
 
@@ -76,15 +76,15 @@ const Explore = () => {
           className="flex flex-col md:flex-row justify-between items-center mb-12 md:mb-16 gap-6"
         >
           <h2 className="text-3xl md:text-4xl text-center sm:text-left font-bold text-text-color-light leading-snug">
-            Let’s explore local community, <br className="hidden sm:block" />
-            traditions & progress
+            Tuklasin ang aming lokal na komunidad, <br className="hidden sm:block" />
+            tradisyon at pag-unlad
           </h2>
 
           <Link
             to="/about"
             className="inline-flex items-center text-nowrap gap-2 bg-accent text-secondary hover:bg-accent-light px-6 py-2 rounded-md font-medium transition-all shadow-md"
           >
-            Learn More About Us <ArrowRight size={18} />
+            Matuto Pa Tungkol Sa Amin <ArrowRight size={18} />
           </Link>
         </motion.div>
 

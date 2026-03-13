@@ -138,20 +138,20 @@ const Council = () => {
             ) : (
               <>
                 <p className="text-text-secondary leading-relaxed mb-4">
-                  Kap. Cristina "Nanay Bebang" Bernardino has dedicated years to public service, fostering inclusive growth and transparency in Barangay Culiat. Their leadership continues to uplift families and empower community-driven initiatives.
+                  Si Kap. Cristina "Nanay Bebang" Bernardino ay naglaan ng maraming taon sa serbisyo publiko, nag-aambag sa paglaki ng isang inklusibong lipunan at transparensya sa Barangay Culiat. Ang kanyang pamumuno ay patuloy na nagpapataas ng kapakanan ng pamilya at nagbibigay kapangyarihan sa mga inisyatibang pangkomunidad.
                 </p>
                 <p className="text-text-secondary leading-relaxed mb-4">
-                  Focused on health, education, and local livelihood, ensuring
-                  that every citizen has a voice in shaping a progressive and
-                  sustainable Barangay.
+                  Nakatuon sa kalusugan, edukasyon, at lokal na kabuhayan, na nagsisiguro
+                  na ang bawat mamamayan ay may boses sa pagbuo ng isang progresibong at
+                  sustainable na Barangay.
                 </p>
 
                 <div className="border-l-4 border-accent pl-4 mt-6">
                   <p className="italic text-lg text-text-color mb-1">
-                    "Leadership through Service"
+                    "Pamumuno sa Pamamagitan ng Serbisyo"
                   </p>
                   <p className="text-sm text-text-secondary">
-                    — {getCaptainFullName(captain)}, Barangay Captain
+                    — {getCaptainFullName(captain)}, Punong Barangay
                   </p>
                 </div>
               </>

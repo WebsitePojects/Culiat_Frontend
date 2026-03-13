@@ -21,6 +21,13 @@ const Navbar = () => {
    const [committees, setCommittees] = useState([]);
 
    const isHome = location.pathname === "/";
+   const hasResidentRole = !!user && (
+      user.roleCode === 74934 ||
+      user.role === "Resident" ||
+      user.roleName === "Resident" ||
+      (Array.isArray(user.roles) && user.roles.includes(74934)) ||
+      (Array.isArray(user.roleNames) && user.roleNames.includes("Resident"))
+   );
 
    useEffect(() => {
       const handleScroll = () => {
@@ -360,7 +367,7 @@ const Navbar = () => {
                   </div>
 
                   {/* User Menu / Login & Register */}
-                  {user && user.roleCode === 74934 ? (
+                  {hasResidentRole ? (
                      <div className="relative user-menu-container">
                         <button
                            onClick={() => setShowUserMenu(!showUserMenu)}
@@ -489,7 +496,7 @@ const Navbar = () => {
                }
         `}
          >
-            {user && user.roleCode === 74934 && (
+            {hasResidentRole && (
                <div className="pb-3 mb-3 border-b border-gray-300">
                   <div className="flex items-center gap-3">
                      <div className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-white text-sm font-bold">
@@ -654,7 +661,7 @@ const Navbar = () => {
                )}
             </div>
 
-            {user && user.roleCode === 74934 ? (
+            {hasResidentRole ? (
                <>
                   <NavLink
                      to="/profile"

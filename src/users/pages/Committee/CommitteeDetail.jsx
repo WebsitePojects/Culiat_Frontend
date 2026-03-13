@@ -47,6 +47,18 @@ const getFullName = (person) => {
     return parts.join(" ").trim();
 };
 
+const getAccomplishmentCover = (item) => {
+    const cover = item?.images?.[0] || item?.image || null;
+    if (!cover) return null;
+    if (cover.startsWith("http") || cover.startsWith("/uploads/")) return cover;
+
+    if (item?.contentType === "achievement") {
+        return `${API_URL}/uploads/achievements/${cover}`;
+    }
+
+    return `${API_URL}/uploads/announcements/${cover}`;
+};
+
 const CommitteeDetail = () => {
     const { slug } = useParams();
     const [committee, setCommittee] = useState(null);
@@ -514,22 +526,37 @@ const CommitteeDetail = () => {
                     ) : accomplishments.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {accomplishments.map((acc) => {
-                                const cover = acc.images?.[0] || acc.image;
-                                const date = new Date(acc.eventDate || acc.createdAt);
+                                const cover = getAccomplishmentCover(acc);
+                                const date = new Date(acc.publishedAt || acc.eventDate || acc.date || acc.createdAt);
                                 const day = date.getDate().toString().padStart(2, "0");
                                 const month = date.toLocaleString("en-US", { month: "short" }).toUpperCase();
+                                const isAchievement =
+                                    acc.contentType === "achievement" ||
+                                    acc.accomplishmentType === "achievement" ||
+                                    (typeof acc.detailPath === "string" && acc.detailPath.startsWith("/achievements/")) ||
+                                    (!acc.slug && Boolean(acc.date || acc.description));
+
+                                const destinationPath =
+                                    acc.detailPath ||
+                                    (isAchievement
+                                        ? `/achievements/${acc._id}`
+                                        : `/announcements/${acc.slug || acc._id}`);
 
                                 return (
                                     <Link
-                                        to={`/announcements/${acc.slug || acc._id}`}
+                                        to={destinationPath}
                                         key={acc._id}
-                                        className="group relative rounded-xl overflow-hidden bg-gray-200 aspect-[4/3] block shadow-sm hover:shadow-lg transition-all"
+                                        className={`group relative rounded-xl overflow-hidden aspect-[4/3] block shadow-sm hover:shadow-lg transition-all ${
+                                            isAchievement ? "bg-slate-900" : "bg-gray-200"
+                                        }`}
                                     >
                                         {cover ? (
                                             <img
                                                 src={cover}
                                                 alt={acc.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${
+                                                    isAchievement ? "opacity-90" : ""
+                                                }`}
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -543,18 +570,35 @@ const CommitteeDetail = () => {
                                             <span className="block text-[10px] font-semibold text-gray-500 uppercase">{month}</span>
                                         </div>
 
+                                        <div className={`absolute top-4 right-4 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1 text-xs font-medium ${
+                                            isAchievement
+                                                ? "bg-emerald-500/90 text-white"
+                                                : "bg-white/90 text-secondary"
+                                        }`}>
+                                            {isAchievement ? "Achievement" : "Announcement"}
+                                        </div>
+
                                         {/* Video badge */}
-                                        {(acc.youtubeVideoId || acc.youtubeVideoUrl) && (
-                                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1 text-xs font-medium text-secondary">
+                                        {!isAchievement && (acc.youtubeVideoId || acc.youtubeVideoUrl) && (
+                                            <div className="absolute top-14 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1 text-xs font-medium text-secondary">
                                                 <Play className="w-3 h-3" /> Video
                                             </div>
                                         )}
 
                                         {/* Title overlay */}
-                                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-5 pt-16">
+                                        <div className={`absolute inset-x-0 bottom-0 p-5 pt-16 ${
+                                            isAchievement
+                                                ? "bg-gradient-to-t from-emerald-950/95 via-emerald-900/70 to-transparent"
+                                                : "bg-gradient-to-t from-black/80 via-black/40 to-transparent"
+                                        }`}>
                                             <h4 className="text-white font-bold text-base md:text-lg leading-snug line-clamp-2">
                                                 {acc.title}
                                             </h4>
+                                            {isAchievement && acc.category && (
+                                                <p className="mt-1 text-xs font-medium text-emerald-100 uppercase tracking-wider">
+                                                    {acc.category}
+                                                </p>
+                                            )}
                                         </div>
                                     </Link>
                                 );

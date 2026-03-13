@@ -2520,144 +2520,48 @@ const Register = () => {
         transition={{ delay: 0.2 }}
       >
         <h4 className="font-bold text-base text-slate-800 mb-3">
-          Barangay Culiat Online Portal - Terms of Service
+          Privacy Policy & Terms of Service Summary
         </h4>
 
         <p className="mb-4 leading-relaxed">
-          Welcome to the Barangay Culiat Online Portal. By registering and using
-          this platform, you acknowledge that you have read, understood, and
-          agree to be bound by the following terms and conditions:
+          This summary reflects the current contents of the Privacy Policy and
+          Terms & Conditions pages. Please read both tabs in the popup for full
+          details.
         </p>
 
         <div className="space-y-4">
-          <div>
-            <h5 className="font-semibold text-slate-800 mb-2">
-              1. Account Registration and Verification
-            </h5>
-            <ul className="list-disc pl-5 space-y-1 text-slate-600">
-              <li>
-                You certify that all information provided during registration is
-                true, accurate, and complete.
-              </li>
-              <li>
-                You agree to provide a valid government-issued ID for
-                verification purposes.
-              </li>
-              <li>
-                You understand that your account is subject to approval by the
-                Barangay Administration.
-              </li>
-              <li>
-                False information may result in the rejection of your
-                application or suspension of your account.
-              </li>
+          <div className="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg">
+            <h5 className="font-semibold text-slate-800 mb-2">Privacy Policy Highlights</h5>
+            <ul className="list-disc pl-5 space-y-1 text-slate-600 text-sm">
+              <li>We collect identity, contact, address, residency, and verification document data.</li>
+              <li>Cookies are used for functionality, preferences, analytics, and security.</li>
+              <li>Data is used for registration processing, service access, notices, and legal compliance.</li>
+              <li>We apply technical safeguards and retain data only as needed for services and law.</li>
+              <li>Your rights include access, correction, erasure, and objection under RA 10173.</li>
             </ul>
           </div>
 
-          <div>
-            <h5 className="font-semibold text-slate-800 mb-2">
-              2. Acceptable Use
-            </h5>
-            <ul className="list-disc pl-5 space-y-1 text-slate-600">
-              <li>
-                You agree to use this portal exclusively for legitimate
-                barangay-related transactions.
-              </li>
-              <li>
-                You will not misuse, abuse, or attempt to gain unauthorized
-                access to the system.
-              </li>
-              <li>
-                You will maintain the confidentiality of your account
-                credentials.
-              </li>
+          <div className="bg-amber-50 border-l-4 border-amber-600 p-4 rounded-r-lg">
+            <h5 className="font-semibold text-slate-800 mb-2">Terms & Conditions Highlights</h5>
+            <ul className="list-disc pl-5 space-y-1 text-slate-600 text-sm">
+              <li>You must provide truthful and complete information for account verification.</li>
+              <li>You are responsible for account security and lawful, proper use of services.</li>
+              <li>False information, fraud, and misuse may lead to account suspension.</li>
+              <li>Service availability may vary due to maintenance and operational requirements.</li>
+              <li>Terms and policies may be updated, and continued use means acceptance.</li>
             </ul>
           </div>
 
-          <div>
-            <h5 className="font-semibold text-slate-800 mb-2">
-              3. Data Privacy and Protection
-            </h5>
-            <ul className="list-disc pl-5 space-y-1 text-slate-600">
-              <li>
-                You consent to the collection and processing of your personal
-                data in accordance with the Data Privacy Act of 2012 (Republic
-                Act No. 10173).
-              </li>
-              <li>
-                Your personal information will be used solely for barangay
-                service delivery and administration.
-              </li>
-              <li>
-                We implement appropriate security measures to protect your data
-                from unauthorized access.
-              </li>
-              <li>
-                Your data will not be shared with third parties without your
-                consent, except as required by law.
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="font-semibold text-slate-800 mb-2">
-              4. User Responsibilities
-            </h5>
-            <ul className="list-disc pl-5 space-y-1 text-slate-600">
-              <li>
-                You are responsible for maintaining accurate and up-to-date
-                information in your profile.
-              </li>
-              <li>
-                You must notify the barangay office immediately of any changes
-                to your contact information.
-              </li>
-              <li>
-                You agree to comply with all applicable laws and regulations
-                when using this portal.
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="font-semibold text-slate-800 mb-2">
-              5. Service Availability
-            </h5>
-            <ul className="list-disc pl-5 space-y-1 text-slate-600">
-              <li>
-                The Barangay reserves the right to modify, suspend, or
-                discontinue any service without prior notice.
-              </li>
-              <li>
-                We strive to maintain system availability but do not guarantee
-                uninterrupted access.
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="font-semibold text-slate-800 mb-2">6. Amendments</h5>
-            <p className="text-slate-600">
-              The Barangay Culiat Administration reserves the right to update
-              these terms at any time. Continued use of the portal after changes
-              constitutes acceptance of the updated terms.
-            </p>
-          </div>
-
-          <div>
-            <h5 className="font-semibold text-slate-800 mb-2">
-              7. Contact Information
-            </h5>
-            <p className="text-slate-600">
-              For questions or concerns about these terms, please contact the
-              Barangay Culiat office during regular business hours.
+          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+            <p className="text-sm text-slate-700">
+              <strong>Contact:</strong> Barangay Culiat, Quezon City • Email: brgy.culiat@yahoo.com • Cellphone: 0962-582-1531 • Telephone: 856722-60 • Office Hours: Monday-Friday, 8:00 AM - 5:00 PM
             </p>
           </div>
         </div>
 
         <div className="mt-6 pt-4 border-t border-slate-200">
           <p className="text-xs text-slate-500 italic">
-            Last updated: January 2025
+            Last updated: February 1, 2026
           </p>
         </div>
       </motion.div>

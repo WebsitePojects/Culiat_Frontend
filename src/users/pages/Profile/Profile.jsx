@@ -185,7 +185,7 @@ const VERIFICATION_CONFIG = {
 };
 
 const Profile = () => {
-  const { user, setUser } = useAuth();
+  const { user, setUser, isResident } = useAuth();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'updates'
   const [updateHistory, setUpdateHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -197,9 +197,6 @@ const Profile = () => {
   const [proofDocuments, setProofDocuments] = useState([]); // Array for multiple files
   const [proofPreviews, setProofPreviews] = useState([]); // Array for previews
   const [isSubmittingUpdate, setIsSubmittingUpdate] = useState(false);
-
-  // Check if user is a resident
-  const isResident = user?.roleCode === 74934 || user?.role === 'Resident';
 
   // Fetch update history
   useEffect(() => {

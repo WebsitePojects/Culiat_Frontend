@@ -17,7 +17,8 @@ import {
   Save,
   AlertCircle,
   Phone,
-  Eye
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { useNotifications } from "../../../hooks/useNotifications";
 
@@ -33,6 +34,30 @@ const getRoleCode = (roleName) => {
   return ROLE_CODES[roleName] || ROLE_CODES["Resident"];
 };
 
+const ROLE_OPTIONS = ["Resident", "Admin", "SuperAdmin"];
+
+const getRoleNamesFromUser = (user) => {
+  if (Array.isArray(user?.roleNames) && user.roleNames.length > 0) {
+    return [...new Set(user.roleNames)].sort();
+  }
+  if (user?.roleName) {
+    return [user.roleName];
+  }
+  return ["Resident"];
+};
+
+const getRoleSignature = (user) => getRoleNamesFromUser(user).join("|");
+
+const getRoleCodesFromNames = (roleNames) => {
+  return [...new Set(roleNames.map((name) => getRoleCode(name)).filter(Boolean))];
+};
+
+const getWebsiteAdminNameTag = (user) => {
+  const roleNames = getRoleNamesFromUser(user);
+  const isWebsiteAdmin = roleNames.includes("SystemAdmin") || roleNames.includes("SuperAdmin") || roleNames.includes("Admin");
+  return isWebsiteAdmin ? " - Website Admin" : "";
+};
+
 const AdminUsers = () => {
   const { showSuccess, showError, showPromise } = useNotifications();
   const [filter, setFilter] = useState("all");
@@ -45,13 +70,17 @@ const AdminUsers = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [bulkRolePreset, setBulkRolePreset] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     username: "",
+    password: "",
     phoneNumber: "+63",
-    roleName: "Resident"
+    roleName: "Resident",
+    roles: ["Resident"]
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -60,6 +89,7 @@ const AdminUsers = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -68,6 +98,10 @@ const AdminUsers = () => {
     fetchCurrentUser();
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    setSelectedUserIds((prev) => prev.filter((id) => users.some((user) => user._id === id)));
+  }, [users]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -100,20 +134,33 @@ const AdminUsers = () => {
     filter === "all"
       ? users
       : users.filter((user) => {
+        const roleNames = getRoleNamesFromUser(user);
         if (filter === "admin") {
-          return user.roleName === "SuperAdmin" || user.roleName === "Admin";
+          return roleNames.includes("SuperAdmin") || roleNames.includes("Admin");
         } else if (filter === "resident") {
-          return user.roleName === "Resident";
+          return roleNames.includes("Resident");
         }
         return false;
       });
 
-  const getRoleColor = (roleName) => {
-    if (roleName === "SuperAdmin") {
+  const selectedUsers = filteredUsers.filter((user) => selectedUserIds.includes(user._id));
+  const selectedRoleSignatures = [...new Set(selectedUsers.map((user) => getRoleSignature(user)))];
+  const canBulkEditRole = selectedUsers.length > 0 && selectedRoleSignatures.length === 1;
+  const allFilteredSelected = filteredUsers.length > 0 && filteredUsers.every((user) => selectedUserIds.includes(user._id));
+
+  useEffect(() => {
+    if (!canBulkEditRole) {
+      setBulkRolePreset("");
+    }
+  }, [canBulkEditRole]);
+
+  const getRoleColor = (roleNamesInput) => {
+    const roleNames = Array.isArray(roleNamesInput) ? roleNamesInput : [roleNamesInput];
+    if (roleNames.includes("SuperAdmin")) {
       return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-    } else if (roleName === "Admin") {
+    } else if (roleNames.includes("Admin")) {
       return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
-    } else if (roleName === "Resident") {
+    } else if (roleNames.includes("Resident")) {
       return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
     } else {
       return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
@@ -124,6 +171,9 @@ const AdminUsers = () => {
     if (roleName === "SuperAdmin") return "Super Admin";
     return roleName || "Unknown";
   };
+
+  const formatUserRoles = (user) => getRoleNamesFromUser(user).map(formatRoleName).join(" + ");
+  const formatUserNameWithTag = (user) => `${user.firstName} ${user.lastName}${getWebsiteAdminNameTag(user)}`;
 
   const getStatusName = (status) => {
     switch (status) {
@@ -164,11 +214,15 @@ const AdminUsers = () => {
     }
   };
 
-  const adminCount = users.filter(u => u.roleName === "SuperAdmin" || u.roleName === "Admin").length;
-  const residentCount = users.filter(u => u.roleName === "Resident").length;
+  const adminCount = users.filter((u) => {
+    const roleNames = getRoleNamesFromUser(u);
+    return roleNames.includes("SuperAdmin") || roleNames.includes("Admin");
+  }).length;
+  const residentCount = users.filter((u) => getRoleNamesFromUser(u).includes("Resident")).length;
 
   // Open edit modal
   const handleEditClick = (user) => {
+    const userRoles = getRoleNamesFromUser(user);
     setSelectedUser(user);
     setFormData({
       firstName: user.firstName,
@@ -177,6 +231,7 @@ const AdminUsers = () => {
       username: user.username,
       phoneNumber: user.phoneNumber || "",
       roleName: user.roleName,
+      roles: userRoles,
       residentType: user.residentType || "resident",
       compound: user.address?.compound || "",
       sectoralGroups: user.sectoralGroups || [],
@@ -218,7 +273,7 @@ const AdminUsers = () => {
         `${API_URL}/api/auth/check-username/${username}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setUsernameAvailable(response.data.available);
+      setUsernameAvailable(Boolean(response.data?.available));
     } catch (error) {
       // If endpoint doesn't exist, check manually
       const exists = users.some(u => u.username.toLowerCase() === username.toLowerCase());
@@ -294,10 +349,20 @@ const AdminUsers = () => {
       errors.username = "Username is already taken";
     }
 
+    if (!formData.password || !formData.password.trim()) {
+      errors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      errors.password = "Password must be at least 8 characters";
+    }
+
     if (formData.phoneNumber && formData.phoneNumber !== "+63") {
       if (!validatePhoneNumber(formData.phoneNumber)) {
         errors.phoneNumber = "Phone must be +639XXXXXXXXX format";
       }
+    }
+
+    if (!Array.isArray(formData.roles) || formData.roles.length === 0) {
+      errors.roles = "Select at least one role";
     }
 
     setValidationErrors(errors);
@@ -311,8 +376,10 @@ const AdminUsers = () => {
       lastName: "",
       email: "",
       username: "",
+      password: "",
       phoneNumber: "+63",
-      roleName: "Resident"
+      roleName: "Resident",
+      roles: ["Resident"]
     });
     setShowCreateModal(true);
     setError("");
@@ -326,12 +393,19 @@ const AdminUsers = () => {
       setError("");
       const token = localStorage.getItem("token");
 
+      if (!Array.isArray(formData.roles) || formData.roles.length === 0) {
+        setError("Please select at least one role");
+        return;
+      }
+
       // Convert roleName to role code
       const updateData = {
         ...formData,
+        password: undefined,
         role: getRoleCode(formData.roleName),
+        roles: getRoleCodesFromNames(formData.roles || [formData.roleName]),
         // Include address[compound] if it's a resident
-        address: formData.roleName === "Resident" && formData.residentType === "resident"
+        address: (formData.roles || []).includes("Resident") && formData.residentType === "resident"
           ? { ...selectedUser.address, compound: formData.compound }
           : selectedUser.address,
         residentType: formData.residentType,
@@ -393,12 +467,18 @@ const AdminUsers = () => {
       setError("");
       const token = localStorage.getItem("token");
 
+      if (!Array.isArray(formData.roles) || formData.roles.length === 0) {
+        setError("Please select at least one role");
+        return;
+      }
+
       // Prepare data, remove +63 prefix if phone is only +63
       const createData = {
         ...formData,
         phoneNumber: formData.phoneNumber === "+63" ? "" : formData.phoneNumber,
         role: getRoleCode(formData.roleName),
-        password: "TempPassword123!"
+        roles: getRoleCodesFromNames(formData.roles),
+        password: formData.password
       };
 
       const promise = axios.post(
@@ -416,7 +496,87 @@ const AdminUsers = () => {
       setShowCreateModal(false);
       fetchUsers();
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to create user");
+      const message = error.response?.data?.message || "Failed to create user";
+
+      if (message.toLowerCase().includes("username")) {
+        setValidationErrors((prev) => ({ ...prev, username: "Username is already taken" }));
+        setError("");
+      } else if (message.toLowerCase().includes("email")) {
+        setValidationErrors((prev) => ({ ...prev, email: "Email is already in use" }));
+        setError("");
+      } else {
+        setError(message);
+      }
+    }
+  };
+
+  const toggleUserSelection = (userId) => {
+    setSelectedUserIds((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
+  };
+
+  const toggleSelectAllFiltered = () => {
+    if (allFilteredSelected) {
+      setSelectedUserIds((prev) => prev.filter((id) => !filteredUsers.some((user) => user._id === id)));
+      return;
+    }
+    const filteredIds = filteredUsers.map((user) => user._id);
+    setSelectedUserIds((prev) => [...new Set([...prev, ...filteredIds])]);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedUserIds.length) return;
+    if (!window.confirm(`Delete ${selectedUserIds.length} selected user(s)?`)) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const promise = axios.delete(`${API_URL}/api/auth/users/bulk-delete`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { userIds: selectedUserIds }
+      });
+
+      await showPromise(promise, {
+        loading: "Deleting selected users...",
+        success: "Selected users deleted successfully",
+        error: "Failed to delete selected users",
+      });
+
+      setSelectedUserIds([]);
+      fetchUsers();
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to delete selected users");
+    }
+  };
+
+  const handleBulkRoleUpdate = async () => {
+    if (!selectedUserIds.length || !bulkRolePreset || !canBulkEditRole) return;
+
+    const nextRoles = bulkRolePreset.split("|");
+
+    try {
+      const token = localStorage.getItem("token");
+      const promise = axios.patch(
+        `${API_URL}/api/auth/users/bulk-update`,
+        {
+          userIds: selectedUserIds,
+          roles: getRoleCodesFromNames(nextRoles),
+          role: getRoleCode(nextRoles[0]),
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      await showPromise(promise, {
+        loading: "Updating selected users...",
+        success: "Selected users updated successfully",
+        error: "Failed to update selected users",
+      });
+
+      setSelectedUserIds([]);
+      setBulkRolePreset("");
+      fetchUsers();
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to update selected users");
     }
   };
 
@@ -568,7 +728,7 @@ const AdminUsers = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                            {user.firstName} {user.lastName}
+                            {formatUserNameWithTag(user)}
                           </span>
                           {isCurrentUser && (
                             <span className="px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 rounded-full font-medium">
@@ -601,9 +761,9 @@ const AdminUsers = () => {
 
                     {/* Tags Row */}
                     <div className="flex items-center gap-2 flex-wrap mb-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${getRoleColor(user.roleName)}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${getRoleColor(getRoleNamesFromUser(user))}`}>
                         <Shield className="w-2.5 h-2.5 mr-1" />
-                        {formatRoleName(user.roleName)}
+                        {formatUserRoles(user)}
                       </span>
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusColor(user.registrationStatus)}`}>
                         <StatusIcon className="w-2.5 h-2.5 mr-1" />
@@ -636,10 +796,55 @@ const AdminUsers = () => {
 
           {/* Desktop Table Layout */}
           <div className="hidden md:block overflow-hidden bg-white rounded-xl shadow-lg dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 flex items-center justify-between gap-3">
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                {selectedUserIds.length > 0 ? `${selectedUserIds.length} selected` : "Select users for bulk actions"}
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={bulkRolePreset}
+                  disabled={!canBulkEditRole}
+                  onChange={(e) => setBulkRolePreset(e.target.value)}
+                  className={`px-3 py-2 text-xs border rounded-lg bg-white dark:bg-gray-800 dark:text-white ${canBulkEditRole
+                    ? "border-gray-300 dark:border-gray-600"
+                    : "border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed"
+                    }`}
+                >
+                  <option value="">Set role...</option>
+                  <option value="Resident">Resident</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Resident|Admin">Resident + Admin</option>
+                  <option value="SuperAdmin">Super Admin</option>
+                  <option value="Resident|SuperAdmin">Resident + Super Admin</option>
+                </select>
+                <button
+                  onClick={handleBulkRoleUpdate}
+                  disabled={!canBulkEditRole || !bulkRolePreset}
+                  className="px-3 py-2 text-xs font-medium text-white bg-blue-600 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  Apply Role
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={selectedUserIds.length === 0}
+                  className="px-3 py-2 text-xs font-medium text-white bg-red-600 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  Delete Selected
+                </button>
+              </div>
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-900">
                   <tr>
+                    <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400 w-10">
+                      <input
+                        type="checkbox"
+                        checked={allFilteredSelected}
+                        onChange={toggleSelectAllFiltered}
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </th>
                     <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
                       User
                     </th>
@@ -655,21 +860,28 @@ const AdminUsers = () => {
                     <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
                       Registered
                     </th>
-                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
-                      Actions
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                   {filteredUsers.map((user) => {
                     const StatusIcon = getStatusIcon(user.registrationStatus);
                     const isCurrentUser = currentUser && currentUser._id === user._id;
+                    const isSelected = selectedUserIds.includes(user._id);
                     return (
                       <tr
                         key={user._id}
+                        onClick={() => handleEditClick(user)}
                         className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${isCurrentUser ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                          }`}
+                          } ${isSelected ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''} cursor-pointer`}
                       >
+                        <td className="px-4 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleUserSelection(user._id)}
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -680,6 +892,7 @@ const AdminUsers = () => {
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
                                 {user.firstName} {user.lastName}
+                                {getWebsiteAdminNameTag(user)}
                                 {isCurrentUser && (
                                   <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 rounded-full">
                                     You
@@ -708,11 +921,11 @@ const AdminUsers = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(
-                              user.roleName
+                              getRoleNamesFromUser(user)
                             )}`}
                           >
                             <Shield className="w-3 h-3 mr-1" />
-                            {formatRoleName(user.roleName)}
+                            {formatUserRoles(user)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -729,28 +942,6 @@ const AdminUsers = () => {
                           <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                             <Calendar className="w-4 h-4 text-gray-400 mr-2" />
                             {new Date(user.createdAt).toLocaleDateString()}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditClick(user)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                              title="Edit user"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteClick(user)}
-                              disabled={isCurrentUser}
-                              className={`p-2 rounded-lg transition-colors ${isCurrentUser
-                                ? "text-gray-400 cursor-not-allowed"
-                                : "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                                }`}
-                              title={isCurrentUser ? "Cannot delete yourself" : "Delete user"}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -785,7 +976,7 @@ const AdminUsers = () => {
                       Edit User
                     </h2>
                     <p className="text-blue-200 text-xs sm:text-sm truncate">
-                      {selectedUser?.firstName} {selectedUser?.lastName}
+                      {selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}${getWebsiteAdminNameTag(selectedUser)}` : ""}
                     </p>
                   </div>
                 </div>
@@ -888,23 +1079,37 @@ const AdminUsers = () => {
                   </div>
                   <div>
                     <label className="block text-[10px] sm:text-xs font-medium text-purple-700 dark:text-purple-300 mb-1">
-                      Role
+                      Roles
                     </label>
-                    <select
-                      value={formData.roleName}
-                      onChange={(e) => setFormData({ ...formData, roleName: e.target.value })}
-                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-purple-200 dark:border-purple-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="Resident">Resident</option>
-                      <option value="Admin">Admin</option>
-                      <option value="SuperAdmin">Super Admin</option>
-                    </select>
+                    <div className="flex flex-wrap gap-2 p-2 bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-700 rounded-lg">
+                      {ROLE_OPTIONS.map((roleOption) => (
+                        <label key={roleOption} className="flex items-center gap-1.5 px-2 py-1 rounded bg-purple-50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800 text-[10px] sm:text-xs cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={(formData.roles || []).includes(roleOption)}
+                            onChange={(e) => {
+                              const currentRoles = formData.roles || [];
+                              const nextRoles = e.target.checked
+                                ? [...new Set([...currentRoles, roleOption])]
+                                : currentRoles.filter((r) => r !== roleOption);
+                              const fallbackRole = nextRoles[0] || "Resident";
+                              setFormData({ ...formData, roles: nextRoles, roleName: fallbackRole });
+                            }}
+                            className="w-3 h-3 text-purple-600 rounded"
+                          />
+                          {formatRoleName(roleOption)}
+                        </label>
+                      ))}
+                    </div>
+                    {validationErrors.roles && (
+                      <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">{validationErrors.roles}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Residency & Sectoral Groups Section */}
-              {formData.roleName === "Resident" && (
+              {(formData.roles || []).includes("Resident") && (
                 <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg sm:rounded-xl p-3 sm:p-4 space-y-3">
                   <h4 className="font-semibold text-emerald-900 dark:text-emerald-100 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
                     <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Residency & Sectoral Groups
@@ -1035,7 +1240,7 @@ const AdminUsers = () => {
                 </div>
                 <div>
                   <p className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">
-                    {selectedUser?.firstName} {selectedUser?.lastName}
+                    {selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}${getWebsiteAdminNameTag(selectedUser)}` : ""}
                   </p>
                   <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">@{selectedUser?.username}</p>
                 </div>
@@ -1075,12 +1280,12 @@ const AdminUsers = () => {
         </div>
       )}
 
-      {/* Create User Modal - Premium Design */}
+      {/* Create User Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm">
           <div className="w-full sm:max-w-2xl bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 flex flex-col">
-            {/* Premium Header */}
-            <div className="bg-gradient-to-r from-slate-900 via-green-900 to-slate-900 px-4 sm:px-6 py-4 sm:py-5 relative overflow-hidden flex-shrink-0">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-4 sm:px-6 py-4 sm:py-5 relative overflow-hidden flex-shrink-0">
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute inset-0" style={{
                   backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
@@ -1094,7 +1299,7 @@ const AdminUsers = () => {
                   </div>
                   <div>
                     <h2 className="text-base sm:text-xl font-bold text-white">Create New User</h2>
-                    <p className="text-green-200 text-xs sm:text-sm">Add a new user to the system</p>
+                    <p className="text-slate-200 text-xs sm:text-sm">Add a new user to the system</p>
                   </div>
                 </div>
                 <button
@@ -1115,27 +1320,14 @@ const AdminUsers = () => {
                 </div>
               )}
 
-              {/* Password Info */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-300 font-medium">Default Password</p>
-                    <p className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 mt-0.5">
-                      Password will be set to <strong>TempPassword123!</strong> - User should change this on first login.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               {/* Personal Information Section */}
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+              <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
                   <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Personal Information
                 </h4>
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <div>
-                    <label className="block text-[10px] sm:text-xs font-medium text-green-700 dark:text-green-300 mb-1">
+                    <label className="block text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                       First Name *
                     </label>
                     <input
@@ -1149,7 +1341,7 @@ const AdminUsers = () => {
                       }}
                       className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${validationErrors.firstName
                         ? "border-red-500 focus:ring-red-500"
-                        : "border-green-200 dark:border-green-700 focus:ring-green-500"
+                        : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
                         }`}
                     />
                     {validationErrors.firstName && (
@@ -1157,7 +1349,7 @@ const AdminUsers = () => {
                     )}
                   </div>
                   <div>
-                    <label className="block text-[10px] sm:text-xs font-medium text-green-700 dark:text-green-300 mb-1">
+                    <label className="block text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                       Last Name *
                     </label>
                     <input
@@ -1171,7 +1363,7 @@ const AdminUsers = () => {
                       }}
                       className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${validationErrors.lastName
                         ? "border-red-500 focus:ring-red-500"
-                        : "border-green-200 dark:border-green-700 focus:ring-green-500"
+                        : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
                         }`}
                     />
                     {validationErrors.lastName && (
@@ -1259,17 +1451,55 @@ const AdminUsers = () => {
                       <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">Username is already taken</p>
                     )}
                   </div>
+                  <div>
+                    <label className="block text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Password *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) => {
+                          setFormData({ ...formData, password: e.target.value });
+                          if (e.target.value.length >= 8) {
+                            setValidationErrors((prev) => ({ ...prev, password: "" }));
+                          }
+                        }}
+                        className={`w-full pr-10 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${validationErrors.password
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
+                          }`}
+                        placeholder="Enter password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors z-10"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">Minimum 8 characters</p>
+                    {validationErrors.password && (
+                      <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">{validationErrors.password}</p>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Contact & Role Section */}
-              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+              <div className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 sm:mb-3 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
                   <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Contact & Role
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   <div>
-                    <label className="block text-[10px] sm:text-xs font-medium text-purple-700 dark:text-purple-300 mb-1">
+                    <label className="block text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                       Phone Number
                     </label>
                     <input
@@ -1278,12 +1508,12 @@ const AdminUsers = () => {
                       onChange={handlePhoneNumberChange}
                       className={`w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 ${validationErrors.phoneNumber
                         ? "border-red-500 focus:ring-red-500"
-                        : "border-purple-200 dark:border-purple-700 focus:ring-purple-500"
+                        : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
                         }`}
                       placeholder="+639XXXXXXXXX"
                       maxLength={13}
                     />
-                    <p className="text-[10px] text-purple-600 dark:text-purple-400 mt-1">
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
                       Format: +639XXXXXXXXX (10 digits starting with 9)
                     </p>
                     {validationErrors.phoneNumber && (
@@ -1291,18 +1521,32 @@ const AdminUsers = () => {
                     )}
                   </div>
                   <div>
-                    <label className="block text-[10px] sm:text-xs font-medium text-purple-700 dark:text-purple-300 mb-1">
-                      Role
+                    <label className="block text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      Roles
                     </label>
-                    <select
-                      value={formData.roleName}
-                      onChange={(e) => setFormData({ ...formData, roleName: e.target.value })}
-                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-purple-200 dark:border-purple-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="Resident">Resident</option>
-                      <option value="Admin">Admin</option>
-                      <option value="SuperAdmin">Super Admin</option>
-                    </select>
+                    <div className="flex flex-wrap gap-2 p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg">
+                      {ROLE_OPTIONS.map((roleOption) => (
+                        <label key={roleOption} className="flex items-center gap-1.5 px-2 py-1 rounded bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-[10px] sm:text-xs cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={(formData.roles || []).includes(roleOption)}
+                            onChange={(e) => {
+                              const currentRoles = formData.roles || [];
+                              const nextRoles = e.target.checked
+                                ? [...new Set([...currentRoles, roleOption])]
+                                : currentRoles.filter((r) => r !== roleOption);
+                              const fallbackRole = nextRoles[0] || "Resident";
+                              setFormData({ ...formData, roles: nextRoles, roleName: fallbackRole });
+                            }}
+                            className="w-3 h-3 text-blue-600 rounded"
+                          />
+                          {formatRoleName(roleOption)}
+                        </label>
+                      ))}
+                    </div>
+                    {validationErrors.roles && (
+                      <p className="text-[10px] text-red-600 dark:text-red-400 mt-1">{validationErrors.roles}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1318,7 +1562,7 @@ const AdminUsers = () => {
               </button>
               <button
                 onClick={handleCreateUser}
-                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-lg sm:rounded-xl transition-all shadow-lg shadow-green-600/25"
+                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 rounded-lg sm:rounded-xl transition-all shadow-lg shadow-blue-600/25"
               >
                 <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" />
                 Create User

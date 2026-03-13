@@ -57,10 +57,10 @@ const Home = () => {
 
           {/* Description */}
           <p className="text-sm sm:text-base md:text-lg text-white/85 font-normal max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed mb-8 sm:mb-10">
-            Welcome to the official e-services portal of Barangay Culiat. Our platform provides
-            residents with convenient access to barangay services, document requests, community
-            announcements, and important information — all in one place. We are committed to
-            delivering efficient, transparent, and accessible governance to every member of our community.
+            Malugod po kayong tinatanggap sa opisyal na e-services portal ng Barangay Culiat.
+            Ang aming platform ay ginawa upang mabigyan ang bawat residente ng madali, mabilis, at maginhawang paraan upang ma-access ang iba’t ibang serbisyo ng barangay—kabilang ang paghingi ng mga dokumento, mga anunsyo sa komunidad, at mahahalagang impormasyon—lahat ay makikita sa iisang lugar lamang.
+            Layunin po namin na maihatid sa bawat mamamayan ng Barangay Culiat ang mas episyente, malinaw, at madaling maabot na pamamahala, gamit ang makabagong teknolohiya upang mas mapalapit ang serbisyo ng barangay sa ating komunidad.
+            Maraming salamat po sa inyong pagbisita at pakikiisa sa pagpapaunlad ng ating Barangay Culiat.
           </p>
 
           {/* CTA Buttons */}
