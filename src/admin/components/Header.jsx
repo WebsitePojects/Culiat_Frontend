@@ -75,17 +75,21 @@ const Header = ({ toggleSidebar, toggleMobileMenu, isSidebarOpen }) => {
 
   const handleNotificationClick = async (notification) => {
     try {
-      // Mark notification as read
-      const token = localStorage.getItem("token");
-      await axios.patch(
-        `${API_URL}/api/notifications/${notification.id}/read`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      // Remove from local state
-      setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      if (notification?.unread) {
+        const token = localStorage.getItem("token");
+        await axios.patch(
+          `${API_URL}/api/notifications/read`,
+          { notificationId: notification.id },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notification.id ? { ...n, unread: false } : n
+          )
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }

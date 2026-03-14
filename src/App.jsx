@@ -1,13 +1,12 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
 import { useEffect, useMemo } from "react";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
 import ServicesMaintenanceGuard from "./components/ServicesMaintenanceGuard";
 import MaintenancePage from "./components/MaintenancePage";
 import MaintenanceGuard from "./components/MaintenanceGuard";
 import BypassForm from "./components/BypassForm";
-import ApprovedDocumentModal from "./components/ApprovedDocumentModal";
 import ScrollToTop from "./components/ScrollToTop";
 import AdminLogin from "./tailadminsrc/pages/AuthPages/SignIn";
 import Register from "./users/pages/Auth/Register";
@@ -16,6 +15,7 @@ import Dashboard from "./users/pages/Home/Dashboard";
 import Reports from "./users/pages/Reports/Reports";
 import NewReport from "./users/pages/Reports/NewReport";
 import ReportDetail from "./users/pages/Reports/ReportDetail";
+import UserNotifications from "./users/pages/Notifications/UserNotifications";
 import Announcements from "./users/pages/Announcement/Announcements";
 import AnnouncementDetail from "./users/pages/Announcement/AnnouncementDetail";
 import Services from "./users/pages/Services/Services";
@@ -98,19 +98,6 @@ const ToastDismissWrapper = ({ children }) => {
   }, []);
 
   return children;
-};
-
-// Approved Document Notification Modal Wrapper - uses auth context
-const ApprovedDocModalWrapper = () => {
-  const { showApprovedDocModal, approvedDocRequests, closeApprovedDocModal } = useAuth();
-
-  return (
-    <ApprovedDocumentModal
-      isOpen={showApprovedDocModal}
-      onClose={closeApprovedDocModal}
-      approvedRequests={approvedDocRequests}
-    />
-  );
 };
 
 function App() {
@@ -227,9 +214,6 @@ function App() {
             {/* 👇 Render only on client side */}
             {typeof window !== "undefined" && <PolicyPopup />}
 
-            {/* Approved Document Notification Modal */}
-            <ApprovedDocModalWrapper />
-
             <Routes>
               {/* Maintenance Bypass Route - Always accessible */}
               <Route path="/bypass" element={<BypassForm />} />
@@ -308,7 +292,14 @@ function App() {
                 }
               >
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route
+                  path="dashboard"
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <AdminDashboard />
+                    </PrivateRoute>
+                  }
+                />
                 <Route
                   path="analytics"
                   element={
@@ -360,7 +351,11 @@ function App() {
                 />
                 <Route
                   path="registration-history"
-                  element={<RegistrationHistory />}
+                  element={
+                    <PrivateRoute adminRestricted={true}>
+                      <RegistrationHistory />
+                    </PrivateRoute>
+                  }
                 />
                 <Route
                   path="settings"
@@ -467,6 +462,17 @@ function App() {
               />
 
               <Route
+                path="/notifications"
+                element={
+                  <PrivateRoute>
+                    <MainLayout>
+                      <UserNotifications />
+                    </MainLayout>
+                  </PrivateRoute>
+                }
+              />
+
+              <Route
                 path="/announcements"
                 element={
                   <MainLayout>
@@ -501,11 +507,13 @@ function App() {
               <Route
                 path="/services/"
                 element={
-                  <MainLayout>
-                    <ServicesMaintenanceGuard>
-                      <Services />
-                    </ServicesMaintenanceGuard>
-                  </MainLayout>
+                  <PrivateRoute adminOnly={true}>
+                    <MainLayout>
+                      <ServicesMaintenanceGuard>
+                        <Services />
+                      </ServicesMaintenanceGuard>
+                    </MainLayout>
+                  </PrivateRoute>
                 }
               />
 
@@ -513,7 +521,7 @@ function App() {
               <Route
                 path="/payment/:requestId"
                 element={
-                  <PrivateRoute>
+                  <PrivateRoute adminOnly={true}>
                     <MainLayout>
                       <PaymentPage />
                     </MainLayout>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { reportAPI } from "../../services/api";
@@ -39,10 +39,6 @@ const Reports = () => {
    const [filter, setFilter] = useState({ status: "", category: "" });
    const [searchTerm, setSearchTerm] = useState("");
    const [sortOrder, setSortOrder] = useState("desc");
-   const [selectedReport, setSelectedReport] = useState(null);
-   const [modalOpen, setModalOpen] = useState(false);
-   const [imageGalleryOpen, setImageGalleryOpen] = useState(false);
-   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
    useEffect(() => {
       fetchReports();
@@ -108,10 +104,10 @@ const Reports = () => {
 
    const getPriorityConfig = (priority) => {
       const configs = {
-         urgent: { color: "text-red-600 bg-red-50", label: "Urgent", dot: "bg-red-500" },
-         high: { color: "text-orange-600 bg-orange-50", label: "High", dot: "bg-orange-500" },
-         medium: { color: "text-yellow-600 bg-yellow-50", label: "Medium", dot: "bg-yellow-500" },
-         low: { color: "text-green-600 bg-green-50", label: "Low", dot: "bg-green-500" },
+         urgent: { color: "text-red-800 bg-red-100 border border-red-200", label: "Urgent", dot: "bg-red-600" },
+         high: { color: "text-orange-800 bg-orange-100 border border-orange-200", label: "High", dot: "bg-orange-600" },
+         medium: { color: "text-yellow-900 bg-yellow-100 border border-yellow-300", label: "Medium", dot: "bg-yellow-600" },
+         low: { color: "text-green-800 bg-green-100 border border-green-200", label: "Low", dot: "bg-green-600" },
       };
       return configs[priority] || configs.medium;
    };
@@ -136,44 +132,6 @@ const Reports = () => {
          return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
       });
 
-   // Image gallery navigation
-   const openImageGallery = useCallback((index) => {
-      setCurrentImageIndex(index);
-      setImageGalleryOpen(true);
-   }, []);
-
-   const closeImageGallery = useCallback(() => {
-      setImageGalleryOpen(false);
-   }, []);
-
-   const nextImage = useCallback(() => {
-      if (selectedReport?.images) {
-         setCurrentImageIndex((prev) =>
-            prev === selectedReport.images.length - 1 ? 0 : prev + 1
-         );
-      }
-   }, [selectedReport]);
-
-   const prevImage = useCallback(() => {
-      if (selectedReport?.images) {
-         setCurrentImageIndex((prev) =>
-            prev === 0 ? selectedReport.images.length - 1 : prev - 1
-         );
-      }
-   }, [selectedReport]);
-
-   // Keyboard navigation
-   useEffect(() => {
-      const handleKeyDown = (e) => {
-         if (!imageGalleryOpen) return;
-         if (e.key === "ArrowRight") nextImage();
-         if (e.key === "ArrowLeft") prevImage();
-         if (e.key === "Escape") closeImageGallery();
-      };
-
-      window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
-   }, [imageGalleryOpen, nextImage, prevImage, closeImageGallery]);
 
    const formatDate = (dateString) => {
       const date = new Date(dateString);
@@ -199,7 +157,7 @@ const Reports = () => {
    };
 
    return (
-      <div className="min-h-screen pt-16 sm:pt-0" style={{ backgroundColor: "var(--color-neutral)" }}>
+      <div className="min-h-screen pt-16 md:pt-20" style={{ backgroundColor: "var(--color-neutral)" }}>
          {/* Premium Hero Header */}
          <div className="relative overflow-hidden">
             <div
@@ -459,11 +417,7 @@ const Reports = () => {
                            initial={{ opacity: 0, y: 20 }}
                            animate={{ opacity: 1, y: 0 }}
                            transition={{ duration: 0.3, delay: index * 0.05 }}
-                           onClick={() => {
-                              setSelectedReport(report);
-                              setCurrentImageIndex(0);
-                              setModalOpen(true);
-                           }}
+                           onClick={() => navigate(`/reports/${report._id}`)}
                            className="group bg-white rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-gray-200 transition-all cursor-pointer overflow-hidden"
                         >
                            {/* Image Preview or Placeholder */}
@@ -543,276 +497,6 @@ const Reports = () => {
             )}
          </div>
 
-         {/* Report Detail Modal */}
-         <AnimatePresence>
-            {modalOpen && selectedReport && (
-               <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/70 backdrop-blur-md z-[9999] flex items-center justify-center p-3 md:p-4"
-                  onClick={() => setModalOpen(false)}
-               >
-                  <motion.div
-                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                     onClick={(e) => e.stopPropagation()}
-                     className="bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] md:max-h-[90vh] overflow-hidden"
-                  >
-                     {/* Modal Header with Image */}
-                     <div className="relative">
-                        {selectedReport.images?.length > 0 ? (
-                           <div className="relative h-40 md:h-64 overflow-hidden">
-                              <img
-                                 src={selectedReport.images[0]}
-                                 alt=""
-                                 className="w-full h-full object-cover"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-
-                              {/* View Gallery Button */}
-                              <button
-                                 onClick={() => openImageGallery(0)}
-                                 className="absolute bottom-4 right-4 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-xl text-sm font-medium text-gray-900 hover:bg-white transition-colors shadow-lg"
-                              >
-                                 <Image className="w-4 h-4" />
-                                 {selectedReport.images.length} Photo{selectedReport.images.length > 1 ? "s" : ""}
-                              </button>
-                           </div>
-                        ) : (
-                           <div
-                              className="h-32"
-                              style={{
-                                 background: "linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 50%, var(--color-primary-glow) 100%)",
-                              }}
-                           />
-                        )}
-
-                        <button
-                           onClick={() => setModalOpen(false)}
-                           className="absolute top-4 right-4 p-2 bg-black/30 backdrop-blur-sm text-white rounded-full hover:bg-black/50 transition-colors"
-                        >
-                           <X className="w-5 h-5" />
-                        </button>
-                     </div>
-
-                     {/* Modal Content */}
-                     <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(85vh-12rem)] md:max-h-[calc(90vh-16rem)]">
-                        {/* Title & Badges */}
-                        <div className="flex flex-col md:flex-row md:flex-wrap items-start gap-2 md:gap-3 mb-4 md:mb-6">
-                           <div className="flex-1 min-w-0 w-full md:w-auto">
-                              <h2 className="text-lg md:text-2xl font-bold text-gray-900 mb-1 md:mb-2">
-                                 {selectedReport.title}
-                              </h2>
-                              <p className="text-xs md:text-sm text-gray-500">
-                                 Submitted {formatDate(selectedReport.createdAt)}
-                              </p>
-                           </div>
-                           <div className="flex items-center gap-2 flex-wrap">
-                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${getStatusConfig(selectedReport.status).color}`}>
-                                 {React.createElement(getStatusConfig(selectedReport.status).icon, { className: "w-3.5 h-3.5" })}
-                                 {getStatusConfig(selectedReport.status).label}
-                              </span>
-                              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${getPriorityConfig(selectedReport.priority).color}`}>
-                                 {getPriorityConfig(selectedReport.priority).label} Priority
-                              </span>
-                           </div>
-                        </div>
-
-                        {/* Description */}
-                        <div className="mb-4 md:mb-6">
-                           <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 md:mb-2">Description</h4>
-                           <p className="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
-                              {selectedReport.description}
-                           </p>
-                        </div>
-
-                        {/* Info Grid - 2 cols on mobile, 2x2 on desktop */}
-                        <div className="grid grid-cols-2 gap-2 md:gap-4 mb-4 md:mb-6">
-                           <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-4 bg-gray-50 rounded-lg md:rounded-xl">
-                              <div className="p-1.5 md:p-2 bg-emerald-100 rounded-md md:rounded-lg">
-                                 <Filter className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-600" />
-                              </div>
-                              <div className="min-w-0">
-                                 <p className="text-[10px] md:text-xs text-gray-500">Category</p>
-                                 <p className="text-xs md:text-sm font-medium text-gray-900 capitalize truncate">{selectedReport.category}</p>
-                              </div>
-                           </div>
-
-                           <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-4 bg-gray-50 rounded-lg md:rounded-xl">
-                              <div className="p-1.5 md:p-2 bg-green-100 rounded-md md:rounded-lg">
-                                 <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-600" />
-                              </div>
-                              <div className="min-w-0">
-                                 <p className="text-[10px] md:text-xs text-gray-500">Location</p>
-                                 <p className="text-xs md:text-sm font-medium text-gray-900 truncate">{selectedReport.location || "Not specified"}</p>
-                              </div>
-                           </div>
-
-                           <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-4 bg-gray-50 rounded-lg md:rounded-xl">
-                              <div className="p-1.5 md:p-2 bg-purple-100 rounded-md md:rounded-lg">
-                                 <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 text-purple-600" />
-                              </div>
-                              <div className="min-w-0">
-                                 <p className="text-[10px] md:text-xs text-gray-500">Date</p>
-                                 <p className="text-xs md:text-sm font-medium text-gray-900">
-                                    {new Date(selectedReport.createdAt).toLocaleDateString("en-US", {
-                                       month: "short",
-                                       day: "numeric",
-                                    })}
-                                 </p>
-                              </div>
-                           </div>
-
-                           <div className="flex items-center gap-2 md:gap-3 p-2.5 md:p-4 bg-gray-50 rounded-lg md:rounded-xl">
-                              <div className="p-1.5 md:p-2 bg-orange-100 rounded-md md:rounded-lg">
-                                 <AlertCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-orange-600" />
-                              </div>
-                              <div className="min-w-0">
-                                 <p className="text-[10px] md:text-xs text-gray-500">Priority</p>
-                                 <p className="text-xs md:text-sm font-medium text-gray-900 capitalize">{selectedReport.priority}</p>
-                              </div>
-                           </div>
-                        </div>
-
-                        {/* Image Gallery Thumbnails */}
-                        {selectedReport.images?.length > 0 && (
-                           <div>
-                              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 md:mb-3">
-                                 Attachments ({selectedReport.images.length})
-                              </h4>
-                              <div className="grid grid-cols-3 md:grid-cols-4 gap-1.5 md:gap-2">
-                                 {selectedReport.images.map((img, idx) => (
-                                    <button
-                                       key={idx}
-                                       onClick={() => openImageGallery(idx)}
-                                       className="relative group aspect-square rounded-xl overflow-hidden"
-                                    >
-                                       <img src={img} alt="" className="w-full h-full object-cover" />
-                                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                                          <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                                       </div>
-                                    </button>
-                                 ))}
-                              </div>
-                           </div>
-                        )}
-
-                        {/* Admin Note / Assigned To */}
-                        {selectedReport.assignedTo && (
-                           <div className="mt-6 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
-                              <div className="flex items-center gap-2 text-emerald-700 mb-2">
-                                 <User className="w-4 h-4" />
-                                 <span className="text-sm font-semibold">Assigned To</span>
-                              </div>
-                              <p className="text-emerald-900 font-medium">
-                                 {selectedReport.assignedTo.firstName} {selectedReport.assignedTo.lastName}
-                              </p>
-                           </div>
-                        )}
-                     </div>
-
-                     {/* Modal Footer */}
-                     <div className="flex items-center justify-end gap-3 p-4 md:p-6 border-t border-gray-100 bg-gray-50">
-                        <button
-                           onClick={() => setModalOpen(false)}
-                           className="px-4 md:px-6 py-2 md:py-2.5 text-sm md:text-base text-gray-700 font-medium hover:bg-gray-200 rounded-lg md:rounded-xl transition-colors"
-                        >
-                           Close
-                        </button>
-                     </div>
-                  </motion.div>
-               </motion.div>
-            )}
-         </AnimatePresence>
-
-         {/* Full Screen Image Gallery */}
-         <AnimatePresence>
-            {imageGalleryOpen && selectedReport?.images && (
-               <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black z-[99999] flex items-center justify-center"
-                  onClick={closeImageGallery}
-               >
-                  {/* Close Button */}
-                  <button
-                     onClick={closeImageGallery}
-                     className="absolute top-4 right-4 z-10 p-3 bg-white/10 backdrop-blur-sm text-white rounded-full hover:bg-white/20 transition-colors"
-                  >
-                     <X className="w-6 h-6" />
-                  </button>
-
-                  {/* Image Counter */}
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-4 py-2 bg-white/10 backdrop-blur-sm text-white text-sm rounded-full">
-                     {currentImageIndex + 1} / {selectedReport.images.length}
-                  </div>
-
-                  {/* Main Image */}
-                  <motion.div
-                     key={currentImageIndex}
-                     initial={{ opacity: 0, scale: 0.95 }}
-                     animate={{ opacity: 1, scale: 1 }}
-                     exit={{ opacity: 0, scale: 0.95 }}
-                     transition={{ duration: 0.2 }}
-                     className="relative w-full h-full flex items-center justify-center p-16"
-                     onClick={(e) => e.stopPropagation()}
-                  >
-                     <img
-                        src={selectedReport.images[currentImageIndex]}
-                        alt=""
-                        className="max-w-full max-h-full object-contain"
-                     />
-                  </motion.div>
-
-                  {/* Navigation Buttons */}
-                  {selectedReport.images.length > 1 && (
-                     <>
-                        <button
-                           onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                           className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 backdrop-blur-sm text-white rounded-full hover:bg-white/20 transition-colors"
-                        >
-                           <ChevronLeft className="w-6 h-6" />
-                        </button>
-                        <button
-                           onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                           className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 backdrop-blur-sm text-white rounded-full hover:bg-white/20 transition-colors"
-                        >
-                           <ChevronRight className="w-6 h-6" />
-                        </button>
-                     </>
-                  )}
-
-                  {/* Thumbnail Strip */}
-                  {selectedReport.images.length > 1 && (
-                     <div
-                        className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-white/10 backdrop-blur-sm rounded-xl"
-                        onClick={(e) => e.stopPropagation()}
-                     >
-                        {selectedReport.images.map((img, idx) => (
-                           <button
-                              key={idx}
-                              onClick={() => setCurrentImageIndex(idx)}
-                              className={`w-14 h-14 rounded-lg overflow-hidden transition-all ${idx === currentImageIndex
-                                    ? "ring-2 ring-white scale-110"
-                                    : "opacity-60 hover:opacity-100"
-                                 }`}
-                           >
-                              <img src={img} alt="" className="w-full h-full object-cover" />
-                           </button>
-                        ))}
-                     </div>
-                  )}
-
-                  {/* Keyboard Hint */}
-                  <div className="absolute bottom-6 right-6 text-white/50 text-xs">
-                     ← → Navigate • ESC Close
-                  </div>
-               </motion.div>
-            )}
-         </AnimatePresence>
       </div>
    );
 };

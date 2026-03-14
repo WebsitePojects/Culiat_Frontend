@@ -5,7 +5,7 @@ import axios from "axios";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
-import { User, LogOut, LogIn, ChevronDown } from "lucide-react";
+import { User, LogOut, LogIn, ChevronDown, Bell } from "lucide-react";
 
 const Navbar = () => {
    const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +19,10 @@ const Navbar = () => {
    const [openDropdown, setOpenDropdown] = useState(null);
    const [mobileDropdown, setMobileDropdown] = useState(null);
    const [committees, setCommittees] = useState([]);
+   const [notificationCount, setNotificationCount] = useState(0);
+   const [showNotifMenu, setShowNotifMenu] = useState(false);
+   const [previewNotifications, setPreviewNotifications] = useState([]);
+   const [loadingNotifPreview, setLoadingNotifPreview] = useState(false);
 
    const isHome = location.pathname === "/";
    const hasResidentRole = !!user && (
@@ -58,10 +62,113 @@ const Navbar = () => {
    }, []);
 
    useEffect(() => {
+      const fetchNotificationData = async () => {
+         if (!hasResidentRole) {
+            setNotificationCount(0);
+            setPreviewNotifications([]);
+            return;
+         }
+
+         try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+               setNotificationCount(0);
+               setPreviewNotifications([]);
+               return;
+            }
+
+            const headers = {
+               Authorization: `Bearer ${token}`,
+            };
+
+            const [countsResponse, recentResponse] = await Promise.all([
+               axios.get(
+                  `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/notifications/user/counts`,
+                  { headers }
+               ),
+               axios.get(
+                  `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/notifications/user/recent?limit=5`,
+                  { headers }
+               ),
+            ]);
+
+            setNotificationCount(countsResponse.data?.data?.unreadTotal || 0);
+            setPreviewNotifications(recentResponse.data?.data?.notifications || []);
+         } catch (error) {
+            setNotificationCount(0);
+            setPreviewNotifications([]);
+         }
+      };
+
+      fetchNotificationData();
+   }, [hasResidentRole, user?.id, user?._id]);
+
+   const fetchNotificationPreview = async () => {
+      if (!hasResidentRole) return;
+      try {
+         setLoadingNotifPreview(true);
+         const token = localStorage.getItem("token");
+         if (!token) return;
+
+         const response = await axios.get(
+            `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/notifications/user/recent?limit=5`,
+            {
+               headers: {
+                  Authorization: `Bearer ${token}`,
+               },
+            }
+         );
+         setPreviewNotifications(response.data?.data?.notifications || []);
+      } catch (error) {
+         setPreviewNotifications([]);
+      } finally {
+         setLoadingNotifPreview(false);
+      }
+   };
+
+   const markNotificationRead = async (notificationId) => {
+      if (!notificationId) return;
+      try {
+         const token = localStorage.getItem("token");
+         if (!token) return;
+
+         await axios.patch(
+            `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/notifications/user/read`,
+            { notificationId },
+            {
+               headers: {
+                  Authorization: `Bearer ${token}`,
+               },
+            }
+         );
+
+         setPreviewNotifications((prev) =>
+            prev.map((item) =>
+               item.id === notificationId ? { ...item, unread: false } : item
+            )
+         );
+         setNotificationCount((prev) => Math.max(0, prev - 1));
+      } catch (error) {
+         console.error("Failed to mark notification as read:", error);
+      }
+   };
+
+   const handleToggleNotifMenu = async () => {
+      const next = !showNotifMenu;
+      setShowNotifMenu(next);
+      if (next) {
+         await fetchNotificationPreview();
+      }
+   };
+
+   useEffect(() => {
       // Close dropdown when clicking outside
       const handleClickOutside = (event) => {
          if (showUserMenu && !event.target.closest(".user-menu-container")) {
             setShowUserMenu(false);
+         }
+         if (showNotifMenu && !event.target.closest(".notif-menu-container")) {
+            setShowNotifMenu(false);
          }
          // Close mobile menu when clicking outside
          if (isOpen && !event.target.closest(".mobile-menu-container") && !event.target.closest(".hamburger-button")) {
@@ -72,7 +179,7 @@ const Navbar = () => {
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
          document.removeEventListener("mousedown", handleClickOutside);
-   }, [showUserMenu, isOpen]);
+   }, [showUserMenu, showNotifMenu, isOpen]);
 
    const handleLogout = () => {
       logout();
@@ -186,7 +293,7 @@ const Navbar = () => {
 
                {/* Desktop Nav Links */}
                <div
-                  className={`hidden lg:flex items-center gap-1 font-semibold relative`}
+                  className={`hidden lg:flex items-center gap-1 font-semibold relative ml-3 xl:ml-6 mr-auto`}
                   style={{ fontFamily: "'Cinzel', serif" }}
                >
                   {/* Home Dropdown */}
@@ -368,53 +475,128 @@ const Navbar = () => {
 
                   {/* User Menu / Login & Register */}
                   {hasResidentRole ? (
-                     <div className="relative user-menu-container">
-                        <button
-                           onClick={() => setShowUserMenu(!showUserMenu)}
-                           className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-primary/10 transition-colors"
-                        >
-                           <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
-                              {user.firstName?.[0]}
-                              {user.lastName?.[0]}
-                           </div>
-                           <span className="text-xs">{user.firstName}</span>
-                           <ChevronDown
-                              className={`w-3 h-3 transition-transform ${showUserMenu ? "rotate-180" : ""
-                                 }`}
-                           />
-                        </button>
+                     <>
+                        <div className="relative notif-menu-container">
+                           <button
+                              onClick={handleToggleNotifMenu}
+                              className="relative flex items-center justify-center w-9 h-9 rounded-lg hover:bg-primary/10 transition-colors"
+                              title="Notifications"
+                              aria-label="Open notifications"
+                           >
+                              <Bell className="w-4.5 h-4.5" />
+                              {notificationCount > 0 && (
+                                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold font-mono tabular-nums flex items-center justify-center leading-none">
+                                    {notificationCount > 99 ? "99+" : notificationCount}
+                                 </span>
+                              )}
+                           </button>
 
-                        {showUserMenu && (
-                           <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                              <div className="px-3 py-2 border-b border-gray-200">
-                                 <p className="text-xs font-semibold text-gray-900 truncate">
-                                    {user.firstName} {user.lastName}
-                                 </p>
-                                 <p className="text-[10px] text-gray-500 truncate" title={user.email}>
-                                    {user.email}
-                                 </p>
-                                 <p className="text-[10px] text-primary mt-0.5">
-                                    Resident
-                                 </p>
+                           {showNotifMenu && (
+                              <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+                                 <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/70">
+                                    <div className="flex items-center gap-2">
+                                       <span className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                                          <Bell className="w-4 h-4" />
+                                       </span>
+                                       <p className="text-sm font-semibold text-gray-900">Notifications</p>
+                                    </div>
+                                    <span className="text-xs text-gray-500">{notificationCount} total</span>
+                                 </div>
+
+                                 <div className="max-h-96 overflow-y-auto">
+                                    {loadingNotifPreview ? (
+                                       <p className="px-4 py-6 text-xs text-gray-500 text-center">Loading notifications...</p>
+                                    ) : previewNotifications.length === 0 ? (
+                                       <p className="px-4 py-6 text-xs text-gray-500 text-center">No notifications yet.</p>
+                                    ) : (
+                                       previewNotifications.map((notif) => (
+                                          <button
+                                             key={notif.id || notif._id}
+                                             onClick={async () => {
+                                                if (notif.unread) {
+                                                   await markNotificationRead(notif.id);
+                                                }
+                                                setShowNotifMenu(false);
+                                                navigate("/notifications");
+                                             }}
+                                             className={`w-full text-left px-4 py-3 border-b border-gray-100 transition-colors ${notif.unread ? "bg-gray-50 hover:bg-gray-100" : "bg-white hover:bg-gray-50"}`}
+                                          >
+                                             <div className="flex items-start gap-3">
+                                                <span className={`mt-2 w-2 h-2 rounded-full flex-shrink-0 ${notif.unread ? "bg-blue-500" : "bg-gray-300"}`} />
+                                                <div className="min-w-0 flex-1">
+                                                   <p className={`text-[13px] text-gray-800 truncate ${notif.unread ? "font-bold" : "font-semibold"}`}>{notif.title}</p>
+                                                   <p className="text-xs text-gray-600 mt-1 line-clamp-2">{notif.message}</p>
+                                                   {notif.time && <p className="text-[11px] text-gray-500 mt-1">{notif.time}</p>}
+                                                </div>
+                                             </div>
+                                          </button>
+                                       ))
+                                    )}
+                                 </div>
+
+                                 <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/60">
+                                    <button
+                                       onClick={() => {
+                                          setShowNotifMenu(false);
+                                          navigate("/notifications");
+                                       }}
+                                       className="w-full px-3 py-2.5 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                                    >
+                                       View all notifications
+                                    </button>
+                                 </div>
                               </div>
-                              <Link
-                                 to="/profile"
-                                 onClick={() => setShowUserMenu(false)}
-                                 className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 transition-colors"
-                              >
-                                 <User className="w-3.5 h-3.5" />
-                                 My Profile
-                              </Link>
-                              <button
-                                 onClick={handleLogout}
-                                 className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors"
-                              >
-                                 <LogOut className="w-3.5 h-3.5" />
-                                 Logout
-                              </button>
-                           </div>
-                        )}
-                     </div>
+                           )}
+                        </div>
+
+                        <div className="relative user-menu-container">
+                           <button
+                              onClick={() => setShowUserMenu(!showUserMenu)}
+                              className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+                           >
+                              <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                 {user.firstName?.[0]}
+                                 {user.lastName?.[0]}
+                              </div>
+                              <span className="text-xs">{user.firstName}</span>
+                              <ChevronDown
+                                 className={`w-3 h-3 transition-transform ${showUserMenu ? "rotate-180" : ""
+                                    }`}
+                              />
+                           </button>
+
+                           {showUserMenu && (
+                              <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                                 <div className="px-3 py-2 border-b border-gray-200">
+                                    <p className="text-xs font-semibold text-gray-900 truncate">
+                                       {user.firstName} {user.lastName}
+                                    </p>
+                                    <p className="text-[10px] text-gray-500 truncate" title={user.email}>
+                                       {user.email}
+                                    </p>
+                                    <p className="text-[10px] text-primary mt-0.5">
+                                       Resident
+                                    </p>
+                                 </div>
+                                 <Link
+                                    to="/profile"
+                                    onClick={() => setShowUserMenu(false)}
+                                    className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 transition-colors"
+                                 >
+                                    <User className="w-3.5 h-3.5" />
+                                    My Profile
+                                 </Link>
+                                 <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors"
+                                 >
+                                    <LogOut className="w-3.5 h-3.5" />
+                                    Logout
+                                 </button>
+                              </div>
+                           )}
+                        </div>
+                     </>
                   ) : (
                      <div className="flex items-center gap-2">
                         <button
@@ -434,55 +616,133 @@ const Navbar = () => {
                   )}
                </div>
 
-               {/* Mobile menu toggle */}
-               <button
-                  onClick={() => setIsOpen(!isOpen)}
-                  className="hamburger-button lg:hidden focus:outline-none text-text-color-light mix-blend-difference cursor-pointer"
-               >
-                  <AnimatePresence mode="wait" initial={false}>
-                     {isOpen ? (
-                        <motion.svg
-                           key="close"
-                           xmlns="http://www.w3.org/2000/svg"
-                           className="w-6 h-6"
-                           fill="none"
-                           stroke="currentColor"
-                           viewBox="0 0 24 24"
-                           initial={{ rotate: -90, opacity: 0 }}
-                           animate={{ rotate: 0, opacity: 1 }}
-                           exit={{ rotate: 90, opacity: 0 }}
-                           transition={{ duration: 0.2 }}
+               <div className="flex items-center gap-2 lg:hidden">
+                  {hasResidentRole && (
+                     <div className="relative notif-menu-container">
+                        <button
+                           onClick={handleToggleNotifMenu}
+                           className="relative focus:outline-none text-text-color-light mix-blend-difference cursor-pointer w-8 h-8 flex items-center justify-center"
+                           aria-label="Open notifications"
                         >
-                           <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                           />
-                        </motion.svg>
-                     ) : (
-                        <motion.svg
-                           key="menu"
-                           xmlns="http://www.w3.org/2000/svg"
-                           className="w-6 h-6"
-                           fill="none"
-                           stroke="currentColor"
-                           viewBox="0 0 24 24"
-                           initial={{ rotate: 90, opacity: 0 }}
-                           animate={{ rotate: 0, opacity: 1 }}
-                           exit={{ rotate: -90, opacity: 0 }}
-                           transition={{ duration: 0.2 }}
-                        >
-                           <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 6h16M4 12h16M4 18h16"
-                           />
-                        </motion.svg>
-                     )}
-                  </AnimatePresence>
-               </button>
+                           <Bell className="w-5 h-5" />
+                           {notificationCount > 0 && (
+                              <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-red-600 text-white text-[9px] font-bold font-mono tabular-nums flex items-center justify-center leading-none mix-blend-normal">
+                                 {notificationCount > 99 ? "99+" : notificationCount}
+                              </span>
+                           )}
+                        </button>
+
+                        {showNotifMenu && (
+                           <div className="absolute right-0 top-full mt-2 w-[22rem] max-w-[90vw] bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 mix-blend-normal overflow-hidden">
+                              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/70">
+                                 <div className="flex items-center gap-2">
+                                    <span className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                                       <Bell className="w-4 h-4" />
+                                    </span>
+                                    <p className="text-sm font-semibold text-gray-900">Notifications</p>
+                                 </div>
+                                 <span className="text-xs text-gray-500">{notificationCount} total</span>
+                              </div>
+
+                              <div className="max-h-96 overflow-y-auto">
+                                 {loadingNotifPreview ? (
+                                    <p className="px-4 py-6 text-xs text-gray-500 text-center">Loading notifications...</p>
+                                 ) : previewNotifications.length === 0 ? (
+                                    <p className="px-4 py-6 text-xs text-gray-500 text-center">No notifications yet.</p>
+                                 ) : (
+                                    previewNotifications.map((notif) => (
+                                       <button
+                                          key={notif.id || notif._id}
+                                          onClick={async () => {
+                                             if (notif.unread) {
+                                                await markNotificationRead(notif.id);
+                                             }
+                                             setShowNotifMenu(false);
+                                             setIsOpen(false);
+                                             navigate("/notifications");
+                                          }}
+                                          className={`w-full text-left px-4 py-3 border-b border-gray-100 transition-colors ${notif.unread ? "bg-gray-50 hover:bg-gray-100" : "bg-white hover:bg-gray-50"}`}
+                                       >
+                                          <div className="flex items-start gap-3">
+                                             <span className={`mt-2 w-2 h-2 rounded-full flex-shrink-0 ${notif.unread ? "bg-blue-500" : "bg-gray-300"}`} />
+                                             <div className="min-w-0 flex-1">
+                                                <p className={`text-[13px] text-gray-800 truncate ${notif.unread ? "font-bold" : "font-semibold"}`}>{notif.title}</p>
+                                                <p className="text-xs text-gray-600 mt-1 line-clamp-2">{notif.message}</p>
+                                                {notif.time && <p className="text-[11px] text-gray-500 mt-1">{notif.time}</p>}
+                                             </div>
+                                          </div>
+                                       </button>
+                                    ))
+                                 )}
+                              </div>
+
+                              <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/60">
+                                 <button
+                                    onClick={() => {
+                                       setShowNotifMenu(false);
+                                       setIsOpen(false);
+                                       navigate("/notifications");
+                                    }}
+                                    className="w-full px-3 py-2.5 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                                 >
+                                    View all notifications
+                                 </button>
+                              </div>
+                           </div>
+                        )}
+                     </div>
+                  )}
+
+                  {/* Mobile menu toggle */}
+                  <button
+                     onClick={() => setIsOpen(!isOpen)}
+                     className="hamburger-button lg:hidden focus:outline-none text-text-color-light mix-blend-difference cursor-pointer"
+                  >
+                     <AnimatePresence mode="wait" initial={false}>
+                        {isOpen ? (
+                           <motion.svg
+                              key="close"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="w-6 h-6"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              initial={{ rotate: -90, opacity: 0 }}
+                              animate={{ rotate: 0, opacity: 1 }}
+                              exit={{ rotate: 90, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                           >
+                              <path
+                                 strokeLinecap="round"
+                                 strokeLinejoin="round"
+                                 strokeWidth={2}
+                                 d="M6 18L18 6M6 6l12 12"
+                              />
+                           </motion.svg>
+                        ) : (
+                           <motion.svg
+                              key="menu"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="w-6 h-6"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              initial={{ rotate: 90, opacity: 0 }}
+                              animate={{ rotate: 0, opacity: 1 }}
+                              exit={{ rotate: -90, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                           >
+                              <path
+                                 strokeLinecap="round"
+                                 strokeLinejoin="round"
+                                 strokeWidth={2}
+                                 d="M4 6h16M4 12h16M4 18h16"
+                              />
+                           </motion.svg>
+                        )}
+                     </AnimatePresence>
+                  </button>
+               </div>
             </div>
          </div>
          {/* </div> */}
@@ -586,6 +846,16 @@ const Navbar = () => {
             >
                Reports
             </NavLink>
+
+            {hasResidentRole && (
+               <NavLink
+                  to="/notifications"
+                  onClick={() => setIsOpen(false)}
+                  className="block mobile-navlink text-text-color hover:text-primary"
+               >
+                  Notifications
+               </NavLink>
+            )}
 
             {/* Committee Mobile Accordion */}
             <div>

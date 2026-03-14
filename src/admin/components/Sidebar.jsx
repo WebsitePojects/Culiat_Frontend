@@ -65,11 +65,11 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
       path: "/admin/pending-registrations",
       icon: UserCheck,
     },
-    {
+    ...(!isRestrictedAdmin ? [{
       name: "Registration History",
       path: "/admin/registration-history",
       icon: History,
-    },
+    }] : []),
     ...(!isRestrictedAdmin ? [{
       name: "Terms Acceptances",
       path: "/admin/terms-acceptances",
@@ -86,7 +86,7 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
   const menuGroups = [
     {
       id: "main",
-      items: [{ name: "Dashboard", path: "/admin/dashboard", icon: Home }],
+      items: !isRestrictedAdmin ? [{ name: "Dashboard", path: "/admin/dashboard", icon: Home }] : [],
     },
     {
       id: "user-management",

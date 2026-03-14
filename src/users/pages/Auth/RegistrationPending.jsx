@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { 
   Clock, 
   CheckCircle, 
@@ -11,6 +11,10 @@ import {
 } from "lucide-react";
 
 const RegistrationPending = () => {
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const fromDocuments = query.get("reason") === "documents";
+
   return (
     <div className="h-screen flex bg-slate-50 overflow-hidden">
       {/* Hero Section - Left Side (Desktop Only) */}
@@ -159,11 +163,19 @@ const RegistrationPending = () => {
                       Your registration has been submitted successfully!
                     </p>
                     <p className="text-[9px] sm:text-[10px] text-emerald-600 mt-0.5">
-                      Our admin team is reviewing your application and documents.
+                      You can now log in with your username and password while our admin team reviews your application and documents.
                     </p>
                   </div>
                 </div>
               </div>
+
+              {fromDocuments && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 sm:p-3 mb-2">
+                  <p className="text-[9px] sm:text-[10px] text-blue-700">
+                    Document request and payment routes are locked until your registration is approved. You can still access public services information.
+                  </p>
+                </div>
+              )}
 
               {/* What's Next Section */}
               <div className="mb-2">
@@ -179,6 +191,16 @@ const RegistrationPending = () => {
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] sm:text-xs font-medium text-slate-700">Document Verification</p>
                       <p className="text-[9px] sm:text-[10px] text-slate-500">Admin will review your valid ID</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-1.5 p-1.5 sm:p-2 bg-slate-50 rounded-lg">
+                    <div className="flex-shrink-0 w-4 h-4 bg-sky-100 rounded-full flex items-center justify-center">
+                      <UserCheck className="w-2 h-2 text-sky-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] sm:text-xs font-medium text-slate-700">Limited Access While Pending</p>
+                      <p className="text-[9px] sm:text-[10px] text-slate-500">You can log in, but document request/payment is locked</p>
                     </div>
                   </div>
                   

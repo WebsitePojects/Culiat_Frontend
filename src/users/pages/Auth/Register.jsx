@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import {
   governmentIDOptions as documentTypeOptions,
@@ -127,8 +127,109 @@ const Register = () => {
   const [primaryID2BackPreview, setPrimaryID2BackPreview] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const [prefillLoading, setPrefillLoading] = useState(false);
+  const [isReregisterMode, setIsReregisterMode] = useState(false);
+  const [reregisterUserId, setReregisterUserId] = useState("");
+  const [adminRejectionMessage, setAdminRejectionMessage] = useState("");
+  const [existingDocs, setExistingDocs] = useState({
+    primaryID1: false,
+    primaryID1Back: false,
+    primaryID2: false,
+    primaryID2Back: false,
+  });
+  const { register, getReregistrationPrefill, reregister, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const id = params.get("reregisterId");
+
+    if (!id) return;
+
+    const loadPrefill = async () => {
+      setPrefillLoading(true);
+      setError("");
+
+      const result = await getReregistrationPrefill(id);
+      if (!result.success || !result.data) {
+        setError(result.message || "Unable to load previous registration details.");
+        setPrefillLoading(false);
+        return;
+      }
+
+      const data = result.data;
+      const isResidentChoice = data.residentType === "resident" || data.residentType === "non_resident";
+      const addr = data.address || {};
+      const nonResidentAddr = data.nonResidentAddress || {};
+
+      setIsReregisterMode(true);
+      setReregisterUserId(id);
+      setAdminRejectionMessage(data.rejectionReason || "");
+      setCurrentStep(isResidentChoice ? 1 : 0);
+
+      setFormData((prev) => ({
+        ...prev,
+        residentType: isResidentChoice ? data.residentType : "",
+        username: data.username || "",
+        email: data.email || "",
+        password: "",
+        confirmPassword: "",
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
+        middleName: data.middleName || "",
+        suffix: data.suffix || "",
+        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString().split("T")[0] : "",
+        placeOfBirth: data.placeOfBirth || "",
+        gender: data.gender || "",
+        civilStatus: data.civilStatus || "Single",
+        salutation: data.salutation || "",
+        nationality: data.nationality || "Filipino",
+        phoneNumber: data.phoneNumber || "+63",
+        houseNumber: addr.houseNumber || "",
+        street: addr.street || "",
+        subdivision: addr.subdivision || "",
+        area: addr.area || "",
+        compound: addr.compound || "",
+        nonResidentHouseNumber: nonResidentAddr.houseNumber || "",
+        nonResidentStreet: nonResidentAddr.street || "",
+        nonResidentSubdivision: nonResidentAddr.subdivision || "",
+        nonResidentBarangay: nonResidentAddr.barangay || "",
+        nonResidentDistrict: nonResidentAddr.district || "",
+        nonResidentCity: nonResidentAddr.city || "",
+        nonResidentProvince: nonResidentAddr.province || "",
+        nonResidentRegion: nonResidentAddr.region || "",
+        nonResidentPostalCode: nonResidentAddr.postalCode || "",
+        precinctNumber: data.precinctNumber || "",
+        religion: data.religion || "",
+        heightWeight: data.heightWeight || "",
+        colorOfHairEyes: data.colorOfHairEyes || "",
+        occupation: data.occupation || "",
+        spouseName: data.spouseInfo?.name || "",
+        spouseOccupation: data.spouseInfo?.occupation || "",
+        spouseContact: data.spouseInfo?.contactNumber || "",
+        sectoralGroups: Array.isArray(data.sectoralGroups) ? data.sectoralGroups : [],
+        womensOrganization: data.womensOrganization || "",
+        primaryID1Type: data.primaryID1Type || "",
+        primaryID2Type: data.primaryID2Type || "",
+      }));
+
+      setPrimaryID1Preview(data.primaryID1Url || null);
+      setPrimaryID1BackPreview(data.primaryID1BackUrl || null);
+      setPrimaryID2Preview(data.primaryID2Url || null);
+      setPrimaryID2BackPreview(data.primaryID2BackUrl || null);
+      setExistingDocs({
+        primaryID1: !!data.primaryID1Url,
+        primaryID1Back: !!data.primaryID1BackUrl,
+        primaryID2: !!data.primaryID2Url,
+        primaryID2Back: !!data.primaryID2BackUrl,
+      });
+
+      setPrefillLoading(false);
+    };
+
+    loadPrefill();
+  }, [location.search, getReregistrationPrefill]);
 
   // Document options now imported from utils/documentTypes.js
   // Includes government IDs + endorsement letters
@@ -630,6 +731,7 @@ const Register = () => {
     // Handle new 2-ID system
     if (fieldName === "primaryID1File") {
       setFormData({ ...formData, primaryID1File: null, validIDFile: null });
+      setExistingDocs((prev) => ({ ...prev, primaryID1: false }));
       if (primaryID1Preview) {
         URL.revokeObjectURL(primaryID1Preview);
         setPrimaryID1Preview(null);
@@ -640,6 +742,7 @@ const Register = () => {
       }
     } else if (fieldName === "primaryID1BackFile") {
       setFormData({ ...formData, primaryID1BackFile: null, backOfValidIDFile: null });
+      setExistingDocs((prev) => ({ ...prev, primaryID1Back: false }));
       if (primaryID1BackPreview) {
         URL.revokeObjectURL(primaryID1BackPreview);
         setPrimaryID1BackPreview(null);
@@ -650,12 +753,14 @@ const Register = () => {
       }
     } else if (fieldName === "primaryID2File") {
       setFormData({ ...formData, primaryID2File: null });
+      setExistingDocs((prev) => ({ ...prev, primaryID2: false }));
       if (primaryID2Preview) {
         URL.revokeObjectURL(primaryID2Preview);
         setPrimaryID2Preview(null);
       }
     } else if (fieldName === "primaryID2BackFile") {
       setFormData({ ...formData, primaryID2BackFile: null });
+      setExistingDocs((prev) => ({ ...prev, primaryID2Back: false }));
       if (primaryID2BackPreview) {
         URL.revokeObjectURL(primaryID2BackPreview);
         setPrimaryID2BackPreview(null);
@@ -700,18 +805,20 @@ const Register = () => {
         errors.email = "Please enter a valid email address";
       }
       
-      // Password validation
-      if (!formData.password) {
-        errors.password = "Password is required";
-      } else if (formData.password.length < 8) {
-        errors.password = "Password must be at least 8 characters";
-      }
-      
-      // Confirm password validation
-      if (!formData.confirmPassword) {
-        errors.confirmPassword = "Please confirm your password";
-      } else if (formData.password !== formData.confirmPassword) {
-        errors.confirmPassword = "Passwords do not match";
+      const shouldValidatePassword = !isReregisterMode || formData.password || formData.confirmPassword;
+
+      if (shouldValidatePassword) {
+        if (!formData.password) {
+          errors.password = "Password is required";
+        } else if (formData.password.length < 8) {
+          errors.password = "Password must be at least 8 characters";
+        }
+
+        if (!formData.confirmPassword) {
+          errors.confirmPassword = "Please confirm your password";
+        } else if (formData.password !== formData.confirmPassword) {
+          errors.confirmPassword = "Passwords do not match";
+        }
       }
 
       if (Object.keys(errors).length > 0) {
@@ -777,17 +884,22 @@ const Register = () => {
     }
 
     if (step === 4) {
+      const hasPrimaryID1 = !!formData.primaryID1File || !!existingDocs.primaryID1;
+      const hasPrimaryID1Back = !!formData.primaryID1BackFile || !!existingDocs.primaryID1Back;
+      const hasPrimaryID2 = !!formData.primaryID2File || !!existingDocs.primaryID2;
+      const hasPrimaryID2Back = !!formData.primaryID2BackFile || !!existingDocs.primaryID2Back;
+
       // Validate Document 1
       if (!formData.primaryID1Type) {
         errors.primaryID1Type = "Document type is required";
         setError("Please select the type of your first document");
       }
-      if (!formData.primaryID1File) {
+      if (!hasPrimaryID1) {
         errors.primaryID1File = "Document file is required";
         if (!errors.primaryID1Type) setError("Please upload your first document");
       }
       // Only require back for non-endorsement letters
-      if (!isEndorsementLetter(formData.primaryID1Type) && !formData.primaryID1BackFile) {
+      if (!isEndorsementLetter(formData.primaryID1Type) && !hasPrimaryID1Back) {
         errors.primaryID1BackFile = "Back of ID is required";
         if (!errors.primaryID1Type && !errors.primaryID1File) setError("Please upload the back of your first ID");
       }
@@ -799,12 +911,12 @@ const Register = () => {
           errors.primaryID2Type = "Second document type is required";
           if (Object.keys(errors).length === 0) setError("Please select the type of your second document");
         }
-        if (!formData.primaryID2File) {
+        if (!hasPrimaryID2) {
           errors.primaryID2File = "Second document file is required";
           if (Object.keys(errors).length === 0) setError("Please upload your second document");
         }
         // Only require back for non-endorsement letters
-        if (!isEndorsementLetter(formData.primaryID2Type) && !formData.primaryID2BackFile) {
+        if (!isEndorsementLetter(formData.primaryID2Type) && !hasPrimaryID2Back) {
           errors.primaryID2BackFile = "Back of second ID is required";
           if (Object.keys(errors).length === 0) setError("Please upload the back of your second ID");
         }
@@ -892,31 +1004,6 @@ const Register = () => {
     setShowTermsModal(false);
   };
 
-  // Handle submit click - show confirmation modal ONLY if PSA was skipped
-  const handleSubmitClick = (e) => {
-    e.preventDefault();
-    if (validateStep(5)) {
-      // Only show warning modal if user skipped PSA step
-      if (formData.skipPSAStep) {
-        setShowConfirmationModal(true);
-      } else {
-        // User provided PSA info, proceed directly
-        performRegistration();
-      }
-    }
-  };
-
-  // Handle confirmed submit (when user skipped PSA and accepted terms)
-  const handleConfirmedSubmit = async () => {
-    if (!acceptedDeadlineTerms) {
-      setError("You must accept the profile completion terms to continue");
-      return;
-    }
-
-    setShowConfirmationModal(false);
-    await performRegistration();
-  };
-
   // Actual registration function
   const performRegistration = async () => {
     if (loading) return; // Prevent duplicate submissions
@@ -931,7 +1018,9 @@ const Register = () => {
       if (formData.email) {
         formDataToSend.append("email", formData.email);
       }
-      formDataToSend.append("password", formData.password);
+      if (formData.password) {
+        formDataToSend.append("password", formData.password);
+      }
       formDataToSend.append("firstName", formData.firstName);
       formDataToSend.append("lastName", formData.lastName);
       if (formData.middleName)
@@ -1029,7 +1118,9 @@ const Register = () => {
         formDataToSend.append("womensOrganization", formData.womensOrganization);
       }
 
-      const result = await register(formDataToSend);
+      const result = isReregisterMode
+        ? await reregister(reregisterUserId || user?._id, formDataToSend)
+        : await register(formDataToSend);
 
       if (result.success || result.pending) {
         navigate("/registration-pending");
@@ -3017,6 +3108,20 @@ const Register = () => {
             )}
           </motion.div>
 
+          {prefillLoading && (
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3 shadow-sm">
+              <Clock className="w-5 h-5 text-amber-600 animate-pulse" />
+              <p className="text-sm text-amber-800">Loading your previous registration details...</p>
+            </div>
+          )}
+
+          {isReregisterMode && adminRejectionMessage && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl shadow-sm">
+              <p className="text-sm font-semibold text-yellow-900">Admin guidance for your re-registration</p>
+              <p className="text-sm text-yellow-800 mt-1 whitespace-pre-wrap">{adminRejectionMessage}</p>
+            </div>
+          )}
+
           {/* Error Message */}
           <AnimatePresence mode="wait">
             {error && (
@@ -3100,7 +3205,7 @@ const Register = () => {
                       whileTap={{ scale: loading || !formData.termsAccepted ? 1 : 0.98 }}
                     >
                       <CheckCircle className="w-4 h-4" />
-                      {loading ? 'Processing...' : 'Complete Registration'}
+                      {loading ? 'Processing...' : isReregisterMode ? 'Re-submit Registration' : 'Complete Registration'}
                     </motion.button>
                   </div>
                 )}

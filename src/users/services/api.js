@@ -57,6 +57,14 @@ export const feedbackAPI = {
   create: (data) => api.post('/api/feedback', data),
 };
 
+// User Notifications API
+export const notificationAPI = {
+  getMyRecent: ({ limit = 30, page = 1, type = 'all' } = {}) =>
+    api.get(`/api/notifications/user/recent?limit=${limit}&page=${page}&type=${encodeURIComponent(type)}`),
+  getMyCounts: () => api.get('/api/notifications/user/counts'),
+  markAsRead: (notificationId) => api.patch('/api/notifications/user/read', { notificationId }),
+};
+
 // Documents API
 export const documentsAPI = {
   getTemplates: () => api.get('/api/documents/templates'),

@@ -27,6 +27,7 @@ import {
   Flag,
   MessageSquare,
   ExternalLink,
+  Video,
   Inbox,
   TrendingUp,
 } from "lucide-react";
@@ -94,6 +95,7 @@ const AdminReports = () => {
           description: report.description,
           location: report.location || "Not specified",
           images: report.images || [],
+          reportVideo: report.reportVideo || null,
         }));
         setReports(transformedReports);
         if (isRefresh) showSuccess("Reports refreshed");
@@ -350,9 +352,6 @@ const AdminReports = () => {
       );
       
       showSuccess(`Report status updated to ${newStatus.replace("-", " ")}`);
-      if (newStatus === "resolved") {
-        notifyReportResolved(selectedReport.title);
-      }
       setStatusUpdateModal(false);
       fetchReports();
     } catch (error) {
@@ -855,6 +854,23 @@ const AdminReports = () => {
                   {selectedReport.description}
                 </p>
               </div>
+
+              {/* Report Video */}
+              {selectedReport.reportVideo && (
+                <div className="mb-4 md:mb-6">
+                  <h4 className="text-[10px] md:text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 md:mb-3 flex items-center gap-2">
+                    <Video className="w-3.5 h-3.5" />
+                    Video
+                  </h4>
+                  <video
+                    controls
+                    className="w-full rounded-lg md:rounded-xl border border-gray-200 dark:border-slate-700 bg-black"
+                    src={selectedReport.reportVideo}
+                  >
+                    Your browser does not support video playback.
+                  </video>
+                </div>
+              )}
 
               {/* Image Gallery Thumbnails */}
               {selectedReport.images?.length > 0 && (

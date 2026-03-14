@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
   Bell,
   FileText,
   UserPlus,
   CheckCircle,
-  AlertCircle,
   Info,
-  X,
   Filter,
   Clock,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
   Megaphone,
   Flag,
 } from "lucide-react";
@@ -20,9 +17,12 @@ import {
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AdminNotifications = () => {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState("all");
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [markingId, setMarkingId] = useState(null);
+  const [markingAll, setMarkingAll] = useState(false);
   const [counts, setCounts] = useState({
     total: 0,
     pendingDocuments: 0,
@@ -83,18 +83,56 @@ const AdminNotifications = () => {
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
-  const markAsRead = (id) => {
-    setNotifications(
-      notifications.map((n) => (n.id === id ? { ...n, unread: false } : n))
-    );
+  const markAsRead = async (id) => {
+    if (!id) return;
+
+    try {
+      setMarkingId(id);
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        `${API_URL}/api/notifications/read`,
+        { notificationId: id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    } finally {
+      setMarkingId(null);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, unread: false })));
+  const markAllAsRead = async () => {
+    if (unreadCount === 0) return;
+
+    try {
+      setMarkingAll(true);
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        `${API_URL}/api/notifications/read-all`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    } finally {
+      setMarkingAll(false);
+    }
   };
 
-  const deleteNotification = (id) => {
-    setNotifications(notifications.filter((n) => n.id !== id));
+  const handleNotificationNavigate = async (notification) => {
+    if (notification?.unread) {
+      await markAsRead(notification.id);
+    }
+
+    if (notification?.link) {
+      navigate(notification.link);
+    }
   };
 
   const getNotificationIcon = (type) => {
@@ -150,11 +188,11 @@ const AdminNotifications = () => {
               </button>
               <button
                 onClick={markAllAsRead}
-                disabled={unreadCount === 0}
+                disabled={unreadCount === 0 || markingAll}
                 className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-blue-600 rounded-lg sm:rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-blue-600/25"
               >
-                <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Mark All Read</span>
+                <CheckCircle className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${markingAll ? "animate-pulse" : ""}`} />
+                <span className="hidden sm:inline">{markingAll ? "Marking..." : "Mark All Read"}</span>
               </button>
             </div>
           </div>
@@ -323,12 +361,12 @@ const AdminNotifications = () => {
                               {notification.time}
                             </span>
                             {notification.link && (
-                              <a
-                                href={notification.link}
+                              <button
+                                onClick={() => handleNotificationNavigate(notification)}
                                 className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 hover:underline"
                               >
                                 View →
-                              </a>
+                              </button>
                             )}
                           </div>
                         </div>
@@ -338,19 +376,13 @@ const AdminNotifications = () => {
                           {notification.unread && (
                             <button
                               onClick={() => markAsRead(notification.id)}
-                              className="p-1.5 sm:p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                              disabled={markingId === notification.id}
+                              className="p-1.5 sm:p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors disabled:opacity-60"
                               title="Mark as read"
                             >
                               <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                             </button>
                           )}
-                          <button
-                            onClick={() => deleteNotification(notification.id)}
-                            className="p-1.5 sm:p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                            title="Delete"
-                          >
-                            <X className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </button>
                         </div>
                       </div>
                     </div>

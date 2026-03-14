@@ -62,6 +62,8 @@ const TabSearch = () => {
 
   const visibleTabs = allTabs.filter((tab) => {
     const restrictedForAdmin = new Set([
+      "/admin/dashboard",
+      "/admin/registration-history",
       "/admin/terms-acceptances",
       "/admin/announcements",
       "/admin/achievements",

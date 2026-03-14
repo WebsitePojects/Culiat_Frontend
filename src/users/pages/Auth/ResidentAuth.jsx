@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
 import { Eye, EyeOff, Lock, User, ArrowLeft, Home, Mail, Clock } from "lucide-react";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function ResidentAuth() {
+  const googleLoginEnabled = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { login, sessionExpired, clearSessionExpired } = useAuth();
+  const { login, googleLogin, sessionExpired, clearSessionExpired } = useAuth();
   const navigate = useNavigate();
 
   const [loginData, setLoginData] = useState({
@@ -98,6 +100,60 @@ export default function ResidentAuth() {
       } else {
         setError("❌ Unable to connect to the server. Please check your internet connection and try again.");
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async (credentialResponse) => {
+    if (!credentialResponse?.credential) {
+      setError("Google sign-in failed. Please try again.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await googleLogin(credentialResponse.credential);
+
+      if (response.success && response.user) {
+        const roleCodes = Array.isArray(response.user.roles)
+          ? response.user.roles
+          : [response.user.roleCode].filter(Boolean);
+
+        const roleNames = Array.isArray(response.user.roleNames)
+          ? response.user.roleNames
+          : [response.user.role].filter(Boolean);
+
+        const hasResidentRole =
+          roleCodes.includes(74934) || roleNames.includes("Resident");
+
+        if (hasResidentRole) {
+          const redirectPath = sessionStorage.getItem("redirectAfterLogin");
+          const isSafeResidentRedirect =
+            redirectPath &&
+            !redirectPath.startsWith("/admin") &&
+            redirectPath !== "/login" &&
+            redirectPath !== "/register";
+
+          sessionStorage.removeItem("redirectAfterLogin");
+
+          if (isSafeResidentRedirect) {
+            navigate(redirectPath);
+          } else {
+            navigate("/");
+          }
+
+          return;
+        }
+
+        setError("Google account is not allowed for resident portal access.");
+      } else {
+        setError(response.message || "Google sign-in failed");
+      }
+    } catch (err) {
+      setError("Google sign-in failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -291,6 +347,29 @@ export default function ResidentAuth() {
                 >
                   {loading ? "Signing in..." : "Sign In"}
                 </button>
+
+                {googleLoginEnabled && (
+                  <>
+                    <div className="relative py-1">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-slate-200"></div>
+                      </div>
+                      <div className="relative flex justify-center text-xs">
+                        <span className="bg-white px-2 text-slate-500">or</span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <GoogleLogin
+                        onSuccess={handleGoogleSignIn}
+                        onError={() => setError("Google sign-in failed. Please try again.")}
+                        shape="pill"
+                        text="signin_with"
+                        width="320"
+                      />
+                    </div>
+                  </>
+                )}
               </form>
               <div className="mt-6 pt-4 border-t border-slate-200 text-center">
                 <p className="text-xs text-slate-500">

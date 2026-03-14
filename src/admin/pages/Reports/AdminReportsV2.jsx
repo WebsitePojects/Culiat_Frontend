@@ -356,9 +356,6 @@ const AdminReportsV2 = () => {
       );
       
       showSuccess(`Report status updated to ${newStatus.replace("-", " ")}`);
-      if (newStatus === "resolved") {
-        notifyReportResolved(selectedReport.title);
-      }
       setStatusUpdateModal(false);
       fetchReports();
     } catch (error) {

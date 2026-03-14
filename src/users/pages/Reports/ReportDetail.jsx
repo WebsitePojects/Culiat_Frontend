@@ -13,7 +13,11 @@ import {
    CheckCircle,
    XCircle,
    Loader,
+   Image,
+   Video,
 } from "lucide-react";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const ReportDetail = () => {
    const { id } = useParams();
@@ -58,12 +62,18 @@ const ReportDetail = () => {
 
    const getPriorityStyles = (priority) => {
       const styles = {
-         low: "text-gray-600",
-         medium: "text-yellow-600",
-         high: "text-orange-600",
-         urgent: "text-red-600 font-semibold",
+         low: "bg-gray-100 text-gray-800 border-gray-200",
+         medium: "bg-yellow-100 text-yellow-900 border-yellow-300",
+         high: "bg-orange-100 text-orange-900 border-orange-300",
+         urgent: "bg-red-100 text-red-900 border-red-300",
       };
-      return styles[priority] || "text-gray-600";
+      return styles[priority] || "bg-gray-100 text-gray-800 border-gray-200";
+   };
+
+   const getMediaUrl = (path) => {
+      if (!path) return null;
+      if (path.startsWith("http://") || path.startsWith("https://")) return path;
+      return `${API_URL}${path.startsWith("/") ? "" : "/"}${path}`;
    };
 
    if (loading) {
@@ -109,7 +119,7 @@ const ReportDetail = () => {
 
    return (
       <div
-         className="min-h-screen"
+         className="min-h-screen pt-16"
          style={{ backgroundColor: "var(--color-neutral)" }}
       >
          {/* Header */}
@@ -142,7 +152,7 @@ const ReportDetail = () => {
                   >
                      {report.status}
                   </span>
-                  <span className={`flex items-center gap-2 capitalize ${getPriorityStyles(report.priority)}`}>
+                  <span className={`inline-flex items-center gap-2 capitalize px-4 py-2 rounded-full text-sm font-semibold border ${getPriorityStyles(report.priority)}`}>
                      <AlertCircle className="w-5 h-5" />
                      {report.priority} Priority
                   </span>
@@ -193,6 +203,50 @@ const ReportDetail = () => {
                               </div>
                            ))}
                         </div>
+                     </div>
+                  )}
+
+                  {/* Attachments */}
+                  {Array.isArray(report.images) && report.images.length > 0 && (
+                     <div className="bg-[var(--color-light)] rounded-lg shadow-md border border-[var(--color-neutral-active)] p-6">
+                        <h2 className="text-xl font-bold text-[var(--color-text-color)] mb-4 flex items-center gap-2">
+                           <Image className="w-5 h-5" />
+                           Attachments ({report.images.length})
+                        </h2>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                           {report.images.map((img, index) => (
+                              <a
+                                 key={`${img}-${index}`}
+                                 href={getMediaUrl(img)}
+                                 target="_blank"
+                                 rel="noreferrer"
+                                 className="block aspect-square rounded-lg overflow-hidden border border-[var(--color-neutral-active)] hover:opacity-90 transition-opacity"
+                              >
+                                 <img
+                                    src={getMediaUrl(img)}
+                                    alt={`Report attachment ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                 />
+                              </a>
+                           ))}
+                        </div>
+                     </div>
+                  )}
+
+                  {/* Video */}
+                  {report.reportVideo && (
+                     <div className="bg-[var(--color-light)] rounded-lg shadow-md border border-[var(--color-neutral-active)] p-6">
+                        <h2 className="text-xl font-bold text-[var(--color-text-color)] mb-4 flex items-center gap-2">
+                           <Video className="w-5 h-5" />
+                           Report Video
+                        </h2>
+                        <video
+                           controls
+                           className="w-full rounded-lg border border-[var(--color-neutral-active)] bg-black"
+                           src={getMediaUrl(report.reportVideo)}
+                        >
+                           Your browser does not support video playback.
+                        </video>
                      </div>
                   )}
                </div>

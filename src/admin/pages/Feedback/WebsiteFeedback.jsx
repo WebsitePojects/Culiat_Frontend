@@ -398,7 +398,7 @@ const WebsiteFeedback = () => {
       <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 p-4 sm:p-6 md:p-8">
         {/* Dot pattern overlay */}
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-10 pointer-events-none"
           style={{
             backgroundImage: `radial-gradient(circle, white 1px, transparent 1px)`,
             backgroundSize: "20px 20px",
@@ -406,24 +406,25 @@ const WebsiteFeedback = () => {
         />
         <div className="relative z-10">
           {/* Header Top */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-            <div>
-              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                <div className="p-2 sm:p-2.5 bg-purple-500/20 rounded-lg sm:rounded-xl">
-                  <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+          <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
+              <div>
+                <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                  <div className="p-2 sm:p-2.5 bg-purple-500/20 rounded-lg sm:rounded-xl">
+                    <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+                  </div>
+                  <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                    Communication Center
+                  </h1>
                 </div>
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
-                  Communication Center
-                </h1>
+                <p className="text-[11px] sm:text-sm text-purple-200/80">
+                  Manage website feedback and committee inquiries
+                </p>
               </div>
-              <p className="text-[11px] sm:text-sm text-purple-200/80">
-                Manage website feedback and committee inquiries
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
+
               <button
                 onClick={() => activeTab === "website" ? fetchFeedbacks() : fetchCommitteeMessages()}
-                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-white/10 border border-white/20 rounded-lg sm:rounded-xl hover:bg-white/20 transition-colors"
+                className="w-fit flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-white bg-white/10 border border-white/20 rounded-lg sm:rounded-xl hover:bg-white/20 transition-colors"
               >
                 <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${loading ? "animate-spin" : ""}`} />
                 <span className="hidden sm:inline">Refresh</span>
@@ -431,7 +432,7 @@ const WebsiteFeedback = () => {
             </div>
 
             {/* Tabs */}
-            <div className="flex items-center gap-1 mb-6 p-1 bg-white/5 rounded-xl w-fit">
+            <div className="flex items-center gap-1 p-1 bg-white/5 rounded-xl w-fit">
               <button
                 onClick={() => { setActiveTab("website"); setCurrentPage(1); }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === "website"
@@ -453,7 +454,7 @@ const WebsiteFeedback = () => {
             </div>
 
             {/* Stats Grid in Header */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
               <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/10">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg">
@@ -524,7 +525,7 @@ const WebsiteFeedback = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+        <div className="relative z-10 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3 md:gap-4">
             {/* Search */}
             <div className="sm:col-span-2 lg:col-span-2 relative">
@@ -601,7 +602,7 @@ const WebsiteFeedback = () => {
         </div>
 
         {/* Feedback List */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="relative z-10 bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center h-48 sm:h-64">
               <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 border-b-2 border-purple-600"></div>

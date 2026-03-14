@@ -773,7 +773,7 @@ export default function ServiceDetailPage() {
                       <ArrowRight className="w-4 h-4" />
                     </Link>
                     <Link
-                      to="/login"
+                      to="/services-info"
                       className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-100 text-gray-700 font-semibold rounded-xl hover:bg-gray-200 transition-colors"
                     >
                       Request Online

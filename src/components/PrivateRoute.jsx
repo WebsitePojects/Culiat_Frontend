@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const PrivateRoute = ({ children, adminOnly = false, superAdminOnly = false, systemAdminOnly = false, adminRestricted = false }) => {
+const PrivateRoute = ({ children, adminOnly = false, superAdminOnly = false, systemAdminOnly = false, adminRestricted = false, approvedResidentOnly = false }) => {
   const { user, loading, isAdmin, isSuperAdmin, isSystemAdmin } = useAuth();
   const location = useLocation();
 
@@ -36,7 +36,22 @@ const PrivateRoute = ({ children, adminOnly = false, superAdminOnly = false, sys
   }
 
   if (adminRestricted && (user?.role === 'Admin' || user?.roleCode === 74933)) {
-    return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/admin/pending-registrations" replace />;
+  }
+
+  if (approvedResidentOnly) {
+    const roleCodes = Array.isArray(user?.roles) ? user.roles : [];
+    const roleNames = Array.isArray(user?.roleNames) ? user.roleNames : [];
+    const isResident =
+      user?.roleCode === 74934 ||
+      user?.role === 'Resident' ||
+      user?.roleName === 'Resident' ||
+      roleCodes.includes(74934) ||
+      roleNames.includes('Resident');
+
+    if (isResident && user?.registrationStatus !== 'approved') {
+      return <Navigate to="/registration-pending?status=pending&reason=documents" replace />;
+    }
   }
 
   return children;

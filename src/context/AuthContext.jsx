@@ -9,22 +9,6 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 // Session timeout - 30 minutes in milliseconds (non-negotiable)
 const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
-// Document prices for checking payment requirements
-const DOCUMENT_PRICES = {
-  indigency: 0,
-  residency: 50,
-  clearance: 100,
-  business_permit: 500,
-  business_clearance: 200,
-  good_moral: 75,
-  barangay_id: 150,
-  liquor_permit: 300,
-  missionary: 50,
-  rehab: 50,
-  ctc: 50,
-  building_permit: 500,
-};
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -54,10 +38,6 @@ export const AuthProvider = ({ children }) => {
   const lastActivityRef = useRef(Date.now());
   const [sessionExpired, setSessionExpired] = useState(false);
 
-  // Approved document notification modal state
-  const [showApprovedDocModal, setShowApprovedDocModal] = useState(false);
-  const [approvedDocRequests, setApprovedDocRequests] = useState([]);
-
   // Session timeout logout function
   const logoutDueToInactivity = useCallback(() => {
     console.log('⏰ Session timeout: Logging out due to 30 minutes of inactivity');
@@ -67,9 +47,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('documentRequestForm');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
-    // Clear modal states
-    setShowApprovedDocModal(false);
-    setApprovedDocRequests([]);
   }, []);
 
   // Reset session timeout on activity
@@ -130,11 +107,6 @@ export const AuthProvider = ({ children }) => {
       }
     };
   }, [user, resetSessionTimeout]);
-
-  // Close approved document modal
-  const closeApprovedDocModal = useCallback(() => {
-    setShowApprovedDocModal(false);
-  }, []);
 
   // Check for existing session on mount
   useEffect(() => {
@@ -231,30 +203,6 @@ export const AuthProvider = ({ children }) => {
           }
         }
         
-        // For Residents: Check approved documents (resident portal only)
-        if (!isAdminLogin && hasResidentRole) {
-          console.log('🔔 [Login] User is a Resident, checking for approved documents...');
-          try {
-            const response = await axios.get(`${API_URL}/api/document-requests/my-requests`, {
-              headers: { Authorization: `Bearer ${fullUserData.token}` }
-            });
-            const requests = response.data.data || [];
-            const pendingPaymentRequests = requests.filter(req => {
-              const price = DOCUMENT_PRICES[req.documentType] || 0;
-              return req.status === 'approved' && req.paymentStatus === 'unpaid' && price > 0;
-            });
-            
-            if (pendingPaymentRequests.length > 0) {
-              setApprovedDocRequests(pendingPaymentRequests);
-              // Show approved doc modal immediately
-              console.log('🔔 [Login] Found approved docs, showing modal immediately');
-              setShowApprovedDocModal(true);
-            }
-          } catch (error) {
-            console.error('🔔 [Login] Error checking approved documents:', error);
-          }
-        }
-        
         return { success: true, user: fullUserData };
       } catch (meError) {
         // Fallback to basic user data if /me fails
@@ -266,6 +214,43 @@ export const AuthProvider = ({ children }) => {
       return {
         success: false,
         message: error.response?.data?.message || 'Login failed',
+      };
+    }
+  };
+
+  const googleLogin = async (idToken) => {
+    try {
+      const response = await axios.post(`${API_URL}/api/auth/google-login`, {
+        idToken,
+      });
+
+      const { data } = response.data;
+
+      localStorage.setItem('token', data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+
+      try {
+        const meResponse = await axios.get(`${API_URL}/api/auth/me`);
+        const completeUser = meResponse.data.data;
+
+        const fullUserData = {
+          ...completeUser,
+          token: data.token,
+        };
+
+        localStorage.setItem('user', JSON.stringify(fullUserData));
+        setUser(fullUserData);
+
+        return { success: true, user: fullUserData, isNewGoogleUser: !!data.isNewGoogleUser };
+      } catch (meError) {
+        localStorage.setItem('user', JSON.stringify(data));
+        setUser(data);
+        return { success: true, user: data, isNewGoogleUser: !!data.isNewGoogleUser };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Google login failed',
       };
     }
   };
@@ -306,6 +291,43 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getReregistrationPrefill = async (userId) => {
+    try {
+      const response = await axios.get(`${API_URL}/api/auth/reregister/${userId}/prefill`);
+      return {
+        success: true,
+        data: response.data?.data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to load re-registration data',
+      };
+    }
+  };
+
+  const reregister = async (userId, userData) => {
+    try {
+      const response = await axios.put(`${API_URL}/api/auth/reregister/${userId}`, userData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const { data } = response.data;
+      if (data?.registrationStatus === 'pending') {
+        return { success: true, pending: true, data };
+      }
+
+      return { success: true, data };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || error.response?.data?.error || 'Re-registration failed',
+      };
+    }
+  };
+
   const logout = () => {
     // Clear session timeout
     if (sessionTimeoutRef.current) {
@@ -316,9 +338,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('documentRequestForm'); // Clear saved form data
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
-    // Clear approved document modal state
-    setShowApprovedDocModal(false);
-    setApprovedDocRequests([]);
     // Clear session expired state
     setSessionExpired(false);
   };
@@ -339,7 +358,10 @@ export const AuthProvider = ({ children }) => {
     setUser,
     loading,
     login,
+    googleLogin,
     register,
+    getReregistrationPrefill,
+    reregister,
     logout,
     isAuthenticated: !!user,
     isAdmin: isAdmin(),
@@ -349,10 +371,6 @@ export const AuthProvider = ({ children }) => {
     // Session management
     sessionExpired,
     clearSessionExpired,
-    // Approved document notifications
-    showApprovedDocModal,
-    approvedDocRequests,
-    closeApprovedDocModal,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
