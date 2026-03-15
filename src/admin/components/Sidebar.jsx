@@ -122,6 +122,10 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
         { name: "Feedback", path: "/admin/feedback", icon: MessageSquare },
         { name: "Notifications", path: "/admin/notifications", icon: Bell },
         ...(!isRestrictedAdmin ? [{ name: "Analytics", path: "/admin/analytics", icon: BarChart3 }] : []),
+        // Activity Logs - SuperAdmin and SystemAdmin only
+        ...(!isRestrictedAdmin && (isSystemAdmin || user?.roleCode === 74932 || user?.role === 'SuperAdmin' || (Array.isArray(user?.roleNames) && user.roleNames.includes('SuperAdmin')))
+          ? [{ name: "Activity Logs", path: "/admin/activity-logs", icon: ShieldCheck }]
+          : []),
         // Only SystemAdmin can see Settings
         ...(isSystemAdmin ? [{ name: "Settings", path: "/admin/settings", icon: Settings }] : []),
       ],

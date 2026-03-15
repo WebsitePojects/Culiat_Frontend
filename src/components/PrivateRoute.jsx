@@ -26,8 +26,9 @@ const PrivateRoute = ({ children, adminOnly = false, superAdminOnly = false, sys
     return <Navigate to="/" replace />;
   }
 
-  // Redirect to 404 if user is not superadmin but trying to access superadmin-only routes
-  if (superAdminOnly && !isSuperAdmin) {
+  // Redirect to 404 if user is not superadmin/systemadmin but trying to access superadmin-only routes
+  // SystemAdmin is a superset of SuperAdmin so it always passes
+  if (superAdminOnly && !isSuperAdmin && !isSystemAdmin) {
     return <Navigate to="/404" replace />;
   }
 

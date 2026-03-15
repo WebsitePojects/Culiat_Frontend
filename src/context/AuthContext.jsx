@@ -6,8 +6,24 @@ const AuthContext = createContext();
 // API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-// Session timeout - 30 minutes in milliseconds (non-negotiable)
-const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+// Admin session timeout - 30 minutes inactivity (only for admin roles)
+// Resident users get persistent sessions (no timeout)
+const ADMIN_SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+
+// Admin role codes
+const ADMIN_ROLE_CODES = [74931, 74932, 74933]; // SystemAdmin, SuperAdmin, Admin
+
+const isAdminUser = (user) => {
+  if (!user) return false;
+  const roleCodes = Array.isArray(user.roles) ? user.roles : [];
+  const roleNames = Array.isArray(user.roleNames) ? user.roleNames : [];
+  return (
+    ADMIN_ROLE_CODES.includes(user.roleCode) ||
+    ADMIN_ROLE_CODES.includes(user.role) ||
+    roleCodes.some((r) => ADMIN_ROLE_CODES.includes(r)) ||
+    roleNames.some((n) => ['Admin', 'SuperAdmin', 'SystemAdmin'].includes(n))
+  );
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -49,24 +65,24 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   }, []);
 
-  // Reset session timeout on activity
+  // Reset session timeout on activity — only active for admin users
   const resetSessionTimeout = useCallback(() => {
-    if (!user) return;
-    
+    if (!user || !isAdminUser(user)) return;
+
     lastActivityRef.current = Date.now();
-    
+
     // Clear existing timeout
     if (sessionTimeoutRef.current) {
       clearTimeout(sessionTimeoutRef.current);
     }
-    
-    // Set new timeout for 30 minutes
+
+    // Set new timeout for admin inactivity
     sessionTimeoutRef.current = setTimeout(() => {
       logoutDueToInactivity();
-    }, SESSION_TIMEOUT);
+    }, ADMIN_SESSION_TIMEOUT);
   }, [user, logoutDueToInactivity]);
 
-  // Track user activity for session timeout
+  // Track user activity for session timeout (admin only — residents stay logged in)
   useEffect(() => {
     if (!user) {
       // Clear timeout if no user
@@ -76,9 +92,17 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    // Activity events to track
+    // Residents get persistent sessions — no inactivity timeout
+    if (!isAdminUser(user)) {
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current);
+      }
+      return;
+    }
+
+    // Activity events to track (admin only)
     const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
-    
+
     // Throttled activity handler (only update every 60 seconds to avoid excessive updates)
     let lastUpdate = 0;
     const handleActivity = () => {
@@ -328,17 +352,28 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Fire-and-forget logout log to backend (don't block on it)
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await axios.post(`${API_URL}/api/auth/logout`, {}, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+    } catch {
+      // Ignore errors — logout must always succeed client-side
+    }
+
     // Clear session timeout
     if (sessionTimeoutRef.current) {
       clearTimeout(sessionTimeoutRef.current);
     }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    localStorage.removeItem('documentRequestForm'); // Clear saved form data
+    localStorage.removeItem('documentRequestForm');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
-    // Clear session expired state
     setSessionExpired(false);
   };
 

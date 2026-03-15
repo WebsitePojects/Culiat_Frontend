@@ -54,6 +54,7 @@ import CMSAboutUs from "./admin/pages/CMS/CMSAboutUs";
 import CMSBanners from "./admin/pages/CMS/CMSBanners";
 import AdminProfile from "./admin/pages/Profile/AdminProfile";
 import DocumentRequestHistory from "./admin/pages/ActivityLogs/DocumentRequestHistory";
+import ActivityLogs from "./admin/pages/ActivityLogs/ActivityLogs";
 import DocumentPayments from "./admin/pages/Transparency/DocumentPayments";
 import WebsiteFeedback from "./admin/pages/Feedback/WebsiteFeedback";
 import ProfileVerifications from "./admin/pages/ProfileVerifications/ProfileVerifications";
@@ -406,6 +407,14 @@ function App() {
                   }
                 />
                 <Route path="document-history" element={<DocumentRequestHistory />} />
+                <Route
+                  path="activity-logs"
+                  element={
+                    <PrivateRoute superAdminOnly={true}>
+                      <ActivityLogs />
+                    </PrivateRoute>
+                  }
+                />
                 <Route path="document-payments" element={<DocumentPayments />} />
                 <Route path="feedback" element={<WebsiteFeedback />} />
                 <Route path="profile-verifications" element={<ProfileVerifications />} />

@@ -52,6 +52,8 @@ const Register = () => {
     fieldName: "",
     value: "",
   });
+  const [showOrientationToast, setShowOrientationToast] = useState(false);
+  const [toast, setToast] = useState({ visible: false, message: "" });
 
   // Terms & Conditions Modal states
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -247,6 +249,46 @@ const Register = () => {
       email: prev.email || guestPrefill.email || "",
     }));
   }, [isReregisterMode]);
+
+  // Auto-dismiss orientation toast after 10 seconds + dismiss on any touch/click
+  useEffect(() => {
+    if (!showOrientationToast) return;
+    const timer = setTimeout(() => setShowOrientationToast(false), 10000);
+    const dismiss = () => setShowOrientationToast(false);
+    document.addEventListener("click", dismiss);
+    document.addEventListener("touchstart", dismiss);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("click", dismiss);
+      document.removeEventListener("touchstart", dismiss);
+    };
+  }, [showOrientationToast]);
+
+  // Helper to show error toast (used by showToast calls)
+  const showToast = (message) => {
+    setToast({ visible: true, message });
+  };
+
+  // Sync backend/step errors → toast, auto-dismiss after 10s + dismiss on any touch/click
+  useEffect(() => {
+    if (!error) return;
+    setToast({ visible: true, message: error });
+    setError("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
+
+  useEffect(() => {
+    if (!toast.visible) return;
+    const timer = setTimeout(() => setToast({ visible: false, message: "" }), 10000);
+    const dismiss = () => setToast({ visible: false, message: "" });
+    document.addEventListener("click", dismiss);
+    document.addEventListener("touchstart", dismiss);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("click", dismiss);
+      document.removeEventListener("touchstart", dismiss);
+    };
+  }, [toast.visible]);
 
   // Document options now imported from utils/documentTypes.js
   // Includes government IDs + endorsement letters
@@ -754,7 +796,7 @@ const Register = () => {
         try {
           const { isLandscape } = await getImageOrientation(file);
           if (!isLandscape) {
-            setError("For valid IDs, image orientation must be landscape. Endorsement letters may be portrait or landscape.");
+            setShowOrientationToast(true);
             e.target.value = "";
             return;
           }
@@ -931,9 +973,7 @@ const Register = () => {
       if (formData.residentType === "resident") {
         if (!formData.houseNumber) errors.houseNumber = "House number is required";
         if (!formData.street) errors.street = "Street is required";
-        if (formData.isVoter && !formData.precinctNumber) {
-          errors.precinctNumber = "Precinct number is required for registered voters";
-        }
+        // precinctNumber is optional — user can fill it in later via profile update
       } else if (formData.residentType === "non_resident") {
         if (!formData.nonResidentHouseNumber) errors.nonResidentHouseNumber = "House number is required";
         if (!formData.nonResidentStreet) errors.nonResidentStreet = "Street is required";
@@ -2049,19 +2089,20 @@ const Register = () => {
             {formData.isVoter && (
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">
-                  Precinct Number *
+                  Precinct Number <span className="text-slate-400 font-normal">(Optional)</span>
                 </label>
                 <input
                   type="text"
                   name="precinctNumber"
                   value={formData.precinctNumber}
                   onChange={handleChange}
-                  className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.precinctNumber ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
-                  placeholder="Enter your precinct number"
+                  className="block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs"
+                  placeholder="Enter your precinct number (optional)"
                 />
-                {fieldErrors.precinctNumber && (
-                  <p className="text-xs text-red-500 mt-1">{fieldErrors.precinctNumber}</p>
-                )}
+                <p className="text-xs text-blue-600 mt-1 flex items-start gap-1">
+                  <span className="text-blue-500 font-bold flex-shrink-0">ℹ</span>
+                  You can skip this for now and update it later in your profile to get fully verified as a registered voter.
+                </p>
               </div>
             )}
           </div>
@@ -2322,14 +2363,19 @@ const Register = () => {
           )}
           {pendingDocumentConfirmation.fieldName === "primaryID1Type" && (
             <div className="mt-2 p-3 rounded-lg border border-amber-300 bg-amber-50">
-              <p className="text-xs text-amber-900 font-semibold">
-                Please confirm: Does your {getDocumentTypeLabel(pendingDocumentConfirmation.value)} clearly show the same address you entered in this registration form?
+              <p className="text-xs text-amber-900 font-semibold mb-2">
+                ⚠️ Important: Before using your {getDocumentTypeLabel(pendingDocumentConfirmation.value)}, please confirm all of the following:
               </p>
-              <p className="text-[11px] text-amber-700 italic mt-1">
-                Pakikumpirma: Ang napili mong ID ba ay may kaparehong address na inilagay mo sa registration form na ito?
+              <ul className="text-xs text-amber-800 space-y-1 list-disc pl-4 mb-2">
+                <li>Does your ID clearly show an address located in <strong>Barangay Culiat</strong>?</li>
+                <li>Is the address on your ID the <strong>same address</strong> you entered in this registration form?</li>
+                <li>Is the address on your ID <strong>clearly visible and readable</strong>?</li>
+              </ul>
+              <p className="text-[11px] text-amber-700 italic mb-1">
+                Pakikumpirma: Ang iyong ID ba ay nagpapakita ng address na nasa <strong>Barangay Culiat</strong> at katugma sa address na inilagay mo sa registration form?
               </p>
-              <p className="text-[11px] text-amber-700 mt-1">
-                If the address does not match, the registration will be rejected during verification.
+              <p className="text-[11px] text-amber-700 mb-2">
+                The ID address must be situated in Barangay Culiat and must match your registered address. If it does not, your registration will be rejected during verification.
               </p>
               <div className="mt-2 flex gap-2">
                 <button
@@ -2337,7 +2383,7 @@ const Register = () => {
                   onClick={() => confirmDocumentAddressMatch(true)}
                   className="px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
                 >
-                  Yes, it matches
+                  Yes, all conditions are met
                 </button>
                 <button
                   type="button"
@@ -2496,14 +2542,19 @@ const Register = () => {
             )}
             {pendingDocumentConfirmation.fieldName === "primaryID2Type" && (
               <div className="mt-2 p-3 rounded-lg border border-amber-300 bg-amber-50">
-                <p className="text-xs text-amber-900 font-semibold">
-                  Please confirm: Does your {getDocumentTypeLabel(pendingDocumentConfirmation.value)} clearly show the same address you entered in this registration form?
+                <p className="text-xs text-amber-900 font-semibold mb-2">
+                  ⚠️ Important: Before using your {getDocumentTypeLabel(pendingDocumentConfirmation.value)}, please confirm all of the following:
                 </p>
-                <p className="text-[11px] text-amber-700 italic mt-1">
-                  Pakikumpirma: Ang napili mong ID ba ay may kaparehong address na inilagay mo sa registration form na ito?
+                <ul className="text-xs text-amber-800 space-y-1 list-disc pl-4 mb-2">
+                  <li>Does your ID clearly show an address located in <strong>Barangay Culiat</strong>?</li>
+                  <li>Is the address on your ID the <strong>same address</strong> you entered in this registration form?</li>
+                  <li>Is the address on your ID <strong>clearly visible and readable</strong>?</li>
+                </ul>
+                <p className="text-[11px] text-amber-700 italic mb-1">
+                  Pakikumpirma: Ang iyong ID ba ay nagpapakita ng address na nasa <strong>Barangay Culiat</strong> at katugma sa address na inilagay mo sa registration form?
                 </p>
-                <p className="text-[11px] text-amber-700 mt-1">
-                  If the address does not match, the registration will be rejected during verification.
+                <p className="text-[11px] text-amber-700 mb-2">
+                  The ID address must be situated in Barangay Culiat and must match your registered address. If it does not, your registration will be rejected during verification.
                 </p>
                 <div className="mt-2 flex gap-2">
                   <button
@@ -2511,7 +2562,7 @@ const Register = () => {
                     onClick={() => confirmDocumentAddressMatch(true)}
                     className="px-3 py-1.5 text-xs font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
                   >
-                    Yes, it matches
+                    Yes, all conditions are met
                   </button>
                   <button
                     type="button"
@@ -3259,25 +3310,7 @@ const Register = () => {
             </div>
           )}
 
-          {/* Error Message */}
-          <AnimatePresence mode="wait">
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.98 }}
-                className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 shadow-sm"
-              >
-                <div className="flex-shrink-0 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold mt-0.5">
-                  !
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-red-800">Something needs attention</p>
-                  <p className="text-sm text-red-700 mt-0.5">{error}</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Errors are shown as toast — see bottom of component */}
 
           {/* Form Card */}
           <form onSubmit={handleSubmit}>
@@ -3379,6 +3412,116 @@ const Register = () => {
 
       {/* Terms Modal */}
       {renderTermsModal()}
+
+      {/* Registration Loading Overlay */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-5 max-w-xs w-full"
+            >
+              {/* Spinner */}
+              <div className="relative w-16 h-16">
+                <motion.div
+                  className="absolute inset-0 rounded-full border-4 border-emerald-100"
+                />
+                <motion.div
+                  className="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-600"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-emerald-200" />
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-base font-bold text-slate-800">Submitting Registration</p>
+                <p className="text-sm text-slate-500 mt-1">Please wait while we process your information…</p>
+              </div>
+              {/* Animated dots */}
+              <div className="flex gap-1.5">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="w-2 h-2 bg-emerald-500 rounded-full"
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* General Error Toast */}
+      <AnimatePresence>
+        {toast.visible && (
+          <motion.div
+            initial={{ opacity: 0, y: -60 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -60 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4"
+          >
+            <div className="bg-red-50 border border-red-300 rounded-xl shadow-xl p-4 flex items-start gap-3">
+              <div className="flex-shrink-0 w-7 h-7 bg-red-500 rounded-full flex items-center justify-center text-white text-sm font-bold mt-0.5">!</div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-red-900">Something needs attention</p>
+                <p className="text-xs text-red-800 mt-0.5">{toast.message}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setToast({ visible: false, message: "" })}
+                className="flex-shrink-0 p-1 hover:bg-red-100 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4 text-red-600" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Landscape Orientation Toast */}
+      <AnimatePresence>
+        {showOrientationToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -60 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -60 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm px-4"
+          >
+            <div className="bg-amber-50 border border-amber-300 rounded-xl shadow-xl p-4 flex items-start gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-amber-900">Landscape Orientation Required</p>
+                <p className="text-xs text-amber-800 mt-1">
+                  Your ID photo must be in <strong>landscape (horizontal)</strong> orientation so it is fully readable. Please rotate your image or retake the photo in landscape mode and try again.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowOrientationToast(false)}
+                className="flex-shrink-0 p-1 hover:bg-amber-100 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4 text-amber-700" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

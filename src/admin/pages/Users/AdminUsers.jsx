@@ -103,6 +103,16 @@ const AdminUsers = () => {
     setSelectedUserIds((prev) => prev.filter((id) => users.some((user) => user._id === id)));
   }, [users]);
 
+  // Derive current user's privilege level
+  const currentUserRoles = currentUser ? getRoleNamesFromUser(currentUser) : [];
+  const isCurrentUserSystemAdmin = currentUserRoles.includes("SystemAdmin");
+  const isCurrentUserSuperAdmin = currentUserRoles.includes("SuperAdmin") && !isCurrentUserSystemAdmin;
+
+  // SystemAdmin accounts are invisible to everyone except other SystemAdmins
+  const visibleUsers = isCurrentUserSystemAdmin
+    ? users
+    : users.filter((u) => !getRoleNamesFromUser(u).includes("SystemAdmin"));
+
   const fetchCurrentUser = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -132,8 +142,8 @@ const AdminUsers = () => {
 
   const filteredUsers =
     filter === "all"
-      ? users
-      : users.filter((user) => {
+      ? visibleUsers
+      : visibleUsers.filter((user) => {
         const roleNames = getRoleNamesFromUser(user);
         if (filter === "admin") {
           return roleNames.includes("SuperAdmin") || roleNames.includes("Admin");
@@ -214,11 +224,11 @@ const AdminUsers = () => {
     }
   };
 
-  const adminCount = users.filter((u) => {
+  const adminCount = visibleUsers.filter((u) => {
     const roleNames = getRoleNamesFromUser(u);
     return roleNames.includes("SuperAdmin") || roleNames.includes("Admin");
   }).length;
-  const residentCount = users.filter((u) => getRoleNamesFromUser(u).includes("Resident")).length;
+  const residentCount = visibleUsers.filter((u) => getRoleNamesFromUser(u).includes("Resident")).length;
 
   // Open edit modal
   const handleEditClick = (user) => {
@@ -619,7 +629,7 @@ const AdminUsers = () => {
         {/* Stats Grid */}
         <div className="relative z-10 grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mt-4 sm:mt-6">
           {[
-            { label: "Total Users", count: users.length, gradient: "from-blue-500 to-blue-600" },
+            { label: "Total Users", count: visibleUsers.length, gradient: "from-blue-500 to-blue-600" },
             { label: "Admins", count: adminCount, gradient: "from-purple-500 to-purple-600" },
             { label: "Residents", count: residentCount, gradient: "from-green-500 to-green-600" },
           ].map((stat, idx) => (
@@ -659,7 +669,7 @@ const AdminUsers = () => {
             }`}
         >
           <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
-          All ({users.length})
+          All ({visibleUsers.length})
         </button>
         <button
           onClick={() => setFilter("admin")}
@@ -814,8 +824,12 @@ const AdminUsers = () => {
                   <option value="Resident">Resident</option>
                   <option value="Admin">Admin</option>
                   <option value="Resident|Admin">Resident + Admin</option>
-                  <option value="SuperAdmin">Super Admin</option>
-                  <option value="Resident|SuperAdmin">Resident + Super Admin</option>
+                  {!isCurrentUserSuperAdmin && (
+                    <option value="SuperAdmin">Super Admin</option>
+                  )}
+                  {!isCurrentUserSuperAdmin && (
+                    <option value="Resident|SuperAdmin">Resident + Super Admin</option>
+                  )}
                 </select>
                 <button
                   onClick={handleBulkRoleUpdate}
@@ -1082,7 +1096,7 @@ const AdminUsers = () => {
                       Roles
                     </label>
                     <div className="flex flex-wrap gap-2 p-2 bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-700 rounded-lg">
-                      {ROLE_OPTIONS.map((roleOption) => (
+                      {ROLE_OPTIONS.filter((r) => !(isCurrentUserSuperAdmin && r === "SuperAdmin")).map((roleOption) => (
                         <label key={roleOption} className="flex items-center gap-1.5 px-2 py-1 rounded bg-purple-50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800 text-[10px] sm:text-xs cursor-pointer">
                           <input
                             type="checkbox"
@@ -1525,7 +1539,7 @@ const AdminUsers = () => {
                       Roles
                     </label>
                     <div className="flex flex-wrap gap-2 p-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg">
-                      {ROLE_OPTIONS.map((roleOption) => (
+                      {ROLE_OPTIONS.filter((r) => !(isCurrentUserSuperAdmin && r === "SuperAdmin")).map((roleOption) => (
                         <label key={roleOption} className="flex items-center gap-1.5 px-2 py-1 rounded bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-[10px] sm:text-xs cursor-pointer">
                           <input
                             type="checkbox"
