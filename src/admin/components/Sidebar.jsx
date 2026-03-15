@@ -11,7 +11,6 @@ import {
   Bell,
   X,
   UserCheck,
-  FileCheck,
   History,
   Trophy,
   Layout,
@@ -69,11 +68,6 @@ const Sidebar = ({ isOpen, isMobileOpen, closeMobileMenu }) => {
       name: "Registration History",
       path: "/admin/registration-history",
       icon: History,
-    }] : []),
-    ...(!isRestrictedAdmin ? [{
-      name: "Terms Acceptances",
-      path: "/admin/terms-acceptances",
-      icon: FileCheck,
     }] : []),
     {
       name: "Profile Updates",

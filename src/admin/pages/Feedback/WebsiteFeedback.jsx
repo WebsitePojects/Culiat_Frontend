@@ -60,8 +60,12 @@ const WebsiteFeedback = () => {
   const [showSpamModal, setShowSpamModal] = useState(false);
   const [showBlockIPModal, setShowBlockIPModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [showRespondModal, setShowRespondModal] = useState(false);
   const [actionFeedback, setActionFeedback] = useState(null);
   const [actionIP, setActionIP] = useState(null);
+  const [responseMessage, setResponseMessage] = useState("");
+  const [responding, setResponding] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -304,6 +308,59 @@ const WebsiteFeedback = () => {
   const openDeleteModal = (feedback) => {
     setActionFeedback(feedback);
     setShowDeleteModal(true);
+  };
+
+  const openActionModal = (feedback) => {
+    setActionFeedback(feedback);
+    setShowActionModal(true);
+  };
+
+  const openRespondModal = (feedback) => {
+    setActionFeedback(feedback);
+    setResponseMessage("");
+    setShowActionModal(false);
+    setShowDetailModal(false);
+    setShowRespondModal(true);
+  };
+
+  const submitResponse = async () => {
+    if (!actionFeedback?._id || !responseMessage.trim()) return;
+
+    setResponding(true);
+    try {
+      const token = localStorage.getItem("token");
+      const endpoint =
+        activeTab === "website"
+          ? `${API_URL}/api/contact-messages/${actionFeedback._id}/response`
+          : `${API_URL}/api/committee-messages/${actionFeedback._id}/response`;
+
+      const payload =
+        activeTab === "website"
+          ? { responseMessage: responseMessage.trim() }
+          : { response: responseMessage.trim() };
+
+      await axios.post(endpoint, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      showSuccess("Response sent successfully");
+      setShowRespondModal(false);
+      setActionFeedback(null);
+      setResponseMessage("");
+
+      if (activeTab === "website") {
+        fetchFeedbacks();
+        fetchStats();
+      } else {
+        fetchCommitteeMessages();
+        fetchCommitteeStats();
+      }
+    } catch (error) {
+      console.error("Error sending response:", error);
+      showError("Failed to send response");
+    } finally {
+      setResponding(false);
+    }
   };
 
   const confirmDelete = async () => {
@@ -620,8 +677,9 @@ const WebsiteFeedback = () => {
                 {feedbacks.map((feedback) => (
                   <div
                     key={feedback._id}
+                    onClick={() => openActionModal(feedback)}
                     className={`p-3 sm:p-4 ${feedback.status === "new" ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
-                      }`}
+                      } cursor-pointer`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-2">
@@ -670,19 +728,28 @@ const WebsiteFeedback = () => {
                       </span>
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={() => handleViewDetail(feedback)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewDetail(feedback);
+                          }}
                           className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => openSpamModal(feedback)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openSpamModal(feedback);
+                          }}
                           className="p-1.5 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg"
                         >
                           <AlertTriangle className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => openDeleteModal(feedback)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDeleteModal(feedback);
+                          }}
                           className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -698,8 +765,9 @@ const WebsiteFeedback = () => {
                 {feedbacks.map((feedback) => (
                   <div
                     key={feedback._id}
+                    onClick={() => openActionModal(feedback)}
                     className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${feedback.status === "new" ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
-                      }`}
+                      } cursor-pointer`}
                   >
                     <div className="flex items-start gap-4">
                       {/* Avatar */}
@@ -766,21 +834,30 @@ const WebsiteFeedback = () => {
                       {/* Actions */}
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={() => handleViewDetail(feedback)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewDetail(feedback);
+                          }}
                           className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                           title="View Details"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => openSpamModal(feedback)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openSpamModal(feedback);
+                          }}
                           className="p-2 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
                           title="Mark as Spam"
                         >
                           <AlertTriangle className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => openBlockIPModal(feedback.ipAddress, feedback)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openBlockIPModal(feedback.ipAddress, feedback);
+                          }}
                           className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                           title="Block IP"
                           disabled={blockedIPs.includes(feedback.ipAddress)}
@@ -788,7 +865,10 @@ const WebsiteFeedback = () => {
                           <Ban className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => openDeleteModal(feedback)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDeleteModal(feedback);
+                          }}
                           className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                           title="Delete"
                         >
@@ -942,6 +1022,140 @@ const WebsiteFeedback = () => {
                     Delete
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Row Action Modal */}
+        {showActionModal && actionFeedback && (
+          <div
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50"
+            onClick={() => setShowActionModal(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-sm p-4 sm:p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Choose Action</h3>
+                <button
+                  onClick={() => setShowActionModal(false)}
+                  className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setShowActionModal(false);
+                    handleViewDetail(actionFeedback);
+                  }}
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-sm"
+                >
+                  <Eye className="w-4 h-4 text-gray-600" />
+                  View details
+                </button>
+
+                <button
+                  onClick={() => openRespondModal(actionFeedback)}
+                  className="w-full px-3 py-2.5 rounded-lg border border-blue-200 text-blue-700 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2 text-sm"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Respond to sender
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowActionModal(false);
+                    openSpamModal(actionFeedback);
+                  }}
+                  className="w-full px-3 py-2.5 rounded-lg border border-orange-200 text-orange-700 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 flex items-center gap-2 text-sm"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  Mark as spam
+                </button>
+
+                {activeTab === "website" && actionFeedback.ipAddress && (
+                  <button
+                    onClick={() => {
+                      setShowActionModal(false);
+                      openBlockIPModal(actionFeedback.ipAddress, actionFeedback);
+                    }}
+                    className="w-full px-3 py-2.5 rounded-lg border border-red-200 text-red-700 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 text-sm"
+                    disabled={blockedIPs.includes(actionFeedback.ipAddress)}
+                  >
+                    <Ban className="w-4 h-4" />
+                    {blockedIPs.includes(actionFeedback.ipAddress) ? "IP already blocked" : "Block IP"}
+                  </button>
+                )}
+
+                <button
+                  onClick={() => {
+                    setShowActionModal(false);
+                    openDeleteModal(actionFeedback);
+                  }}
+                  className="w-full px-3 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 flex items-center gap-2 text-sm"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete message
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Respond Modal */}
+        {showRespondModal && actionFeedback && (
+          <div
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60"
+            onClick={() => !responding && setShowRespondModal(false)}
+          >
+            <div
+              className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-lg p-4 sm:p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Respond to Sender</h3>
+                <button
+                  onClick={() => setShowRespondModal(false)}
+                  className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                  disabled={responding}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="mb-3 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                Sending response to <span className="font-semibold text-gray-900 dark:text-white">{actionFeedback.name || "Anonymous"}</span>
+                {actionFeedback.email ? ` (${actionFeedback.email})` : ""}
+              </div>
+
+              <textarea
+                value={responseMessage}
+                onChange={(e) => setResponseMessage(e.target.value)}
+                rows={5}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Type your response here..."
+              />
+
+              <div className="mt-4 flex items-center justify-end gap-2">
+                <button
+                  onClick={() => setShowRespondModal(false)}
+                  className="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  disabled={responding}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitResponse}
+                  className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+                  disabled={responding || !responseMessage.trim()}
+                >
+                  {responding ? "Sending..." : "Send response"}
+                </button>
               </div>
             </div>
           </div>

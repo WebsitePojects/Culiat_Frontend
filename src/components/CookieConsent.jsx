@@ -3,6 +3,37 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Cookie, X, Shield } from 'lucide-react';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+const isPrivateOrLocalIp = (ip) => {
+  if (!ip || typeof ip !== 'string') return true;
+  const value = ip.trim().toLowerCase();
+  if (!value) return true;
+
+  if (
+    value === '::1' ||
+    value === 'localhost' ||
+    value === '127.0.0.1' ||
+    value.startsWith('127.') ||
+    value.startsWith('10.') ||
+    value.startsWith('192.168.') ||
+    value.startsWith('172.16.') ||
+    value.startsWith('172.17.') ||
+    value.startsWith('172.18.') ||
+    value.startsWith('172.19.') ||
+    value.startsWith('172.2') ||
+    value.startsWith('169.254.') ||
+    value.startsWith('fc') ||
+    value.startsWith('fd') ||
+    value.startsWith('fe80:') ||
+    value.includes('::ffff:127.')
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 const CookieConsent = () => {
   const [showBanner, setShowBanner] = useState(false);
 
@@ -20,13 +51,52 @@ const CookieConsent = () => {
 
   const getUserIP = async () => {
     try {
-      // Fix: Use proper env variable name for Vite
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-      const response = await axios.get(`${baseURL}/api/get-ip`);
-      return response.data.ip;
+      console.log('[CookieConsent] Requesting client IP from backend', {
+        endpoint: `${API_URL}/api/get-ip`,
+      });
+
+      const response = await axios.get(`${API_URL}/api/get-ip`);
+      const resolvedIp = response?.data?.ip || null;
+
+      console.log('[CookieConsent] IP response received', {
+        success: response?.data?.success,
+        hasIp: Boolean(resolvedIp),
+      });
+
+      if (!resolvedIp || resolvedIp === 'unknown' || isPrivateOrLocalIp(resolvedIp)) {
+        console.log('[CookieConsent] Backend returned local/private IP. Attempting public IP fallback via ipify.');
+        try {
+          const publicIpRes = await axios.get('https://api.ipify.org?format=json', { timeout: 4000 });
+          const publicIp = publicIpRes?.data?.ip || null;
+          console.log('[CookieConsent] Public IP fallback result', { hasPublicIp: Boolean(publicIp) });
+          if (publicIp && !isPrivateOrLocalIp(publicIp)) {
+            return publicIp;
+          }
+        } catch (fallbackErr) {
+          console.warn('[CookieConsent] Public IP fallback failed', {
+            message: fallbackErr?.message,
+          });
+        }
+      }
+
+      return resolvedIp;
     } catch (error) {
       console.error('Failed to get IP:', error);
-      return 'unknown';
+
+      try {
+        const publicIpRes = await axios.get('https://api.ipify.org?format=json', { timeout: 4000 });
+        const publicIp = publicIpRes?.data?.ip || null;
+        if (publicIp && !isPrivateOrLocalIp(publicIp)) {
+          console.log('[CookieConsent] Using public IP fallback after backend failure', { hasPublicIp: true });
+          return publicIp;
+        }
+      } catch (fallbackErr) {
+        console.warn('[CookieConsent] Secondary public IP fallback failed', {
+          message: fallbackErr?.message,
+        });
+      }
+
+      return null;
     }
   };
 
@@ -109,12 +179,13 @@ const CookieConsent = () => {
     try {
       const ip = await getUserIP();
       const deviceFingerprint = getDeviceFingerprint();
-      
-      // Fix: Use proper env variable name for Vite
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+      if (!ip || ip === 'unknown') {
+        console.warn('[CookieConsent] IP from get-ip endpoint is missing/unknown; backend will resolve IP from request headers.');
+      }
       
       const consentData = {
-        ip,
+        ip: ip || undefined,
         accepted,
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
@@ -125,11 +196,14 @@ const CookieConsent = () => {
       };
 
       const response = await axios.post(
-        `${baseURL}/api/cookie-consent`,
+        `${API_URL}/api/cookie-consent`,
         consentData
       );
       
-      console.log('Cookie consent logged successfully:', response.data);
+      console.log('Cookie consent logged successfully:', {
+        success: response?.data?.success,
+        message: response?.data?.message,
+      });
     } catch (error) {
       console.error('Failed to log consent:', error);
       // Even if logging fails, still allow user to proceed

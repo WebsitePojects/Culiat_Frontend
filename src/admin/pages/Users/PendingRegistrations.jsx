@@ -234,6 +234,25 @@ export default function PendingRegistrations() {
     return result || 'N/A';
   };
 
+  // Helper to format resident address and include area/district when available
+  const formatResidentAddress = (addressObj, includeLocality = false) => {
+    if (!addressObj) return 'N/A';
+
+    const primaryLine = [addressObj.houseNumber, addressObj.street].filter(Boolean).join(' ').trim();
+    const area = addressObj.area;
+    const district = addressObj.district || 'District 6';
+    const compound = addressObj.compound && addressObj.compound !== 'No Compound'
+      ? `(${addressObj.compound})`
+      : null;
+
+    const parts = [primaryLine, addressObj.subdivision, area, compound].filter(Boolean);
+
+    if (parts.length === 0) return 'N/A';
+
+    const baseAddress = parts.join(', ');
+    return includeLocality ? `${baseAddress}, Barangay Culiat, ${district}, Quezon City` : baseAddress;
+  };
+
   // Helper function to format ISO date to yyyy-mm-dd
   const formatDateYMD = (dateValue) => {
     if (!dateValue) return 'N/A';
@@ -543,7 +562,7 @@ export default function PendingRegistrations() {
       { label: 'Full Name', value: `${user.firstName} ${user.middleName || ''} ${user.lastName}`.trim(), key: 'fullName', required: true, category: 'identity' },
       { label: 'First Name', value: user.firstName, key: 'firstName', required: true, category: 'identity' },
       { label: 'Last Name', value: user.lastName, key: 'lastName', required: true, category: 'identity' },
-      { label: 'Address', value: `${user.address?.houseNumber || ''} ${user.address?.street || ''} ${user.address?.subdivision || ''}`.trim(), key: 'address', required: true, category: 'address' },
+      { label: 'Address', value: formatResidentAddress(user.address, false), key: 'address', required: true, category: 'address' },
     ];
 
     // Optional fields for additional verification
@@ -554,6 +573,7 @@ export default function PendingRegistrations() {
       { label: 'Gender', value: user.gender, key: 'gender', required: false, category: 'personal' },
       { label: 'Street', value: user.address?.street, key: 'street', required: false, category: 'address' },
       { label: 'Subdivision/Barangay', value: user.address?.subdivision, key: 'subdivision', required: false, category: 'address' },
+      { label: 'Area/District', value: user.address?.area || user.address?.district, key: 'districtArea', required: false, category: 'address' },
     ];
 
     const allFields = [...requiredFields, ...optionalFields];
@@ -838,7 +858,7 @@ export default function PendingRegistrations() {
                       <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                         <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-gray-400" />
                         <span className="truncate">
-                          {user.address?.houseNumber} {user.address?.street}, Brgy. Culiat
+                          {formatResidentAddress(user.address, true)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
@@ -1152,10 +1172,7 @@ export default function PendingRegistrations() {
                         </div>
                       ) : (
                         <p className="text-gray-900 dark:text-gray-100 text-xs sm:text-sm">
-                          {selectedUser.address?.houseNumber} {selectedUser.address?.street}
-                          {selectedUser.address?.subdivision && `, ${selectedUser.address.subdivision}`}
-                          {selectedUser.address?.compound && selectedUser.address.compound !== "No Compound" && ` (${selectedUser.address.compound})`}
-                          , Barangay Culiat, Quezon City
+                          {formatResidentAddress(selectedUser.address, true)}
                         </p>
                       )}
                     </div>

@@ -38,6 +38,7 @@ import {
   Shield,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getGuestRegisterPrefill } from "../../../utils/guestIdentity";
 
 const Register = () => {
   // Step 0 = Resident type selection, Steps 1-5 = Main registration flow
@@ -93,6 +94,7 @@ const Register = () => {
     nonResidentRegion: "",
     nonResidentPostalCode: "",
     precinctNumber: "",
+    isVoter: false,
     religion: "",
     heightWeight: "",
     colorOfHairEyes: "",
@@ -201,6 +203,7 @@ const Register = () => {
         nonResidentRegion: nonResidentAddr.region || "",
         nonResidentPostalCode: nonResidentAddr.postalCode || "",
         precinctNumber: data.precinctNumber || "",
+        isVoter: data.residentType === "resident" ? Boolean(data.isVoter ?? data.precinctNumber) : false,
         religion: data.religion || "",
         heightWeight: data.heightWeight || "",
         colorOfHairEyes: data.colorOfHairEyes || "",
@@ -230,6 +233,20 @@ const Register = () => {
 
     loadPrefill();
   }, [location.search, getReregistrationPrefill]);
+
+  useEffect(() => {
+    if (isReregisterMode) return;
+
+    const guestPrefill = getGuestRegisterPrefill();
+    if (!guestPrefill) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      firstName: prev.firstName || guestPrefill.firstName || "",
+      lastName: prev.lastName || guestPrefill.lastName || "",
+      email: prev.email || guestPrefill.email || "",
+    }));
+  }, [isReregisterMode]);
 
   // Document options now imported from utils/documentTypes.js
   // Includes government IDs + endorsement letters
@@ -686,7 +703,39 @@ const Register = () => {
     });
   };
 
-  const handleFileChange = (e, fieldName = "validIDFile") => {
+  const getImageOrientation = (file) =>
+    new Promise((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(file);
+      const img = new Image();
+
+      img.onload = () => {
+        const width = img.naturalWidth || img.width;
+        const height = img.naturalHeight || img.height;
+        URL.revokeObjectURL(objectUrl);
+        resolve({ width, height, isLandscape: width >= height });
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Unable to read image dimensions"));
+      };
+
+      img.src = objectUrl;
+    });
+
+  const requiresLandscapeIdImage = (fieldName) => {
+    if (fieldName === "primaryID1File" || fieldName === "primaryID1BackFile" || fieldName === "validIDFile" || fieldName === "backOfValidIDFile") {
+      return !!formData.primaryID1Type && !isEndorsementLetter(formData.primaryID1Type);
+    }
+
+    if (fieldName === "primaryID2File" || fieldName === "primaryID2BackFile") {
+      return !!formData.primaryID2Type && !isEndorsementLetter(formData.primaryID2Type);
+    }
+
+    return false;
+  };
+
+  const handleFileChange = async (e, fieldName = "validIDFile") => {
     const file = e.target.files[0];
     if (file) {
       const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
@@ -699,6 +748,21 @@ const Register = () => {
       if (file.size > 5242880) {
         setError("File size must not exceed 5MB");
         return;
+      }
+
+      if (requiresLandscapeIdImage(fieldName)) {
+        try {
+          const { isLandscape } = await getImageOrientation(file);
+          if (!isLandscape) {
+            setError("For valid IDs, image orientation must be landscape. Endorsement letters may be portrait or landscape.");
+            e.target.value = "";
+            return;
+          }
+        } catch (orientationError) {
+          setError("Unable to validate image orientation. Please try another image.");
+          e.target.value = "";
+          return;
+        }
       }
 
       // Handle new 2-ID system
@@ -867,6 +931,9 @@ const Register = () => {
       if (formData.residentType === "resident") {
         if (!formData.houseNumber) errors.houseNumber = "House number is required";
         if (!formData.street) errors.street = "Street is required";
+        if (formData.isVoter && !formData.precinctNumber) {
+          errors.precinctNumber = "Precinct number is required for registered voters";
+        }
       } else if (formData.residentType === "non_resident") {
         if (!formData.nonResidentHouseNumber) errors.nonResidentHouseNumber = "House number is required";
         if (!formData.nonResidentStreet) errors.nonResidentStreet = "Street is required";
@@ -1041,6 +1108,9 @@ const Register = () => {
 
       // Resident type
       formDataToSend.append("residentType", formData.residentType);
+      if (formData.residentType === "resident") {
+        formDataToSend.append("isVoter", formData.isVoter ? "true" : "false");
+      }
 
       // Address based on resident type
       if (formData.residentType === "resident") {
@@ -1069,7 +1139,7 @@ const Register = () => {
         formDataToSend.append("nonResidentAddress", JSON.stringify(nonResidentAddr));
       }
 
-      if (formData.precinctNumber)
+      if (formData.residentType === "resident" && formData.isVoter && formData.precinctNumber)
         formDataToSend.append("precinctNumber", formData.precinctNumber);
       if (formData.religion)
         formDataToSend.append("religion", formData.religion);
@@ -1948,6 +2018,53 @@ const Register = () => {
               <strong>District:</strong> District 6
             </p>
           </div>
+
+          <div className="bg-white border border-slate-200 rounded-lg p-3 space-y-3">
+            <label className="block text-xs font-semibold text-slate-600">
+              Are you a registered voter in Barangay Culiat?
+            </label>
+            <div className="flex flex-wrap items-center gap-4">
+              <label className="inline-flex items-center gap-2 text-xs text-slate-700">
+                <input
+                  type="radio"
+                  name="isVoter"
+                  checked={formData.isVoter === true}
+                  onChange={() => setFormData((prev) => ({ ...prev, isVoter: true }))}
+                  className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500"
+                />
+                Yes
+              </label>
+              <label className="inline-flex items-center gap-2 text-xs text-slate-700">
+                <input
+                  type="radio"
+                  name="isVoter"
+                  checked={formData.isVoter === false}
+                  onChange={() => setFormData((prev) => ({ ...prev, isVoter: false, precinctNumber: "" }))}
+                  className="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500"
+                />
+                No
+              </label>
+            </div>
+
+            {formData.isVoter && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
+                  Precinct Number *
+                </label>
+                <input
+                  type="text"
+                  name="precinctNumber"
+                  value={formData.precinctNumber}
+                  onChange={handleChange}
+                  className={`block w-full px-3 py-2 bg-slate-50 border ${fieldErrors.precinctNumber ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'} rounded-lg focus:ring-2 focus:ring-emerald-100 focus:border-emerald-600 focus:bg-white transition-all duration-200 outline-none text-slate-800 placeholder-slate-400 text-xs`}
+                  placeholder="Enter your precinct number"
+                />
+                {fieldErrors.precinctNumber && (
+                  <p className="text-xs text-red-500 mt-1">{fieldErrors.precinctNumber}</p>
+                )}
+              </div>
+            )}
+          </div>
         </>
       )}
 
@@ -2151,8 +2268,8 @@ const Register = () => {
               <li>Endorsement letter must be from Homeowners President or Purok Leaders</li>
             </>
           )}
-          <li>For IDs: Both front and back must be uploaded</li>
-          <li>For Endorsement Letters: Only one image is required</li>
+          <li>For IDs: Both front and back must be uploaded, and each ID image must be landscape orientation</li>
+          <li>For Endorsement Letters/Documents: Only one image is required and can be portrait or landscape</li>
           <li>Files must be JPG, JPEG, or PNG format (max 5MB each)</li>
         </ul>
       </div>
@@ -2247,7 +2364,14 @@ const Register = () => {
           {/* Front of Document 1 */}
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-2">
-              {isEndorsementLetter(formData.primaryID1Type) ? 'Upload Endorsement Letter *' : 'Front of ID *'}
+              {isEndorsementLetter(formData.primaryID1Type) ? (
+                'Upload Endorsement Letter *'
+              ) : (
+                <span className="inline-flex items-center gap-2 flex-wrap">
+                  <span>Front of ID *</span>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Landscape only</span>
+                </span>
+              )}
             </label>
             {!primaryID1Preview ? (
               <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-all">
@@ -2288,7 +2412,10 @@ const Register = () => {
           {!isEndorsementLetter(formData.primaryID1Type) && (
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-2">
-                Back of ID *
+                <span className="inline-flex items-center gap-2 flex-wrap">
+                  <span>Back of ID *</span>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Landscape only</span>
+                </span>
               </label>
               {!primaryID1BackPreview ? (
                 <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-emerald-400 transition-all">
@@ -2413,7 +2540,14 @@ const Register = () => {
             {/* Front of Document 2 */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-2">
-                {isEndorsementLetter(formData.primaryID2Type) ? 'Upload Endorsement Letter *' : 'Front of ID *'}
+                {isEndorsementLetter(formData.primaryID2Type) ? (
+                  'Upload Endorsement Letter *'
+                ) : (
+                  <span className="inline-flex items-center gap-2 flex-wrap">
+                    <span>Front of ID *</span>
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Landscape only</span>
+                  </span>
+                )}
               </label>
               {!primaryID2Preview ? (
                 <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-green-400 transition-all">
@@ -2454,7 +2588,10 @@ const Register = () => {
             {!isEndorsementLetter(formData.primaryID2Type) && (
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-2">
-                  Back of ID *
+                  <span className="inline-flex items-center gap-2 flex-wrap">
+                    <span>Back of ID *</span>
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Landscape only</span>
+                  </span>
                 </label>
                 {!primaryID2BackPreview ? (
                   <label className="flex flex-col items-center px-4 py-6 bg-slate-50 text-slate-500 rounded-lg border-2 border-dashed border-slate-300 cursor-pointer hover:bg-slate-100 hover:border-green-400 transition-all">

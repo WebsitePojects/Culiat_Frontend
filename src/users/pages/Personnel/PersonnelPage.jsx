@@ -17,7 +17,7 @@ import {
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const positionLabels = {
-    barangay_captain: 'Barangay Captain',
+    barangay_captain: 'Punong Barangay',
     barangay_kagawad: 'Barangay Kagawad',
     sk_chairman: 'SK Chairman',
     barangay_secretary: 'Barangay Secretary',
@@ -50,6 +50,8 @@ const getPersonBranches = (person) => {
         : [person.branch].filter(Boolean);
     return [...new Set(raw.map(normalizeBranch).filter(Boolean))];
 };
+
+const toUpperText = (value) => (value || "").toString().toUpperCase();
 
 const PersonnelPage = () => {
     const [searchParams] = useSearchParams();
@@ -207,7 +209,7 @@ const PersonnelPage = () => {
                                             </span>
                                             
                                             <h3 className="text-sm sm:text-base font-bold text-text-color leading-tight mb-2">
-                                                {person.firstName} {person.middleName ? `${person.middleName[0]}. ` : ""}{person.lastName}
+                                                {toUpperText(person.firstName)} {person.middleName ? `${toUpperText(person.middleName[0])}. ` : ""}{toUpperText(person.lastName)}
                                             </h3>
 
                                             <div className="space-y-1 sm:space-y-2 mb-3 sm:mb-4 flex-grow w-full">

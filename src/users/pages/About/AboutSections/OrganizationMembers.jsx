@@ -4,10 +4,12 @@ import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+const toUpperText = (value) => (value || "").toString().toUpperCase();
+
 // Position label mapping
 const getPositionLabel = (position) => {
    const labels = {
-      barangay_captain: "Punong Barangay (Barangay Captain)",
+      barangay_captain: "Punong Barangay",
       barangay_kagawad: "Barangay Kagawad (Councilor)",
       sk_chairman: "SK Chairperson",
       barangay_secretary: "Barangay Secretary",
@@ -70,7 +72,7 @@ const MemberCard = ({ member }) => {
             <div className="p-6 pt-3 text-center flex-grow flex flex-col justify-center relative z-10">
                <div>
                   <h3 className="text-lg font-bold text-gray-800 leading-tight mb-1 group-hover:text-emerald-700 transition-colors duration-300">
-                     {fullName}
+                     {toUpperText(fullName)}
                   </h3>
                   {/* Position Text */}
                   <p className="text-sm font-bold text-red-600 uppercase tracking-wide mb-1">

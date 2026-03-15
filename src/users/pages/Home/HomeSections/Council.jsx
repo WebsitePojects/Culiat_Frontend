@@ -9,7 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Position labels for display
 const positionLabels = {
-  barangay_captain: "Barangay Captain",
+  barangay_captain: "Punong Barangay",
   barangay_kagawad: "Barangay Kagawad",
   sk_chairman: "SK Chairman",
   barangay_secretary: "Barangay Secretary",
@@ -21,6 +21,8 @@ const positionLabels = {
   deputy_officer: "Deputy Officer",
   other: "Official",
 };
+
+const toUpperText = (value) => (value || "").toString().toUpperCase();
 
 const Council = () => {
   const [officials, setOfficials] = useState([]);
@@ -151,7 +153,7 @@ const Council = () => {
                     "Pamumuno sa Pamamagitan ng Serbisyo"
                   </p>
                   <p className="text-sm text-text-secondary">
-                    — {getCaptainFullName(captain)}, Punong Barangay
+                    — {toUpperText(getCaptainFullName(captain))}, Punong Barangay
                   </p>
                 </div>
               </>
@@ -166,7 +168,7 @@ const Council = () => {
             ) : (
               <ImageHover
                 imageSrc={captain?.photo}
-                imageAlt={captain ? `${getCaptainFullName(captain)} - Barangay Captain` : "Barangay Captain"}
+                imageAlt={captain ? `${toUpperText(getCaptainFullName(captain))} - Barangay Captain` : "Barangay Captain"}
               />
             )}
           </div>
@@ -216,7 +218,7 @@ const Council = () => {
 
                   {/* Name */}
                   <h4 className="font-bold text-secondary text-sm mb-1">
-                    {getFullName(official)}
+                    {toUpperText(getFullName(official))}
                   </h4>
 
                   {/* Position */}

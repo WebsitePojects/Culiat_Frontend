@@ -30,6 +30,7 @@ import Committees from "./users/pages/Committee/Committees";
 import CommitteeDetail from "./users/pages/Committee/CommitteeDetail";
 import PersonnelPage from "./users/pages/Personnel/PersonnelPage";
 import OrgChart from "./users/pages/OrgChart/OrgChart";
+import DownloadableForms from "./users/pages/Downloads/DownloadableForms";
 
 // Admin imports
 import AdminLayout from "./admin/layouts/AdminLayout";
@@ -44,7 +45,6 @@ import AdminDocuments from "./admin/pages/Documents/AdminDocuments";
 import AdminAnalytics from "./admin/pages/Analytics/AdminAnalytics";
 import AdminCalendar from "./admin/pages/Calendar/AdminCalendar";
 import AdminNotifications from "./admin/pages/Notifications/AdminNotifications";
-import AdminTermsAcceptances from "./admin/pages/TermsAcceptances/AdminTermsAcceptances";
 import AdminAchievements from "./admin/pages/Achievements/AdminAchievements";
 import AdminOfficials from "./admin/pages/Officials/AdminOfficials";
 import AdminCommittees from "./admin/pages/Committees/AdminCommittees";
@@ -311,14 +311,6 @@ function App() {
                 <Route path="calendar" element={<AdminCalendar />} />
                 <Route path="notifications" element={<AdminNotifications />} />
                 <Route path="profile" element={<AdminProfile />} />
-                <Route
-                  path="terms-acceptances"
-                  element={
-                    <PrivateRoute adminRestricted={true}>
-                      <AdminTermsAcceptances />
-                    </PrivateRoute>
-                  }
-                />
                 <Route path="reports" element={<AdminReports />} />
                 <Route
                   path="announcements"
@@ -464,11 +456,9 @@ function App() {
               <Route
                 path="/notifications"
                 element={
-                  <PrivateRoute>
-                    <MainLayout>
-                      <UserNotifications />
-                    </MainLayout>
-                  </PrivateRoute>
+                  <MainLayout>
+                    <UserNotifications />
+                  </MainLayout>
                 }
               />
 
@@ -501,6 +491,14 @@ function App() {
                 element={
                   <MainLayout>
                     <AchievementDetail />
+                  </MainLayout>
+                }
+              />
+              <Route
+                path="/downloads"
+                element={
+                  <MainLayout>
+                    <DownloadableForms />
                   </MainLayout>
                 }
               />

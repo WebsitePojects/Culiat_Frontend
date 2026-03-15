@@ -7,7 +7,6 @@ import {
   Users,
   UserCheck,
   History,
-  FileCheck,
   FolderOpen,
   Layout,
   Megaphone,
@@ -43,7 +42,6 @@ const TabSearch = () => {
     { name: "All Users", path: "/admin/users", icon: Users, category: "User Management" },
     { name: "Pending Registrations", path: "/admin/pending-registrations", icon: UserCheck, category: "User Management" },
     { name: "Registration History", path: "/admin/registration-history", icon: History, category: "User Management" },
-    { name: "Terms Acceptances", path: "/admin/terms-acceptances", icon: FileCheck, category: "User Management" },
     { name: "Document Requests", path: "/admin/documents", icon: FolderOpen, category: "User Management" },
     { name: "Announcements", path: "/admin/announcements", icon: Megaphone, category: "Content Management" },
     { name: "Achievements", path: "/admin/achievements", icon: Trophy, category: "Content Management" },
@@ -64,7 +62,6 @@ const TabSearch = () => {
     const restrictedForAdmin = new Set([
       "/admin/dashboard",
       "/admin/registration-history",
-      "/admin/terms-acceptances",
       "/admin/announcements",
       "/admin/achievements",
       "/admin/officials",

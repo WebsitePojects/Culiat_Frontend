@@ -6,8 +6,15 @@ import { Users, ChevronRight, Loader2, UserCheck } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+const toUpperText = (value) => (value || "").toString().toUpperCase();
+
 const stripHtml = (html = "") =>
     html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+
+const getFullName = (person) => {
+    if (!person) return "";
+    return toUpperText([person.firstName, person.middleName, person.lastName].filter(Boolean).join(" ").trim());
+};
 
 const Committees = () => {
     const [committees, setCommittees] = useState([]);
@@ -18,7 +25,10 @@ const Committees = () => {
             try {
                 const response = await axios.get(`${API_URL}/api/committees`);
                 if (response.data.success) {
-                    setCommittees(response.data.data);
+                    const sortedCommittees = [...(response.data.data || [])].sort((a, b) =>
+                        (a?.name || "").localeCompare(b?.name || "")
+                    );
+                    setCommittees(sortedCommittees);
                 }
             } catch (error) {
                 console.error("Error fetching committees:", error);
@@ -90,7 +100,7 @@ const Committees = () => {
                                         <div className="mb-4 p-2.5 rounded-lg bg-gray-50 border border-gray-100 flex items-center gap-2">
                                             <UserCheck className="w-4 h-4 text-primary shrink-0" />
                                             <span className="text-xs text-gray-600">
-                                                Chairperson: <span className="font-semibold text-text-color">{committee.chairperson.firstName} {committee.chairperson.lastName}</span>
+                                                Chairperson: <span className="font-semibold text-text-color">{getFullName(committee.chairperson)}</span>
                                             </span>
                                         </div>
                                     )}

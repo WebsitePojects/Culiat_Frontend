@@ -17,7 +17,7 @@ import {
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const POSITION_OPTIONS = [
-  { value: "barangay_captain", label: "Barangay Captain" },
+  { value: "barangay_captain", label: "Punong Barangay" },
   { value: "barangay_kagawad", label: "Barangay Kagawad" },
   { value: "sk_chairman", label: "SK Chairman" },
   { value: "barangay_secretary", label: "Barangay Secretary" },

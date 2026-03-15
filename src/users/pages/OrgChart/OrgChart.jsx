@@ -20,7 +20,7 @@ import {
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const positionLabels = {
-  barangay_captain: "Barangay Captain",
+  barangay_captain: "Punong Barangay",
   barangay_kagawad: "Barangay Kagawad",
   sk_chairman: "SK Chairman",
   barangay_secretary: "Barangay Secretary",
@@ -32,6 +32,8 @@ const positionLabels = {
   deputy_officer: "Deputy Officer",
   other: "Staff",
 };
+
+const toUpperText = (value) => (value || "").toString().toUpperCase();
 
 /* ─────────── small reusable card ─────────── */
 const PersonCard = ({ person, size = "md", highlight = false, accent = "primary" }) => {
@@ -81,8 +83,8 @@ const PersonCard = ({ person, size = "md", highlight = false, accent = "primary"
         {positionLabels[person.position] || person.position}
       </div>
       <h4 className="text-xs sm:text-sm font-bold text-gray-900 leading-tight">
-        {person.firstName} {person.middleName ? `${person.middleName[0]}. ` : ""}
-        {person.lastName}
+        {toUpperText(person.firstName)} {person.middleName ? `${toUpperText(person.middleName[0])}. ` : ""}
+        {toUpperText(person.lastName)}
       </h4>
       {person.committee && (
         <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 max-w-[140px] leading-tight">

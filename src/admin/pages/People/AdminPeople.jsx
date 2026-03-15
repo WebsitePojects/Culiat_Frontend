@@ -29,6 +29,8 @@ import {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+const toUpperText = (value) => (value || "").toString().toUpperCase();
+
 /* ─── Branch config ─── */
 const BRANCHES = [
   { key: "Executive", label: "Executive Branch", icon: Building2, color: "violet", description: "Implements policies and manages daily operations" },
@@ -41,7 +43,7 @@ const BRANCHES = [
 ];
 
 const POSITION_OPTIONS = [
-  { value: "barangay_captain", label: "Barangay Captain" },
+  { value: "barangay_captain", label: "Punong Barangay" },
   { value: "barangay_kagawad", label: "Barangay Kagawad" },
   { value: "sk_chairman", label: "SK Chairman" },
   { value: "barangay_secretary", label: "Barangay Secretary" },
@@ -593,7 +595,7 @@ const AdminPeople = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                              {person.firstName} {person.middleName ? `${person.middleName[0]}.` : ""} {person.lastName}
+                              {toUpperText(`${person.firstName} ${person.middleName ? `${person.middleName[0]}.` : ""} ${person.lastName}`.trim())}
                             </h4>
                             {!person.isActive && (
                               <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-600">INACTIVE</span>

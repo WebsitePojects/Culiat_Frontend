@@ -63,6 +63,12 @@ export const notificationAPI = {
     api.get(`/api/notifications/user/recent?limit=${limit}&page=${page}&type=${encodeURIComponent(type)}`),
   getMyCounts: () => api.get('/api/notifications/user/counts'),
   markAsRead: (notificationId) => api.patch('/api/notifications/user/read', { notificationId }),
+  getGuestRecent: ({ visitorId, email = '', limit = 30, page = 1, type = 'all' } = {}) =>
+    api.get(`/api/notifications/guest/recent?visitorId=${encodeURIComponent(visitorId || '')}&email=${encodeURIComponent(email || '')}&limit=${limit}&page=${page}&type=${encodeURIComponent(type)}`),
+  getGuestCounts: ({ visitorId, email = '' } = {}) =>
+    api.get(`/api/notifications/guest/counts?visitorId=${encodeURIComponent(visitorId || '')}&email=${encodeURIComponent(email || '')}`),
+  markGuestAsRead: ({ notificationId, visitorId, email = '' } = {}) =>
+    api.patch('/api/notifications/guest/read', { notificationId, visitorId, email }),
 };
 
 // Documents API

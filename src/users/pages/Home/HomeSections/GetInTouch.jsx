@@ -5,8 +5,21 @@ import { MapPin, Clock, FileText, Star, CheckCircle, AlertCircle, Loader, Extern
 import { Link } from "react-router-dom";
 import Button from "../../../../tailadminsrc/components/ui/button/Button";
 import axios from "axios";
+import { getOrCreateVisitorId, saveGuestProfile } from "../../../../utils/guestIdentity";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const getPublicClientIp = async () => {
+  try {
+    const response = await axios.get('https://api.ipify.org?format=json', { timeout: 4000 });
+    return response?.data?.ip || null;
+  } catch (error) {
+    console.warn('[GetInTouch] Unable to resolve public client IP', {
+      message: error?.message,
+    });
+    return null;
+  }
+};
 
 // Animation variants
 const fadeUp = {
@@ -53,6 +66,10 @@ const GetInTouch = () => {
   const [submitStatus, setSubmitStatus] = useState({ type: "", message: "" });
 
   useEffect(() => {
+    getOrCreateVisitorId();
+  }, []);
+
+  useEffect(() => {
     const fetchBarangayInfo = async () => {
       try {
         const response = await axios.get(`${API_URL}/api/barangay-info`);
@@ -82,7 +99,7 @@ const GetInTouch = () => {
     e.preventDefault();    if (submitting) return; // Prevent duplicate submissions    setSubmitStatus({ type: "", message: "" });
 
     // Validation
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.subject || !formData.message) {
+    if (!formData.firstName || !formData.lastName || !formData.subject || !formData.message) {
       setSubmitStatus({ type: "error", message: "Please fill in all required fields." });
       return;
     }
@@ -99,6 +116,14 @@ const GetInTouch = () => {
 
     try {
       setSubmitting(true);
+      const visitorId = getOrCreateVisitorId();
+      const clientPublicIp = await getPublicClientIp();
+
+      console.log('[GetInTouch] Submitting feedback with IP context', {
+        visitorId,
+        hasClientPublicIp: Boolean(clientPublicIp),
+      });
+
       const response = await axios.post(`${API_URL}/api/contact-messages`, {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -107,9 +132,17 @@ const GetInTouch = () => {
         message: formData.message,
         rating: formData.rating,
         category: "feedback",
+        visitorId,
+        clientPublicIp,
       });
 
       if (response.data.success) {
+        saveGuestProfile({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phoneNumber: "",
+        });
         setSubmitStatus({ type: "success", message: response.data.message || "Thank you for your feedback! We'll get back to you soon." });
         // Reset form
         setFormData({
@@ -384,7 +417,7 @@ const GetInTouch = () => {
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Email Address <span className="text-primary">*</span>
+                  Email Address <span className="text-gray-400 text-xs">(Optional)</span>
                 </label>
                 <input
                   type="email"

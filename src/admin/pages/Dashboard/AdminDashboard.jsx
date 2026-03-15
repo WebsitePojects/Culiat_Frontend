@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../../context/AuthContext";
+import { useNotifications } from "../../../hooks/useNotifications";
 import * as XLSX from "xlsx";
 import {
   Users,
   FileText,
-  Clock,
   TrendingUp,
   TrendingDown,
   Plus,
@@ -46,7 +46,8 @@ const StatCard = ({
   onDropdownChange,
   dropdownOptions = [],
   subtitle,
-  loading = false
+  loading = false,
+  onExport,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -83,6 +84,21 @@ const StatCard = ({
             <Icon className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
           </div>
 
+          <div className="flex items-center gap-1 sm:gap-2">
+            {onExport && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onExport();
+                }}
+                className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs text-white bg-black/20 rounded-md sm:rounded-lg hover:bg-black/30 transition-colors"
+                title={`Export ${title}`}
+              >
+                <FileSpreadsheet className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <span className="hidden sm:inline">Export</span>
+              </button>
+            )}
+
           {dropdown && dropdownOptions.length > 0 && (
             <div className="relative">
               <button
@@ -105,39 +121,11 @@ const StatCard = ({
                       setIsOpen(false);
                     }}
                   />
-                  {/* Dropdown */}
-                  <div
-                    className="absolute right-0 top-full mt-1 w-32 sm:w-40 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 max-h-[160px] overflow-y-auto"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDropdownChange("all");
-                        setIsOpen(false);
-                      }}
-                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      All Areas
-                    </button>
-                    {dropdownOptions.map((option) => (
-                      <button
-                        key={option}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDropdownChange(option);
-                          setIsOpen(false);
-                        }}
-                        className="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
                 </>
               )}
             </div>
           )}
+          </div>
         </div>
 
         {/* Value */}
@@ -176,12 +164,24 @@ const StatCard = ({
 };
 
 // Demographics Card Component
-const DemographicsCard = ({ title, data, icon: Icon, loading }) => {
+const DemographicsCard = ({ title, data, icon: Icon, loading, onExport }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-      <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-100 dark:border-gray-700 flex items-center gap-1.5 sm:gap-2">
-        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
-        <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">{title}</h3>
+      <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">{title}</h3>
+        </div>
+        {onExport && (
+          <button
+            onClick={onExport}
+            className="inline-flex items-center gap-1 px-2 py-1 text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+            title={`Export ${title}`}
+          >
+            <FileSpreadsheet className="w-3 h-3" />
+            Export
+          </button>
+        )}
       </div>
       <div className="p-3 sm:p-4">
         {loading ? (
@@ -335,16 +335,22 @@ const StatusBadge = ({ status }) => {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showSuccess, showInfo } = useNotifications();
   const isSuperAdmin = user?.role === 'SuperAdmin' || user?.roleCode === 74932;
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [timeRange, setTimeRange] = useState("month");
   const [selectedArea, setSelectedArea] = useState("all");
+  const [selectedCompound, setSelectedCompound] = useState("all");
+  const [selectedAgeFilter, setSelectedAgeFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("name");
+  const [sortOrder, setSortOrder] = useState("asc");
 
   // Dashboard data states
   const [dashboardData, setDashboardData] = useState(null);
   const [demographics, setDemographics] = useState(null);
   const [areas, setAreas] = useState([]);
+  const [compounds, setCompounds] = useState([]);
 
   const fetchDashboardData = async (isRefresh = false) => {
     try {
@@ -356,11 +362,11 @@ const AdminDashboard = () => {
 
       const [dashboardRes, demographicsRes] = await Promise.all([
         axios.get(`${API_URL}/api/analytics/dashboard`, {
-          params: { timeRange, area: selectedArea },
+          params: { timeRange, area: selectedArea, compound: selectedCompound },
           headers,
         }),
         axios.get(`${API_URL}/api/analytics/demographics`, {
-          params: { area: selectedArea },
+          params: { area: selectedArea, compound: selectedCompound },
           headers,
         }),
       ]);
@@ -368,6 +374,7 @@ const AdminDashboard = () => {
       if (dashboardRes.data.success) {
         setDashboardData(dashboardRes.data.data);
         setAreas(dashboardRes.data.data.areas || []);
+        setCompounds(dashboardRes.data.data.compounds || []);
       }
 
       if (demographicsRes.data.success) {
@@ -383,27 +390,777 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, [timeRange, selectedArea]);
+  }, [timeRange, selectedArea, selectedCompound]);
+
+  useEffect(() => {
+    setSelectedCompound("all");
+  }, [selectedArea]);
 
   const handleRefresh = () => fetchDashboardData(true);
+
+  const getResidentAge = (dateOfBirth) => {
+    if (!dateOfBirth) return null;
+    const now = new Date();
+    const birthDate = new Date(dateOfBirth);
+    if (Number.isNaN(birthDate.getTime())) return null;
+
+    let age = now.getFullYear() - birthDate.getFullYear();
+    const monthDiff = now.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
+      age -= 1;
+    }
+
+    return age;
+  };
+
+  const isAgeMatch = (age, ageFilter) => {
+    if (ageFilter === "all") return true;
+    if (age === null || age === undefined) return false;
+
+    switch (ageFilter) {
+      case "below_18": return age < 18;
+      case "18_24": return age >= 18 && age <= 24;
+      case "25_34": return age >= 25 && age <= 34;
+      case "35_44": return age >= 35 && age <= 44;
+      case "45_54": return age >= 45 && age <= 54;
+      case "55_64": return age >= 55 && age <= 64;
+      case "65_plus": return age >= 65;
+      default: return true;
+    }
+  };
+
+  const formatResidentName = (resident) => {
+    return [resident?.firstName, resident?.middleName, resident?.lastName, resident?.suffix]
+      .filter(Boolean)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
+  const formatResidentAddress = (resident) => {
+    const address = resident?.address || {};
+    return [
+      address.houseNumber,
+      address.street,
+      address.subdivision,
+      address.compound,
+      address.area,
+      address.barangay,
+      address.city,
+    ].filter(Boolean).join(", ");
+  };
+
+  const getSortedRows = (rows) => {
+    const copied = [...rows];
+    copied.sort((a, b) => {
+      let left;
+      let right;
+
+      if (sortBy === "username") {
+        left = (a.username || "").toLowerCase();
+        right = (b.username || "").toLowerCase();
+      } else if (sortBy === "address") {
+        left = (a.address || "").toLowerCase();
+        right = (b.address || "").toLowerCase();
+      } else if (sortBy === "age") {
+        left = Number.isFinite(a.age) ? a.age : 999;
+        right = Number.isFinite(b.age) ? b.age : 999;
+      } else {
+        left = (a.name || "").toLowerCase();
+        right = (b.name || "").toLowerCase();
+      }
+
+      if (left < right) return sortOrder === "asc" ? -1 : 1;
+      if (left > right) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+    return copied;
+  };
+
+  const buildResidentRows = () => {
+    const sourceRows = demographics?.residentRecords || [];
+
+    const filteredRows = sourceRows
+      .map((resident) => {
+        const age = getResidentAge(resident?.dateOfBirth);
+        return {
+          username: resident?.username || "N/A",
+          name: formatResidentName(resident) || "N/A",
+          age,
+          gender: resident?.gender || "Not Specified",
+          civilStatus: resident?.civilStatus || "Not Specified",
+          area: resident?.address?.area || "Unspecified",
+          compound: resident?.address?.compound || "Unspecified",
+          address: formatResidentAddress(resident) || "N/A",
+          registrationStatus: resident?.registrationStatus || "N/A",
+        };
+      })
+      .filter((row) => isAgeMatch(row.age, selectedAgeFilter));
+
+    return getSortedRows(filteredRows);
+  };
+
+  const buildPendingRegistrationRows = () => {
+    const sourceRows = dashboardData?.pendingRegistrationRecords || [];
+
+    const filteredRows = sourceRows
+      .map((resident) => {
+        const age = getResidentAge(resident?.dateOfBirth);
+        return {
+          username: resident?.username || "N/A",
+          name: formatResidentName(resident) || "N/A",
+          age,
+          gender: resident?.gender || "Not Specified",
+          civilStatus: resident?.civilStatus || "Not Specified",
+          area: resident?.address?.area || "Unspecified",
+          compound: resident?.address?.compound || "Unspecified",
+          address: formatResidentAddress(resident) || "N/A",
+          registrationStatus: resident?.registrationStatus || "pending",
+        };
+      })
+      .filter((row) => isAgeMatch(row.age, selectedAgeFilter));
+
+    return getSortedRows(filteredRows);
+  };
+
+  const buildDocumentRequestRows = () => {
+    const sourceRows = dashboardData?.documentRequestRecords || [];
+
+    return sourceRows.map((request) => {
+      const middleName = request?.middleName ? ` ${request.middleName}` : "";
+      const fullName = `${request?.firstName || ""}${middleName} ${request?.lastName || ""}`
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return {
+        controlNumber: request?.controlNumber || "N/A",
+        applicant: fullName || "N/A",
+        documentType: request?.documentType
+          ? request.documentType.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+          : "N/A",
+        status: request?.status || "N/A",
+        paymentStatus: request?.paymentStatus || "N/A",
+        requestedAt: request?.createdAt ? new Date(request.createdAt).toLocaleDateString() : "N/A",
+      };
+    });
+  };
+
+  const exportDetailedRows = ({ title, rows }) => {
+    if (!rows || rows.length === 0) {
+      showInfo("No data available for export based on selected filters.");
+      return;
+    }
+
+    const now = new Date();
+    const scopeLabel = selectedArea === "all" && selectedCompound === "all"
+      ? "Whole Barangay (All Areas and Compounds)"
+      : `${selectedArea === "all" ? "All Areas" : selectedArea} / ${selectedCompound === "all" ? "All Compounds" : selectedCompound}`;
+
+    const ageFilterLabel = {
+      all: "All Ages",
+      below_18: "Below 18",
+      "18_24": "18-24",
+      "25_34": "25-34",
+      "35_44": "35-44",
+      "45_54": "45-54",
+      "55_64": "55-64",
+      "65_plus": "65+",
+    }[selectedAgeFilter] || "All Ages";
+
+    const bodyRows = rows.map((row, index) => [
+      index + 1,
+      row.username,
+      row.name,
+      row.age ?? "N/A",
+      row.gender,
+      row.civilStatus,
+      row.area,
+      row.compound,
+      row.address,
+      row.registrationStatus,
+    ]);
+
+    const exportAoA = [
+      [`BARANGAY CULIAT - ${title.toUpperCase()} REPORT`],
+      [`Generated: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`],
+      [`Scope: ${scopeLabel}`],
+      [`Age Filter: ${ageFilterLabel}`],
+      [`Sort: ${sortBy} (${sortOrder.toUpperCase()})`],
+      [""],
+      ["#", "Username", "Full Name", "Age", "Gender", "Civil Status", "Area", "Compound", "Address", "Registration Status"],
+      ...bodyRows,
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(exportAoA);
+    worksheet["!cols"] = [
+      { wch: 5 },
+      { wch: 18 },
+      { wch: 28 },
+      { wch: 8 },
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 16 },
+      { wch: 48 },
+      { wch: 18 },
+    ];
+    worksheet["!autofilter"] = { ref: "A7:J7" };
+    worksheet["!freeze"] = { xSplit: 0, ySplit: 7 };
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, title.substring(0, 30));
+    XLSX.writeFile(workbook, `Barangay_Culiat_${title.replace(/\s+/g, "_")}_${now.toISOString().split("T")[0]}.xlsx`);
+    showSuccess(`${title} exported successfully.`);
+  };
+
+  const exportDocumentRequestRows = ({ title, rows }) => {
+    if (!rows || rows.length === 0) {
+      showInfo("No document request data available for export.");
+      return;
+    }
+
+    const now = new Date();
+    const bodyRows = rows.map((row, index) => [
+      index + 1,
+      row.controlNumber,
+      row.applicant,
+      row.documentType,
+      row.status,
+      row.paymentStatus,
+      row.requestedAt,
+    ]);
+
+    const exportAoA = [
+      [`BARANGAY CULIAT - ${title.toUpperCase()} REPORT`],
+      [`Generated: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`],
+      ["Coverage: Overall document requests (all categories and statuses)"],
+      ["Included Statuses: Pending, Approved, Rejected, Completed"],
+      [""],
+      ["#", "Control Number", "Applicant", "Document Type", "Status", "Payment Status", "Requested Date"],
+      ...bodyRows,
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(exportAoA);
+    worksheet["!cols"] = [
+      { wch: 5 },
+      { wch: 20 },
+      { wch: 30 },
+      { wch: 28 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 16 },
+    ];
+    worksheet["!autofilter"] = { ref: "A6:G6" };
+    worksheet["!freeze"] = { xSplit: 0, ySplit: 6 };
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, title.substring(0, 30));
+    XLSX.writeFile(workbook, `Barangay_Culiat_${title.replace(/\s+/g, "_")}_${now.toISOString().split("T")[0]}.xlsx`);
+    showSuccess(`${title} exported successfully.`);
+  };
+
+  const isEmployedOccupation = (occupation) => {
+    const normalized = (occupation || "").toString().trim().toLowerCase();
+    if (!normalized) return false;
+    return !["unemployed", "none", "n/a", "na", "jobless"].includes(normalized);
+  };
+
+  const exportCustomWorkbook = ({ filePrefix, summaryTitle, summaryColumns, summaryRows, extraSheets = [] }) => {
+    const now = new Date();
+    const workbook = XLSX.utils.book_new();
+
+    const summaryAoA = [
+      [summaryTitle],
+      [`Generated: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`],
+      [""],
+      summaryColumns,
+      ...summaryRows,
+    ];
+
+    const summarySheet = XLSX.utils.aoa_to_sheet(summaryAoA);
+    summarySheet["!autofilter"] = { ref: `A4:${String.fromCharCode(64 + summaryColumns.length)}4` };
+    summarySheet["!freeze"] = { xSplit: 0, ySplit: 4 };
+    summarySheet["!cols"] = summaryColumns.map(() => ({ wch: 24 }));
+    XLSX.utils.book_append_sheet(workbook, summarySheet, "Summary");
+
+    extraSheets.forEach((sheet) => {
+      const aoa = [
+        [sheet.title],
+        [`Generated: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`],
+        [""],
+        sheet.columns,
+        ...(sheet.rows || []),
+      ];
+
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws["!autofilter"] = { ref: `A4:${String.fromCharCode(64 + sheet.columns.length)}4` };
+      ws["!freeze"] = { xSplit: 0, ySplit: 4 };
+      ws["!cols"] = (sheet.widths || sheet.columns.map(() => ({ wch: 24 })));
+      XLSX.utils.book_append_sheet(workbook, ws, sheet.name.substring(0, 31));
+    });
+
+    XLSX.writeFile(workbook, `${filePrefix}_${now.toISOString().split("T")[0]}.xlsx`);
+    showSuccess(`${summaryTitle} exported successfully.`);
+  };
+
+  const exportRegistrationTrendsCard = () => {
+    const trends = demographics?.registrationTrends || [];
+    if (trends.length === 0) {
+      showInfo("No registration trend data available for export.");
+      return;
+    }
+
+    const summaryRows = trends.map((item) => [
+      item.month,
+      item.year,
+      item.approvedCount || 0,
+      item.pendingCount || 0,
+      item.rejectedCount || 0,
+      item.count || 0,
+    ]);
+
+    const totals = [
+      "TOTAL",
+      "",
+      trends.reduce((sum, item) => sum + (item.approvedCount || 0), 0),
+      trends.reduce((sum, item) => sum + (item.pendingCount || 0), 0),
+      trends.reduce((sum, item) => sum + (item.rejectedCount || 0), 0),
+      trends.reduce((sum, item) => sum + (item.count || 0), 0),
+    ];
+
+    exportCustomWorkbook({
+      filePrefix: "Barangay_Culiat_Registration_Trends",
+      summaryTitle: "BARANGAY CULIAT - REGISTRATION TRENDS REPORT",
+      summaryColumns: ["Month", "Year", "Approved", "Pending", "Rejected", "Total"],
+      summaryRows: [...summaryRows, totals],
+    });
+  };
+
+  const exportTopOccupationsCard = () => {
+    const residents = demographics?.residentRecords || [];
+    if (residents.length === 0) {
+      showInfo("No resident records available for occupation export.");
+      return;
+    }
+
+    const rows = residents.map((resident) => {
+      const name = [resident?.firstName, resident?.middleName, resident?.lastName, resident?.suffix]
+        .filter(Boolean)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const occupation = (resident?.occupation || "").toString().trim() || "Not Specified";
+      const employed = isEmployedOccupation(occupation);
+      return {
+        username: resident?.username || "N/A",
+        name: name || "N/A",
+        occupation,
+        status: employed ? "Employed" : "Unemployed",
+      };
+    });
+
+    const employedRows = rows.filter((item) => item.status === "Employed");
+    const unemployedRows = rows.filter((item) => item.status === "Unemployed");
+
+    const occupationCountMap = rows.reduce((acc, item) => {
+      acc[item.occupation] = (acc[item.occupation] || 0) + 1;
+      return acc;
+    }, {});
+
+    const occupationSummaryRows = Object.entries(occupationCountMap)
+      .sort((a, b) => b[1] - a[1])
+      .map(([occupation, count]) => [occupation, count]);
+
+    exportCustomWorkbook({
+      filePrefix: "Barangay_Culiat_Top_Occupations",
+      summaryTitle: "BARANGAY CULIAT - TOP OCCUPATIONS REPORT",
+      summaryColumns: ["Metric", "Value"],
+      summaryRows: [
+        ["Total Residents (Approved)", rows.length],
+        ["Employed", employedRows.length],
+        ["Unemployed", unemployedRows.length],
+        ["Employment Rate", rows.length > 0 ? `${((employedRows.length / rows.length) * 100).toFixed(1)}%` : "0%"],
+      ],
+      extraSheets: [
+        {
+          name: "Occupation Breakdown",
+          title: "TOP OCCUPATIONS BREAKDOWN",
+          columns: ["Occupation", "Count"],
+          rows: occupationSummaryRows,
+          widths: [{ wch: 36 }, { wch: 14 }],
+        },
+        {
+          name: "Employed Residents",
+          title: "EMPLOYED RESIDENTS",
+          columns: ["Username", "Full Name", "Occupation", "Employment Status"],
+          rows: employedRows.map((item) => [item.username, item.name, item.occupation, item.status]),
+          widths: [{ wch: 20 }, { wch: 34 }, { wch: 34 }, { wch: 18 }],
+        },
+        {
+          name: "Unemployed Residents",
+          title: "UNEMPLOYED RESIDENTS",
+          columns: ["Username", "Full Name", "Occupation", "Employment Status"],
+          rows: unemployedRows.map((item) => [item.username, item.name, item.occupation, item.status]),
+          widths: [{ wch: 20 }, { wch: 34 }, { wch: 34 }, { wch: 18 }],
+        },
+      ],
+    });
+  };
+
+  const exportReligionDistributionCard = () => {
+    const residents = demographics?.residentRecords || [];
+    const religionSummary = demographics?.religionDistribution || [];
+
+    if (religionSummary.length === 0) {
+      showInfo("No religion distribution data available for export.");
+      return;
+    }
+
+    const totalResidents = residents.length;
+    const detailedRows = residents.map((resident) => {
+      const name = [resident?.firstName, resident?.middleName, resident?.lastName, resident?.suffix]
+        .filter(Boolean)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      return [
+        resident?.username || "N/A",
+        name || "N/A",
+        resident?.religion || "Not Specified",
+        resident?.address?.area || "Unspecified",
+        resident?.address?.compound || "Unspecified",
+      ];
+    });
+
+    exportCustomWorkbook({
+      filePrefix: "Barangay_Culiat_Religion_Distribution",
+      summaryTitle: "BARANGAY CULIAT - RELIGION DISTRIBUTION REPORT",
+      summaryColumns: ["Religion", "Count", "Percentage"],
+      summaryRows: religionSummary.map((item) => [
+        item.religion,
+        item.count,
+        totalResidents > 0 ? `${((item.count / totalResidents) * 100).toFixed(1)}%` : "0%",
+      ]),
+      extraSheets: [
+        {
+          name: "Resident List",
+          title: "RELIGION - RESIDENT LIST",
+          columns: ["Username", "Full Name", "Religion", "Area", "Compound"],
+          rows: detailedRows,
+          widths: [{ wch: 20 }, { wch: 34 }, { wch: 24 }, { wch: 18 }, { wch: 22 }],
+        },
+      ],
+    });
+  };
+
+  const exportAreaDistributionCard = () => {
+    const areaSummary = demographics?.areaDistribution || [];
+    const residents = demographics?.residentRecords || [];
+    if (areaSummary.length === 0) {
+      showInfo("No area distribution data available for export.");
+      return;
+    }
+
+    const totalResidents = residents.length;
+    const areaRows = residents.map((resident) => {
+      const name = [resident?.firstName, resident?.middleName, resident?.lastName, resident?.suffix]
+        .filter(Boolean)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      return [
+        resident?.username || "N/A",
+        name || "N/A",
+        resident?.address?.area || "Unspecified",
+        resident?.address?.compound || "Unspecified",
+      ];
+    });
+
+    exportCustomWorkbook({
+      filePrefix: "Barangay_Culiat_Area_Distribution",
+      summaryTitle: "BARANGAY CULIAT - RESIDENTS BY AREA REPORT",
+      summaryColumns: ["Area", "Resident Count", "Percentage"],
+      summaryRows: areaSummary.map((item) => [
+        item.area || "Unspecified",
+        item.count,
+        totalResidents > 0 ? `${((item.count / totalResidents) * 100).toFixed(1)}%` : "0%",
+      ]),
+      extraSheets: [
+        {
+          name: "Resident List",
+          title: "AREA DISTRIBUTION - RESIDENT LIST",
+          columns: ["Username", "Full Name", "Area", "Compound"],
+          rows: areaRows,
+          widths: [{ wch: 20 }, { wch: 34 }, { wch: 18 }, { wch: 22 }],
+        },
+      ],
+    });
+  };
+
+  const exportCompoundDistributionCard = () => {
+    const compoundSummary = demographics?.compoundDistribution || [];
+    const residents = demographics?.residentRecords || [];
+    if (compoundSummary.length === 0) {
+      showInfo("No compound distribution data available for export.");
+      return;
+    }
+
+    const totalResidents = residents.length;
+    const compoundRows = residents.map((resident) => {
+      const name = [resident?.firstName, resident?.middleName, resident?.lastName, resident?.suffix]
+        .filter(Boolean)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      return [
+        resident?.username || "N/A",
+        name || "N/A",
+        resident?.address?.compound || "Unspecified",
+        resident?.address?.area || "Unspecified",
+      ];
+    });
+
+    exportCustomWorkbook({
+      filePrefix: "Barangay_Culiat_Compound_Distribution",
+      summaryTitle: "BARANGAY CULIAT - RESIDENTS BY COMPOUND REPORT",
+      summaryColumns: ["Compound", "Resident Count", "Percentage"],
+      summaryRows: compoundSummary.map((item) => [
+        item.compound || "Unspecified",
+        item.count,
+        totalResidents > 0 ? `${((item.count / totalResidents) * 100).toFixed(1)}%` : "0%",
+      ]),
+      extraSheets: [
+        {
+          name: "Resident List",
+          title: "COMPOUND DISTRIBUTION - RESIDENT LIST",
+          columns: ["Username", "Full Name", "Compound", "Area"],
+          rows: compoundRows,
+          widths: [{ wch: 20 }, { wch: 34 }, { wch: 24 }, { wch: 18 }],
+        },
+      ],
+    });
+  };
+
+  const exportRegisteredVotersCard = () => {
+    const residents = demographics?.residentRecords || [];
+    if (residents.length === 0) {
+      showInfo("No resident records available for voter export.");
+      return;
+    }
+
+    const voterRows = residents.filter((resident) => {
+      const precinct = (resident?.precinctNumber || "").toString().trim();
+      return Boolean(precinct) || resident?.isVoter === true;
+    });
+
+    exportCustomWorkbook({
+      filePrefix: "Barangay_Culiat_Registered_Voters",
+      summaryTitle: "BARANGAY CULIAT - REGISTERED VOTERS REPORT",
+      summaryColumns: ["Metric", "Value"],
+      summaryRows: [
+        ["Total Residents", residents.length],
+        ["Registered Voters", voterRows.length],
+        ["Non-Voters", residents.length - voterRows.length],
+        ["Voter Rate", residents.length > 0 ? `${((voterRows.length / residents.length) * 100).toFixed(1)}%` : "0%"],
+      ],
+      extraSheets: [
+        {
+          name: "Registered Voters",
+          title: "REGISTERED VOTERS - RESIDENT LIST",
+          columns: ["Username", "Full Name", "Precinct Number", "Area", "Compound"],
+          rows: voterRows.map((resident) => {
+            const name = [resident?.firstName, resident?.middleName, resident?.lastName, resident?.suffix]
+              .filter(Boolean)
+              .join(" ")
+              .replace(/\s+/g, " ")
+              .trim();
+
+            return [
+              resident?.username || "N/A",
+              name || "N/A",
+              resident?.precinctNumber || "N/A",
+              resident?.address?.area || "Unspecified",
+              resident?.address?.compound || "Unspecified",
+            ];
+          }),
+          widths: [{ wch: 20 }, { wch: 34 }, { wch: 20 }, { wch: 18 }, { wch: 22 }],
+        },
+      ],
+    });
+  };
+
+  const exportTotalReportsCard = () => {
+    const reports = dashboardData?.reportRecords || [];
+    if (reports.length === 0) {
+      showInfo("No report records available for export.");
+      return;
+    }
+
+    const now = new Date();
+    const rows = reports.map((report, index) => [
+      index + 1,
+      report.id || "N/A",
+      report.accountName || "Anonymous",
+      report.accountUsername || "N/A",
+      report.accountEmail || "N/A",
+      report.isAnonymous ? "Yes" : "No",
+      report.anonymousContact || "N/A",
+      report.title || "N/A",
+      report.description || "N/A",
+      report.category ? report.category.replace(/\b\w/g, (l) => l.toUpperCase()) : "N/A",
+      report.priority ? report.priority.replace(/\b\w/g, (l) => l.toUpperCase()) : "N/A",
+      report.status || "N/A",
+      report.location || "Not specified",
+      report.images?.length ? report.images.join(" | ") : "N/A",
+      report.reportVideo || "N/A",
+      report.createdAt ? new Date(report.createdAt).toLocaleString() : "N/A",
+      report.updatedAt ? new Date(report.updatedAt).toLocaleString() : "N/A",
+    ]);
+
+    const exportAoA = [
+      ["BARANGAY CULIAT - TOTAL REPORTS DETAILED EXPORT"],
+      [`Generated: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`],
+      ["Sort/Filter: Use Excel filter dropdown in header row (Status, Category, Priority, etc.)"],
+      [""],
+      [
+        "#",
+        "Report ID",
+        "Account Name",
+        "Account Username",
+        "Account Email",
+        "Is Anonymous",
+        "Anonymous Contact",
+        "Report Title",
+        "Report Message",
+        "Category",
+        "Priority",
+        "Status",
+        "Location",
+        "Image Links",
+        "Video Link",
+        "Created At",
+        "Updated At",
+      ],
+      ...rows,
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(exportAoA);
+    worksheet["!cols"] = [
+      { wch: 5 },
+      { wch: 28 },
+      { wch: 26 },
+      { wch: 20 },
+      { wch: 30 },
+      { wch: 14 },
+      { wch: 24 },
+      { wch: 34 },
+      { wch: 56 },
+      { wch: 16 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 28 },
+      { wch: 70 },
+      { wch: 56 },
+      { wch: 24 },
+      { wch: 24 },
+    ];
+    worksheet["!autofilter"] = { ref: "A5:Q5" };
+    worksheet["!freeze"] = { xSplit: 0, ySplit: 5 };
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Total Reports");
+    XLSX.writeFile(workbook, `Barangay_Culiat_Total_Reports_${now.toISOString().split("T")[0]}.xlsx`);
+    showSuccess("Total Reports exported successfully.");
+  };
+
+  const handleCardExport = (cardType) => {
+    if (cardType === "document_requests") {
+      const documentRows = buildDocumentRequestRows();
+      exportDocumentRequestRows({ title: "Document Requests", rows: documentRows });
+      return;
+    }
+
+    if (cardType === "registration_trends") {
+      exportRegistrationTrendsCard();
+      return;
+    }
+
+    if (cardType === "top_occupations") {
+      exportTopOccupationsCard();
+      return;
+    }
+
+    if (cardType === "religion_distribution") {
+      exportReligionDistributionCard();
+      return;
+    }
+
+    if (cardType === "area_distribution") {
+      exportAreaDistributionCard();
+      return;
+    }
+
+    if (cardType === "compound_distribution") {
+      exportCompoundDistributionCard();
+      return;
+    }
+
+    if (cardType === "registered_voters") {
+      exportRegisteredVotersCard();
+      return;
+    }
+
+    if (cardType === "total_reports") {
+      exportTotalReportsCard();
+      return;
+    }
+
+    const allRows = buildResidentRows();
+    let rows = allRows;
+
+    if (cardType === "pending_registrations") {
+      rows = buildPendingRegistrationRows();
+    }
+
+    const titleMap = {
+      total_residents: "Total Residents",
+      total_reports: "Total Reports",
+      registered_voters: "Registered Voters",
+      document_requests: "Document Requests",
+      completion_rate: "Completion Rate",
+      pending_registrations: "Pending Registrations",
+      gender: "Gender Distribution",
+      civil: "Civil Status",
+      summary: "Summary",
+      age_group: "Age Group",
+      age_distribution: "Age Distribution",
+    };
+
+    exportDetailedRows({ title: titleMap[cardType] || "Dashboard Card", rows });
+  };
 
   // Export to Excel with multiple sheets for Crystal Reports
   const handleExportToExcel = () => {
     if (!dashboardData || !demographics) {
-      alert("No data available to export. Please wait for data to load.");
+      showInfo("No data available to export. Please wait for data to load.");
       return;
     }
 
     const workbook = XLSX.utils.book_new();
     const exportDate = new Date().toLocaleDateString();
     const exportTime = new Date().toLocaleTimeString();
+    const scopeLabel = selectedArea === "all" && selectedCompound === "all"
+      ? "Whole Barangay (All Areas and Compounds)"
+      : `${selectedArea === "all" ? "All Areas" : selectedArea} / ${selectedCompound === "all" ? "All Compounds" : selectedCompound}`;
 
     // Sheet 1: Overview Summary
     const overviewData = [
-      ["BARANGAY CULIAT - DASHBOARD REPORT"],
+      ["BARANGAY CULIAT - DASHBOARD FINANCIAL STYLE SUMMARY REPORT"],
       [`Generated: ${exportDate} ${exportTime}`],
       [`Time Range: ${timeRange.charAt(0).toUpperCase() + timeRange.slice(1)}`],
-      [`Selected Area: ${selectedArea === "all" ? "All Areas" : selectedArea}`],
+      [`Location Scope: ${scopeLabel}`],
+      [`Age Filter: ${selectedAgeFilter}`],
+      [`Sort: ${sortBy} (${sortOrder.toUpperCase()})`],
       [],
       ["OVERVIEW STATISTICS"],
       ["Metric", "Value", "Change (%)"],
@@ -418,11 +1175,12 @@ const AdminDashboard = () => {
       ["Completion Rate (%)", dashboardData?.overview?.completionRate || 0, "-"],
       ["Total Reports", dashboardData?.overview?.totalReports || 0, dashboardData?.overview?.reportChange || 0],
       ["Pending Reports", dashboardData?.overview?.pendingReports || 0, "-"],
-      ["Resolved Reports", dashboardData?.overview?.resolvedReports || 0, "-"],
-      ["Terms Accepted", dashboardData?.overview?.totalTermsAccepted || 0, "-"],
+      ["Registered Voters", demographics?.summary?.votersRegistered || 0, "-"],
     ];
     const overviewSheet = XLSX.utils.aoa_to_sheet(overviewData);
-    overviewSheet["!cols"] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }];
+    overviewSheet["!cols"] = [{ wch: 48 }, { wch: 20 }, { wch: 18 }];
+    overviewSheet["!autofilter"] = { ref: "A8:C8" };
+    overviewSheet["!freeze"] = { xSplit: 0, ySplit: 8 };
     XLSX.utils.book_append_sheet(workbook, overviewSheet, "Overview");
 
     // Sheet 2: Gender Distribution
@@ -439,7 +1197,9 @@ const AdminDashboard = () => {
       ["Total", demographics?.summary?.totalUsers || 0, "100%"],
     ];
     const genderSheet = XLSX.utils.aoa_to_sheet(genderData);
-    genderSheet["!cols"] = [{ wch: 20 }, { wch: 12 }, { wch: 12 }];
+    genderSheet["!cols"] = [{ wch: 24 }, { wch: 14 }, { wch: 14 }];
+    genderSheet["!autofilter"] = { ref: "A4:C4" };
+    genderSheet["!freeze"] = { xSplit: 0, ySplit: 4 };
     XLSX.utils.book_append_sheet(workbook, genderSheet, "Gender");
 
     // Sheet 3: Civil Status Distribution
@@ -458,7 +1218,9 @@ const AdminDashboard = () => {
       ["Total", demographics?.summary?.totalUsers || 0, "100%"],
     ];
     const civilStatusSheet = XLSX.utils.aoa_to_sheet(civilStatusData);
-    civilStatusSheet["!cols"] = [{ wch: 20 }, { wch: 12 }, { wch: 12 }];
+    civilStatusSheet["!cols"] = [{ wch: 24 }, { wch: 14 }, { wch: 14 }];
+    civilStatusSheet["!autofilter"] = { ref: "A4:C4" };
+    civilStatusSheet["!freeze"] = { xSplit: 0, ySplit: 4 };
     XLSX.utils.book_append_sheet(workbook, civilStatusSheet, "Civil Status");
 
     // Sheet 4: Age Distribution
@@ -476,7 +1238,9 @@ const AdminDashboard = () => {
       ["Total", demographics?.summary?.totalUsers || 0, "100%"],
     ];
     const ageSheet = XLSX.utils.aoa_to_sheet(ageData);
-    ageSheet["!cols"] = [{ wch: 20 }, { wch: 12 }, { wch: 12 }];
+    ageSheet["!cols"] = [{ wch: 24 }, { wch: 14 }, { wch: 14 }];
+    ageSheet["!autofilter"] = { ref: "A4:C4" };
+    ageSheet["!freeze"] = { xSplit: 0, ySplit: 4 };
     XLSX.utils.book_append_sheet(workbook, ageSheet, "Age Distribution");
 
     // Sheet 5: Area Distribution
@@ -494,7 +1258,9 @@ const AdminDashboard = () => {
       ["Total", demographics?.summary?.totalUsers || 0, "100%"],
     ];
     const areaSheet = XLSX.utils.aoa_to_sheet(areaData);
-    areaSheet["!cols"] = [{ wch: 25 }, { wch: 15 }, { wch: 12 }];
+    areaSheet["!cols"] = [{ wch: 28 }, { wch: 18 }, { wch: 14 }];
+    areaSheet["!autofilter"] = { ref: "A4:C4" };
+    areaSheet["!freeze"] = { xSplit: 0, ySplit: 4 };
     XLSX.utils.book_append_sheet(workbook, areaSheet, "Area Distribution");
 
     // Sheet 6: Top Occupations
@@ -510,7 +1276,9 @@ const AdminDashboard = () => {
       ]),
     ];
     const occupationSheet = XLSX.utils.aoa_to_sheet(occupationData);
-    occupationSheet["!cols"] = [{ wch: 30 }, { wch: 12 }, { wch: 12 }];
+    occupationSheet["!cols"] = [{ wch: 34 }, { wch: 14 }, { wch: 14 }];
+    occupationSheet["!autofilter"] = { ref: "A4:C4" };
+    occupationSheet["!freeze"] = { xSplit: 0, ySplit: 4 };
     XLSX.utils.book_append_sheet(workbook, occupationSheet, "Occupations");
 
     // Sheet 7: Religion Distribution
@@ -526,7 +1294,9 @@ const AdminDashboard = () => {
       ]),
     ];
     const religionSheet = XLSX.utils.aoa_to_sheet(religionData);
-    religionSheet["!cols"] = [{ wch: 25 }, { wch: 12 }, { wch: 12 }];
+    religionSheet["!cols"] = [{ wch: 28 }, { wch: 14 }, { wch: 14 }];
+    religionSheet["!autofilter"] = { ref: "A4:C4" };
+    religionSheet["!freeze"] = { xSplit: 0, ySplit: 4 };
     XLSX.utils.book_append_sheet(workbook, religionSheet, "Religion");
 
     // Sheet 8: Registration Trends
@@ -534,17 +1304,29 @@ const AdminDashboard = () => {
       ["REGISTRATION TRENDS"],
       [`Generated: ${exportDate}`],
       [],
-      ["Month", "Year", "New Registrations"],
+      ["Month", "Year", "Approved", "Pending", "Rejected", "Total Registrations"],
       ...(demographics?.registrationTrends || []).map(item => [
         item.month,
         item.year,
-        item.count
+        item.approvedCount || 0,
+        item.pendingCount || 0,
+        item.rejectedCount || 0,
+        item.count || 0
       ]),
       [],
-      ["Total (Period)", "", (demographics?.registrationTrends || []).reduce((sum, t) => sum + t.count, 0)],
+      [
+        "Total (Period)",
+        "",
+        (demographics?.registrationTrends || []).reduce((sum, t) => sum + (t.approvedCount || 0), 0),
+        (demographics?.registrationTrends || []).reduce((sum, t) => sum + (t.pendingCount || 0), 0),
+        (demographics?.registrationTrends || []).reduce((sum, t) => sum + (t.rejectedCount || 0), 0),
+        (demographics?.registrationTrends || []).reduce((sum, t) => sum + (t.count || 0), 0),
+      ],
     ];
     const trendsSheet = XLSX.utils.aoa_to_sheet(trendsData);
-    trendsSheet["!cols"] = [{ wch: 15 }, { wch: 10 }, { wch: 20 }];
+    trendsSheet["!cols"] = [{ wch: 18 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 22 }];
+    trendsSheet["!autofilter"] = { ref: "A4:F4" };
+    trendsSheet["!freeze"] = { xSplit: 0, ySplit: 4 };
     XLSX.utils.book_append_sheet(workbook, trendsSheet, "Reg Trends");
 
     // Sheet 9: Voter Statistics
@@ -562,7 +1344,9 @@ const AdminDashboard = () => {
       ["Senior Citizens (60+)", demographics?.summary?.seniorCitizens || 0, demographics?.summary?.totalUsers > 0 ? ((demographics?.summary?.seniorCitizens || 0) / demographics.summary.totalUsers * 100).toFixed(1) + "%" : "0%"],
     ];
     const voterSheet = XLSX.utils.aoa_to_sheet(voterData);
-    voterSheet["!cols"] = [{ wch: 25 }, { wch: 12 }, { wch: 12 }];
+    voterSheet["!cols"] = [{ wch: 30 }, { wch: 14 }, { wch: 14 }];
+    voterSheet["!autofilter"] = { ref: "A4:C4" };
+    voterSheet["!freeze"] = { xSplit: 0, ySplit: 4 };
     XLSX.utils.book_append_sheet(workbook, voterSheet, "Voters & Seniors");
 
     // Sheet 10: Recent Document Requests
@@ -579,7 +1363,9 @@ const AdminDashboard = () => {
       ]),
     ];
     const recentDocsSheet = XLSX.utils.aoa_to_sheet(recentDocsData);
-    recentDocsSheet["!cols"] = [{ wch: 25 }, { wch: 25 }, { wch: 15 }, { wch: 15 }];
+    recentDocsSheet["!cols"] = [{ wch: 28 }, { wch: 30 }, { wch: 16 }, { wch: 16 }];
+    recentDocsSheet["!autofilter"] = { ref: "A4:D4" };
+    recentDocsSheet["!freeze"] = { xSplit: 0, ySplit: 4 };
     XLSX.utils.book_append_sheet(workbook, recentDocsSheet, "Recent Docs");
 
     // Sheet 11: Recent Reports
@@ -596,7 +1382,9 @@ const AdminDashboard = () => {
       ]),
     ];
     const recentReportsSheet = XLSX.utils.aoa_to_sheet(recentReportsData);
-    recentReportsSheet["!cols"] = [{ wch: 30 }, { wch: 20 }, { wch: 15 }, { wch: 20 }];
+    recentReportsSheet["!cols"] = [{ wch: 34 }, { wch: 22 }, { wch: 16 }, { wch: 22 }];
+    recentReportsSheet["!autofilter"] = { ref: "A4:D4" };
+    recentReportsSheet["!freeze"] = { xSplit: 0, ySplit: 4 };
     XLSX.utils.book_append_sheet(workbook, recentReportsSheet, "Recent Reports");
 
     // Generate filename with date
@@ -683,6 +1471,63 @@ const AdminDashboard = () => {
               <option value="all" className="text-gray-900">All Time</option>
             </select>
 
+            <select
+              value={selectedArea}
+              onChange={(e) => setSelectedArea(e.target.value)}
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-white"
+            >
+              <option value="all" className="text-gray-900">Whole Barangay (All Areas)</option>
+              {areas.map((area) => (
+                <option key={area} value={area} className="text-gray-900">{area}</option>
+              ))}
+            </select>
+
+            <select
+              value={selectedCompound}
+              onChange={(e) => setSelectedCompound(e.target.value)}
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-white"
+            >
+              <option value="all" className="text-gray-900">All Compounds</option>
+              {compounds.map((compound) => (
+                <option key={compound} value={compound} className="text-gray-900">{compound}</option>
+              ))}
+            </select>
+
+            <select
+              value={selectedAgeFilter}
+              onChange={(e) => setSelectedAgeFilter(e.target.value)}
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-white"
+            >
+              <option value="all" className="text-gray-900">All Ages</option>
+              <option value="below_18" className="text-gray-900">Below 18</option>
+              <option value="18_24" className="text-gray-900">18 - 24</option>
+              <option value="25_34" className="text-gray-900">25 - 34</option>
+              <option value="35_44" className="text-gray-900">35 - 44</option>
+              <option value="45_54" className="text-gray-900">45 - 54</option>
+              <option value="55_64" className="text-gray-900">55 - 64</option>
+              <option value="65_plus" className="text-gray-900">65+</option>
+            </select>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-white"
+            >
+              <option value="name" className="text-gray-900">Sort: Name</option>
+              <option value="username" className="text-gray-900">Sort: Username</option>
+              <option value="age" className="text-gray-900">Sort: Age</option>
+              <option value="address" className="text-gray-900">Sort: Address</option>
+            </select>
+
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs md:text-sm bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-white"
+            >
+              <option value="asc" className="text-gray-900">Ascending</option>
+              <option value="desc" className="text-gray-900">Descending</option>
+            </select>
+
             {/* Refresh Button */}
             <button
               onClick={handleRefresh}
@@ -743,19 +1588,38 @@ const AdminDashboard = () => {
       {/* Main Stats Grid - Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
         <StatCard
+          title="Total Users"
+          value={dashboardData?.overview?.totalUsers || 0}
+          icon={Users}
+          color="indigo"
+          subtitle="resident accounts"
+          loading={loading}
+          onClick={() => isSuperAdmin && navigate("/admin/users")}
+          onExport={() => handleCardExport("summary")}
+        />
+
+        <StatCard
           title="Total Residents"
           value={dashboardData?.overview?.totalResidents || 0}
           change={dashboardData?.overview?.residentChange}
           trend={dashboardData?.overview?.residentChange >= 0 ? "up" : "down"}
           icon={Users}
           color="blue"
-          dropdown
-          dropdownValue={selectedArea === "all" ? "All Areas" : selectedArea}
-          onDropdownChange={setSelectedArea}
-          dropdownOptions={areas}
           subtitle="registered users"
           loading={loading}
           onClick={() => isSuperAdmin && navigate("/admin/users")}
+          onExport={() => handleCardExport("total_residents")}
+        />
+
+        <StatCard
+          title="Total Non-residents"
+          value={dashboardData?.overview?.totalNonResidents || 0}
+          icon={UserPlus}
+          color="yellow"
+          subtitle="outside barangay"
+          loading={loading}
+          onClick={() => isSuperAdmin && navigate("/admin/users")}
+          onExport={() => handleCardExport("summary")}
         />
 
         <StatCard
@@ -765,21 +1629,15 @@ const AdminDashboard = () => {
           trend={dashboardData?.overview?.docRequestChange >= 0 ? "up" : "down"}
           icon={FileText}
           color="cyan"
-          subtitle="this period"
+          subtitle="all categories"
           loading={loading}
           onClick={() => navigate("/admin/documents")}
+          onExport={() => handleCardExport("document_requests")}
         />
+      </div>
 
-        <StatCard
-          title="Pending Requests"
-          value={dashboardData?.overview?.pendingRequests || 0}
-          icon={Clock}
-          color="yellow"
-          subtitle="awaiting action"
-          loading={loading}
-          onClick={() => navigate("/admin/documents")}
-        />
-
+      {/* Secondary Stats Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
         <StatCard
           title="Completion Rate"
           value={`${dashboardData?.overview?.completionRate || 0}%`}
@@ -788,11 +1646,9 @@ const AdminDashboard = () => {
           subtitle="documents processed"
           loading={loading}
           onClick={() => navigate("/admin/analytics")}
+          onExport={() => handleCardExport("completion_rate")}
         />
-      </div>
 
-      {/* Secondary Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
         <StatCard
           title="Pending Registrations"
           value={dashboardData?.overview?.pendingRegistrations || 0}
@@ -800,6 +1656,7 @@ const AdminDashboard = () => {
           color="purple"
           loading={loading}
           onClick={() => navigate("/admin/pending-registrations")}
+          onExport={() => handleCardExport("pending_registrations")}
         />
 
         <StatCard
@@ -811,24 +1668,18 @@ const AdminDashboard = () => {
           color="red"
           loading={loading}
           onClick={() => navigate("/admin/reports")}
+          onExport={() => handleCardExport("total_reports")}
         />
 
         <StatCard
-          title="Resolved Reports"
-          value={dashboardData?.overview?.resolvedReports || 0}
+          title="Registered Voters"
+          value={demographics?.summary?.votersRegistered || 0}
           icon={CheckCircle}
           color="green"
+          subtitle="resident voters"
           loading={loading}
-          onClick={() => navigate("/admin/reports")}
-        />
-
-        <StatCard
-          title="Terms Accepted"
-          value={dashboardData?.overview?.totalTermsAccepted || 0}
-          icon={FileText}
-          color="indigo"
-          loading={loading}
-          onClick={() => navigate("/admin/terms-acceptances")}
+          onClick={() => isSuperAdmin && navigate("/admin/users")}
+          onExport={() => handleCardExport("registered_voters")}
         />
       </div>
 
@@ -840,7 +1691,9 @@ const AdminDashboard = () => {
             Resident Demographics
           </h2>
           <span className="text-[10px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
-            {selectedArea === "all" ? "All Areas" : `Area: ${selectedArea}`}
+            {selectedArea === "all" && selectedCompound === "all"
+              ? "Whole Barangay (All Areas / All Compounds)"
+              : `Area: ${selectedArea === "all" ? "All Areas" : selectedArea} • Compound: ${selectedCompound === "all" ? "All Compounds" : selectedCompound}`}
           </span>
         </div>
 
@@ -851,6 +1704,7 @@ const AdminDashboard = () => {
             icon={Users}
             loading={loading}
             data={demographics?.gender || { male: 0, female: 0, other: 0 }}
+            onExport={() => handleCardExport("gender")}
           />
 
           <DemographicsCard
@@ -858,6 +1712,7 @@ const AdminDashboard = () => {
             icon={Heart}
             loading={loading}
             data={demographics?.civilStatus || { single: 0, married: 0, widowed: 0, separated: 0 }}
+            onExport={() => handleCardExport("civil")}
           />
 
           <DemographicsCard
@@ -869,6 +1724,7 @@ const AdminDashboard = () => {
               "Senior Citizens": demographics?.summary?.seniorCitizens || 0,
               "Registered Voters": demographics?.summary?.votersRegistered || 0,
             }}
+            onExport={() => handleCardExport("summary")}
           />
 
           <DemographicsCard
@@ -880,16 +1736,26 @@ const AdminDashboard = () => {
               "Adults (25-44)": (demographics?.ageRanges?.["25-34"] || 0) + (demographics?.ageRanges?.["35-44"] || 0),
               "Seniors (65+)": demographics?.ageRanges?.["65+"] || 0,
             }}
+            onExport={() => handleCardExport("age_group")}
           />
         </div>
       </div>
 
       {/* Age Distribution Progress Bars */}
       <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
-        <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
-          <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
-          Age Distribution
-        </h3>
+        <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between gap-2">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
+            <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
+            Age Distribution
+          </h3>
+          <button
+            onClick={() => handleCardExport("age_distribution")}
+            className="inline-flex items-center gap-1 px-2 py-1 text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+          >
+            <FileSpreadsheet className="w-3 h-3" />
+            Export
+          </button>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
           {demographics?.ageRanges && Object.entries(demographics.ageRanges)
             .filter(([key]) => key !== 'notSpecified')
@@ -911,10 +1777,19 @@ const AdminDashboard = () => {
       {/* Area Distribution */}
       {demographics?.areaDistribution && demographics.areaDistribution.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
-            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
-            Residents by Area (Purok)
-          </h3>
+          <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between gap-2">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
+              <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
+              Residents by Area (Purok)
+            </h3>
+            <button
+              onClick={() => handleCardExport("area_distribution")}
+              className="inline-flex items-center gap-1 px-2 py-1 text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+            >
+              <FileSpreadsheet className="w-3 h-3" />
+              Export
+            </button>
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2 md:gap-3">
             {demographics.areaDistribution.slice(0, 12).map((item) => (
               <button
@@ -927,6 +1802,39 @@ const AdminDashboard = () => {
               >
                 <p className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white">{item.count.toLocaleString()}</p>
                 <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-500 dark:text-gray-400 truncate">{item.area || "Unspecified"}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {demographics?.compoundDistribution && demographics.compoundDistribution.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
+          <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between gap-2">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
+              <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-500" />
+              Residents by Compound
+            </h3>
+            <button
+              onClick={() => handleCardExport("compound_distribution")}
+              className="inline-flex items-center gap-1 px-2 py-1 text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+            >
+              <FileSpreadsheet className="w-3 h-3" />
+              Export
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2 md:gap-3">
+            {demographics.compoundDistribution.slice(0, 12).map((item) => (
+              <button
+                key={item.compound}
+                onClick={() => setSelectedCompound(item.compound)}
+                className={`p-2 sm:p-2.5 md:p-3 rounded-lg border transition-all ${selectedCompound === item.compound
+                    ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-cyan-300 dark:hover:border-cyan-600'
+                  }`}
+              >
+                <p className="text-sm sm:text-base md:text-lg font-bold text-gray-900 dark:text-white">{item.count.toLocaleString()}</p>
+                <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-500 dark:text-gray-400 truncate">{item.compound || "Unspecified"}</p>
               </button>
             ))}
           </div>
@@ -958,10 +1866,19 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
         {demographics?.topOccupations && demographics.topOccupations.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
-            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
-              <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
-              Top Occupations
-            </h3>
+            <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between gap-2">
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
+                <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
+                Top Occupations
+              </h3>
+              <button
+                onClick={() => handleCardExport("top_occupations")}
+                className="inline-flex items-center gap-1 px-2 py-1 text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+              >
+                <FileSpreadsheet className="w-3 h-3" />
+                Export
+              </button>
+            </div>
             <div className="space-y-2 sm:space-y-3">
               {demographics.topOccupations.slice(0, 5).map((item, idx) => (
                 <ProgressBar
@@ -978,10 +1895,19 @@ const AdminDashboard = () => {
 
         {demographics?.religionDistribution && demographics.religionDistribution.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
-            <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
-              <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
-              Religion Distribution
-            </h3>
+            <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between gap-2">
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
+                <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
+                Religion Distribution
+              </h3>
+              <button
+                onClick={() => handleCardExport("religion_distribution")}
+                className="inline-flex items-center gap-1 px-2 py-1 text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+              >
+                <FileSpreadsheet className="w-3 h-3" />
+                Export
+              </button>
+            </div>
             <div className="space-y-2 sm:space-y-3">
               {demographics.religionDistribution.slice(0, 5).map((item, idx) => (
                 <ProgressBar
@@ -999,10 +1925,19 @@ const AdminDashboard = () => {
 
       {/* Registration Trends Mini Chart */}
       <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2.5 sm:p-3 md:p-4">
-        <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2 sm:mb-3 md:mb-4 flex items-center gap-1.5 sm:gap-2">
-          <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
-          Registration Trends (Last 6 Months)
-        </h3>
+        <div className="mb-2 sm:mb-3 md:mb-4 flex items-center justify-between gap-2">
+          <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
+            <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
+            Registration Trends (Last 6 Months)
+          </h3>
+          <button
+            onClick={() => handleCardExport("registration_trends")}
+            className="inline-flex items-center gap-1 px-2 py-1 text-[10px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+          >
+            <FileSpreadsheet className="w-3 h-3" />
+            Export
+          </button>
+        </div>
         {loading ? (
           <div className="flex items-end justify-between gap-1 sm:gap-2 h-24 sm:h-28 md:h-32">
             {[1, 2, 3, 4, 5, 6].map((i) => (

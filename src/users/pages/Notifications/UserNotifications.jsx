@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Bell, XCircle, FileX, MessageSquare, MessageCircle, RefreshCw } from "lucide-react";
 import { notificationAPI } from "../../services/api";
 import { useAuth } from "../../../context/AuthContext";
+import { getGuestProfile, getOrCreateVisitorId } from "../../../utils/guestIdentity";
+import ReplyModal from "./ReplyModal";
 
 const notificationIconByType = {
   registration_rejected: XCircle,
@@ -14,6 +16,13 @@ const notificationIconByType = {
 const UserNotifications = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const hasResidentRole = !!user && (
+    user.roleCode === 74934 ||
+    user.role === "Resident" ||
+    user.roleName === "Resident" ||
+    (Array.isArray(user.roles) && user.roles.includes(74934)) ||
+    (Array.isArray(user.roleNames) && user.roleNames.includes("Resident"))
+  );
   const ITEMS_PER_PAGE = 10;
   const [notifications, setNotifications] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
@@ -35,6 +44,9 @@ const UserNotifications = () => {
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showReplyModal, setShowReplyModal] = useState(false);
+  const [selectedReplyId, setSelectedReplyId] = useState(null);
+  const [selectedReplyType, setSelectedReplyType] = useState(null);
 
   const fetchNotifications = async (isRefresh = false) => {
     try {
@@ -44,10 +56,19 @@ const UserNotifications = () => {
         setLoading(true);
       }
 
-      const [recentResponse, countsResponse] = await Promise.all([
-        notificationAPI.getMyRecent({ limit: 200 }),
-        notificationAPI.getMyCounts(),
-      ]);
+      const guestProfile = getGuestProfile() || {};
+      const visitorId = getOrCreateVisitorId();
+      const guestEmail = guestProfile?.email || "";
+
+      const [recentResponse, countsResponse] = hasResidentRole
+        ? await Promise.all([
+            notificationAPI.getMyRecent({ limit: 200 }),
+            notificationAPI.getMyCounts(),
+          ])
+        : await Promise.all([
+            notificationAPI.getGuestRecent({ visitorId, email: guestEmail, limit: 200 }),
+            notificationAPI.getGuestCounts({ visitorId, email: guestEmail }),
+          ]);
 
       setNotifications(recentResponse.data?.data?.notifications || []);
       setCounts(countsResponse.data?.data || defaultCounts);
@@ -63,7 +84,7 @@ const UserNotifications = () => {
 
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [hasResidentRole]);
 
   const filterOptions = [
     { key: "all", label: "All" },
@@ -90,7 +111,7 @@ const UserNotifications = () => {
   }, [activeFilter]);
 
   const getNotificationTarget = (notification) => {
-    if (notification.type === "registration_rejected" && user?._id) {
+    if (hasResidentRole && notification.type === "registration_rejected" && user?._id) {
       return `/register?reregisterId=${user._id}`;
     }
     return notification.link || null;
@@ -99,7 +120,17 @@ const UserNotifications = () => {
   const handleNotificationClick = async (notification) => {
     try {
       if (notification.unread) {
-        await notificationAPI.markAsRead(notification.id);
+        if (hasResidentRole) {
+          await notificationAPI.markAsRead(notification.id);
+        } else {
+          const guestProfile = getGuestProfile() || {};
+          const visitorId = getOrCreateVisitorId();
+          await notificationAPI.markGuestAsRead({
+            notificationId: notification.id,
+            visitorId,
+            email: guestProfile?.email || "",
+          });
+        }
         setNotifications((prev) =>
           prev.map((item) =>
             item.id === notification.id ? { ...item, unread: false } : item
@@ -112,6 +143,14 @@ const UserNotifications = () => {
       }
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
+    }
+
+    // Show reply modal for feedback/committee responses
+    if (notification.type === "feedback_response" || notification.type === "committee_response") {
+      setSelectedReplyId(notification.id);
+      setSelectedReplyType(notification.type);
+      setShowReplyModal(true);
+      return;
     }
 
     const target = getNotificationTarget(notification);
@@ -312,6 +351,18 @@ const UserNotifications = () => {
           </div>
         )}
       </div>
+
+      {/* Reply Modal */}
+      <ReplyModal
+        isOpen={showReplyModal}
+        onClose={() => {
+          setShowReplyModal(false);
+          setSelectedReplyId(null);
+          setSelectedReplyType(null);
+        }}
+        notificationId={selectedReplyId}
+        notificationType={selectedReplyType}
+      />
     </div>
   );
 };

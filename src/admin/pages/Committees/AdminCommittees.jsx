@@ -22,6 +22,8 @@ import {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+const toUpperText = (value) => (value || "").toString().toUpperCase();
+
 const RichTextEditor = ({ label, value, onChange, placeholder }) => {
   const editorRef = useRef(null);
   const isInternalChange = useRef(false);
@@ -206,7 +208,10 @@ const AdminCommittees = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
-        setCommittees(response.data.data);
+        const sortedCommittees = [...(response.data.data || [])].sort((a, b) =>
+          (a?.name || "").localeCompare(b?.name || "")
+        );
+        setCommittees(sortedCommittees);
       }
     } catch (error) {
       toast.error("Failed to fetch committees");
@@ -443,11 +448,11 @@ const AdminCommittees = () => {
   const getOfficialName = (officialIdOrObj) => {
     if (!officialIdOrObj) return "Not assigned";
     if (typeof officialIdOrObj === "object" && officialIdOrObj.firstName) {
-      return `${officialIdOrObj.firstName} ${officialIdOrObj.lastName}`;
+      return toUpperText(`${officialIdOrObj.firstName} ${officialIdOrObj.lastName}`);
     }
     const official = officials.find((o) => o._id === officialIdOrObj);
     return official
-      ? `${official.firstName} ${official.lastName}`
+      ? toUpperText(`${official.firstName} ${official.lastName}`)
       : "Not assigned";
   };
 

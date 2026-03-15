@@ -15,8 +15,11 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 import toast from "react-hot-toast";
+import { getOrCreateVisitorId, saveGuestProfile } from "../../../utils/guestIdentity";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const toUpperText = (value) => (value || "").toString().toUpperCase();
 
 // Position name mapping for display
 const positionMap = {
@@ -44,7 +47,7 @@ const getDisplayPosition = (dbPosition) => {
 const getFullName = (person) => {
     if (!person) return "";
     const parts = [person.firstName, person.middleName, person.lastName].filter(Boolean);
-    return parts.join(" ").trim();
+    return toUpperText(parts.join(" ").trim());
 };
 
 const getAccomplishmentCover = (item) => {
@@ -112,7 +115,10 @@ const CommitteeDetail = () => {
             try {
                 const response = await axios.get(`${API_URL}/api/committees`);
                 if (response.data.success) {
-                    setAllCommittees(response.data.data || []);
+                    const sortedCommittees = [...(response.data.data || [])].sort((a, b) =>
+                        (a?.name || "").localeCompare(b?.name || "")
+                    );
+                    setAllCommittees(sortedCommittees);
                 }
             } catch (error) {
                 console.error("Error fetching committee list:", error);
@@ -175,6 +181,8 @@ const CommitteeDetail = () => {
             addPerson(member, getDisplayPosition(role), false);
         });
 
+        coords.sort((a, b) => getFullName(a).localeCompare(getFullName(b)));
+
         return { leadership: leaders, coordinators: coords };
     }, [committee]);
 
@@ -187,11 +195,21 @@ const CommitteeDetail = () => {
         e.preventDefault();
         setSending(true);
         try {
+            const visitorId = getOrCreateVisitorId();
             const response = await axios.post(`${API_URL}/api/committee-messages`, {
                 committeeId: committee._id,
-                ...messageForm
+                ...messageForm,
+                visitorId,
             });
             if (response.data.success) {
+                if (!user) {
+                    saveGuestProfile({
+                        firstName: messageForm.firstName,
+                        lastName: messageForm.lastName,
+                        email: messageForm.email,
+                        phoneNumber: messageForm.phoneNumber,
+                    });
+                }
                 toast.success("Message sent successfully!");
                 setShowMessageModal(false);
                 setMessageForm(prev => ({ ...prev, subject: "", message: "" }));
@@ -646,9 +664,9 @@ const CommitteeDetail = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Email</label>
-                                    <input type="email" name="email" required value={messageForm.email} onChange={handleInputChange}
-                                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="juan@example.com" />
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Email <span className="text-gray-400 font-normal text-[11px]">(Optional)</span></label>
+                                    <input type="email" name="email" value={messageForm.email} onChange={handleInputChange}
+                                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="juan@example.com (optional)" />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Phone (Optional)</label>

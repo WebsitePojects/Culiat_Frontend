@@ -6,6 +6,7 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { User, LogOut, LogIn, ChevronDown, Bell } from "lucide-react";
+import { getGuestProfile, getOrCreateVisitorId } from "../utils/guestIdentity";
 
 const Navbar = () => {
    const [isOpen, setIsOpen] = useState(false);
@@ -63,34 +64,41 @@ const Navbar = () => {
 
    useEffect(() => {
       const fetchNotificationData = async () => {
-         if (!hasResidentRole) {
-            setNotificationCount(0);
-            setPreviewNotifications([]);
-            return;
-         }
-
          try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-               setNotificationCount(0);
-               setPreviewNotifications([]);
-               return;
+            const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+            let countsResponse;
+            let recentResponse;
+
+            if (hasResidentRole) {
+               const token = localStorage.getItem("token");
+               if (!token) {
+                  setNotificationCount(0);
+                  setPreviewNotifications([]);
+                  return;
+               }
+
+               const headers = {
+                  Authorization: `Bearer ${token}`,
+               };
+
+               [countsResponse, recentResponse] = await Promise.all([
+                  axios.get(`${apiBase}/api/notifications/user/counts`, { headers }),
+                  axios.get(`${apiBase}/api/notifications/user/recent?limit=5`, { headers }),
+               ]);
+            } else {
+               const visitorId = getOrCreateVisitorId();
+               const guestProfile = getGuestProfile() || {};
+               const email = guestProfile?.email || "";
+
+               [countsResponse, recentResponse] = await Promise.all([
+                  axios.get(`${apiBase}/api/notifications/guest/counts`, {
+                     params: { visitorId, email },
+                  }),
+                  axios.get(`${apiBase}/api/notifications/guest/recent`, {
+                     params: { visitorId, email, limit: 5 },
+                  }),
+               ]);
             }
-
-            const headers = {
-               Authorization: `Bearer ${token}`,
-            };
-
-            const [countsResponse, recentResponse] = await Promise.all([
-               axios.get(
-                  `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/notifications/user/counts`,
-                  { headers }
-               ),
-               axios.get(
-                  `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/notifications/user/recent?limit=5`,
-                  { headers }
-               ),
-            ]);
 
             setNotificationCount(countsResponse.data?.data?.unreadTotal || 0);
             setPreviewNotifications(recentResponse.data?.data?.notifications || []);
@@ -104,20 +112,30 @@ const Navbar = () => {
    }, [hasResidentRole, user?.id, user?._id]);
 
    const fetchNotificationPreview = async () => {
-      if (!hasResidentRole) return;
       try {
          setLoadingNotifPreview(true);
-         const token = localStorage.getItem("token");
-         if (!token) return;
+         const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+         let response;
 
-         const response = await axios.get(
-            `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/notifications/user/recent?limit=5`,
-            {
+         if (hasResidentRole) {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            response = await axios.get(`${apiBase}/api/notifications/user/recent?limit=5`, {
                headers: {
                   Authorization: `Bearer ${token}`,
                },
-            }
-         );
+            });
+         } else {
+            const visitorId = getOrCreateVisitorId();
+            const guestProfile = getGuestProfile() || {};
+            const email = guestProfile?.email || "";
+
+            response = await axios.get(`${apiBase}/api/notifications/guest/recent`, {
+               params: { visitorId, email, limit: 5 },
+            });
+         }
+
          setPreviewNotifications(response.data?.data?.notifications || []);
       } catch (error) {
          setPreviewNotifications([]);
@@ -129,18 +147,30 @@ const Navbar = () => {
    const markNotificationRead = async (notificationId) => {
       if (!notificationId) return;
       try {
-         const token = localStorage.getItem("token");
-         if (!token) return;
+         const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-         await axios.patch(
-            `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/notifications/user/read`,
-            { notificationId },
-            {
-               headers: {
-                  Authorization: `Bearer ${token}`,
-               },
-            }
-         );
+         if (hasResidentRole) {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            await axios.patch(
+               `${apiBase}/api/notifications/user/read`,
+               { notificationId },
+               {
+                  headers: {
+                     Authorization: `Bearer ${token}`,
+                  },
+               }
+            );
+         } else {
+            const visitorId = getOrCreateVisitorId();
+            const guestProfile = getGuestProfile() || {};
+            await axios.patch(`${apiBase}/api/notifications/guest/read`, {
+               notificationId,
+               visitorId,
+               email: guestProfile?.email || "",
+            });
+         }
 
          setPreviewNotifications((prev) =>
             prev.map((item) =>
@@ -255,6 +285,15 @@ const Navbar = () => {
             { label: "Sangguniang Kabataan (SK)", path: "/personnel?branch=SK Council" },
             { label: "Administrative Staff", path: "/personnel?branch=Administrative" },
             { label: "BPSO", path: "/personnel?branch=Barangay Public Safety Officers (BPSO)" },
+         ],
+      },
+      downloads: {
+         label: "Downloads",
+         path: "/downloads",
+         items: [
+            { label: "Barangay Ordinance", path: "/downloads?tab=ordinance" },
+            { label: "Executive Orders", path: "/downloads?tab=executive-orders" },
+            { label: "Barangay Resolutions", path: "/downloads?tab=resolutions" },
          ],
       },
    };
@@ -428,14 +467,35 @@ const Navbar = () => {
                      )}
                   </div>
 
-                  {/* Announcements — hide first on narrow desktop */}
-                  <div className="pb-2 hidden xl:block">
-                     <NavLink to="/announcements" className="navlink text-sm px-2 py-1">Announcements</NavLink>
-                  </div>
-
-                  {/* Achievements — hide first on narrow desktop */}
-                  <div className="pb-2 hidden xl:block">
-                     <NavLink to="/achievements" className="navlink text-sm px-2 py-1">Achievements</NavLink>
+                  {/* Downloads Dropdown */}
+                  <div
+                     className="relative pb-3"
+                     onMouseEnter={() => setOpenDropdown("downloads")}
+                     onMouseLeave={() => setOpenDropdown(null)}
+                  >
+                     <NavLink
+                        to="/downloads"
+                        className={({ isActive }) =>
+                           `navlink text-sm transition flex items-center gap-1 px-2 py-1 ${isActive ? "active" : ""}`
+                        }
+                     >
+                        Downloads
+                        <ChevronDown className="w-3 h-3" />
+                     </NavLink>
+                     {openDropdown === "downloads" && (
+                        <div className="absolute top-full left-0 -mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 overflow-hidden">
+                           {navDropdowns.downloads.items.map((item, idx) => (
+                              <NavLink
+                                 key={idx}
+                                 to={item.path}
+                                 onClick={() => setOpenDropdown(null)}
+                                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary/10 hover:text-primary transition-colors whitespace-normal break-words leading-snug"
+                              >
+                                 {item.label}
+                              </NavLink>
+                           ))}
+                        </div>
+                     )}
                   </div>
 
                   {/* Report — flat link (no dropdown) */}
@@ -599,6 +659,79 @@ const Navbar = () => {
                      </>
                   ) : (
                      <div className="flex items-center gap-2">
+                        <div className="relative notif-menu-container">
+                           <button
+                              onClick={handleToggleNotifMenu}
+                              className="relative flex items-center justify-center w-9 h-9 rounded-lg hover:bg-primary/10 transition-colors"
+                              title="Notifications"
+                              aria-label="Open notifications"
+                           >
+                              <Bell className="w-4.5 h-4.5" />
+                              {notificationCount > 0 && (
+                                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold font-mono tabular-nums flex items-center justify-center leading-none">
+                                    {notificationCount > 99 ? "99+" : notificationCount}
+                                 </span>
+                              )}
+                           </button>
+
+                           {showNotifMenu && (
+                              <div className="absolute right-0 top-full mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden">
+                                 <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/70">
+                                    <div className="flex items-center gap-2">
+                                       <span className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                                          <Bell className="w-4 h-4" />
+                                       </span>
+                                       <p className="text-sm font-semibold text-gray-900">Notifications</p>
+                                    </div>
+                                    <span className="text-xs text-gray-500">{notificationCount} total</span>
+                                 </div>
+
+                                 <div className="max-h-96 overflow-y-auto">
+                                    {loadingNotifPreview ? (
+                                       <p className="px-4 py-6 text-xs text-gray-500 text-center">Loading notifications...</p>
+                                    ) : previewNotifications.length === 0 ? (
+                                       <p className="px-4 py-6 text-xs text-gray-500 text-center">No notifications yet.</p>
+                                    ) : (
+                                       previewNotifications.map((notif) => (
+                                          <button
+                                             key={notif.id || notif._id}
+                                             onClick={async () => {
+                                                if (notif.unread) {
+                                                   await markNotificationRead(notif.id);
+                                                }
+                                                setShowNotifMenu(false);
+                                                navigate("/notifications");
+                                             }}
+                                             className={`w-full text-left px-4 py-3 border-b border-gray-100 transition-colors ${notif.unread ? "bg-gray-50 hover:bg-gray-100" : "bg-white hover:bg-gray-50"}`}
+                                          >
+                                             <div className="flex items-start gap-3">
+                                                <span className={`mt-2 w-2 h-2 rounded-full flex-shrink-0 ${notif.unread ? "bg-blue-500" : "bg-gray-300"}`} />
+                                                <div className="min-w-0 flex-1">
+                                                   <p className={`text-[13px] text-gray-800 truncate ${notif.unread ? "font-bold" : "font-semibold"}`}>{notif.title}</p>
+                                                   <p className="text-xs text-gray-600 mt-1 line-clamp-2">{notif.message}</p>
+                                                   {notif.time && <p className="text-[11px] text-gray-500 mt-1">{notif.time}</p>}
+                                                </div>
+                                             </div>
+                                          </button>
+                                       ))
+                                    )}
+                                 </div>
+
+                                 <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/60">
+                                    <button
+                                       onClick={() => {
+                                          setShowNotifMenu(false);
+                                          navigate("/notifications");
+                                       }}
+                                       className="w-full px-3 py-2.5 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                                    >
+                                       View all notifications
+                                    </button>
+                                 </div>
+                              </div>
+                           )}
+                        </div>
+
                         <button
                            onClick={handleLogin}
                            className="flex items-center gap-1.5 px-3 py-1.5 text-primary hover:bg-primary/10 rounded-lg transition-colors text-xs font-semibold"
@@ -617,8 +750,7 @@ const Navbar = () => {
                </div>
 
                <div className="flex items-center gap-2 lg:hidden">
-                  {hasResidentRole && (
-                     <div className="relative notif-menu-container">
+                  <div className="relative notif-menu-container">
                         <button
                            onClick={handleToggleNotifMenu}
                            className="relative focus:outline-none text-text-color-light mix-blend-difference cursor-pointer w-8 h-8 flex items-center justify-center"
@@ -690,8 +822,7 @@ const Navbar = () => {
                               </div>
                            </div>
                         )}
-                     </div>
-                  )}
+                        </div>
 
                   {/* Mobile menu toggle */}
                   <button
@@ -823,21 +954,30 @@ const Navbar = () => {
                )}
             </div>
 
-            <NavLink
-               to="/announcements"
-               onClick={() => setIsOpen(false)}
-               className="block mobile-navlink text-text-color hover:text-primary"
-            >
-               Announcements
-            </NavLink>
-
-            <NavLink
-               to="/achievements"
-               onClick={() => setIsOpen(false)}
-               className="block mobile-navlink text-text-color hover:text-primary"
-            >
-               Achievements
-            </NavLink>
+            {/* Downloads Mobile Accordion */}
+            <div>
+               <button
+                  onClick={() => setMobileDropdown(mobileDropdown === "downloads" ? null : "downloads")}
+                  className="flex items-center justify-between w-full text-text-color hover:text-primary"
+               >
+                  <span>Downloads</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${mobileDropdown === "downloads" ? "rotate-180" : ""}`} />
+               </button>
+               {mobileDropdown === "downloads" && (
+                  <div className="pl-4 mt-2 space-y-2 border-l-2 border-primary/20">
+                     {navDropdowns.downloads.items.map((item, idx) => (
+                        <NavLink
+                           key={idx}
+                           to={item.path}
+                           onClick={() => setIsOpen(false)}
+                           className="block text-sm text-gray-600 hover:text-primary"
+                        >
+                           {item.label}
+                        </NavLink>
+                     ))}
+                  </div>
+               )}
+            </div>
 
             <NavLink
                to="/reports"
@@ -847,15 +987,13 @@ const Navbar = () => {
                Reports
             </NavLink>
 
-            {hasResidentRole && (
-               <NavLink
-                  to="/notifications"
-                  onClick={() => setIsOpen(false)}
-                  className="block mobile-navlink text-text-color hover:text-primary"
-               >
-                  Notifications
-               </NavLink>
-            )}
+            <NavLink
+               to="/notifications"
+               onClick={() => setIsOpen(false)}
+               className="block mobile-navlink text-text-color hover:text-primary"
+            >
+               Notifications
+            </NavLink>
 
             {/* Committee Mobile Accordion */}
             <div>
